@@ -15,7 +15,6 @@ const Footer = () => {
                 height={50}
                 className="rounded-full"
               />
-              <span className="ml-3 text-xl font-bold">PS Cricket Club</span>
             </div>
             <p className="text-sm text-gray-300 mb-4">
               Prague Spartans Cricket Club was established in 2019, bringing the joy of cricket to Prague.
