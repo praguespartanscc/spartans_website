@@ -1,4 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Prague Spartans Cricket Club Website
+
+This is the official website for the Prague Spartans Cricket Club.
+
+## Setup
+
+### Environment Variables
+
+Create a `.env.local` file in the root directory with the following variables:
+
+```
+# Supabase credentials
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+You can get these values from your Supabase project settings.
+
+### Installation
+
+```bash
+npm install
+```
+
+### Development
+
+```bash
+npm run dev
+```
+
+### Build
+
+```bash
+npm run build
+```
+
+## Features
+
+- Modern design with team colors
+- Responsive layout
+- Team image carousel in hero section
+- Upcoming cricket matches display
+- Sponsors section
+- Integration with Supabase for data management
 
 ## Getting Started
 

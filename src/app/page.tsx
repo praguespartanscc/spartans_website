@@ -1,6 +1,7 @@
 import HeroSection from "@/components/HeroSection";
 import SponsorsSection from "@/components/SponsorsSection";
 import EventsSection from "@/components/EventsSection";
+import PracticeSection from "@/components/PracticeSection";
 
 export default function Home() {
   return (
@@ -14,14 +15,10 @@ export default function Home() {
             <div>
               <h2 className="text-3xl font-bold text-[#1a3049] mb-6">Welcome to Prague Spartans Cricket Club</h2>
               <p className="text-gray-700 mb-4">
-                Founded in 2013, Prague Spartans Cricket Club is one of the premier cricket clubs in the Czech Republic. 
-                We are passionate about growing the sport of cricket in Prague and providing a competitive and enjoyable 
-                environment for players of all skill levels.
+                Founded in 2019, the Prague Spartans Cricket Club was born from a simple idea: to bring people together through the love of cricket. What began as a small group of friends sharing a passion for the sport has grown into a vibrant and diverse community.
               </p>
               <p className="text-gray-700 mb-6">
-                Our club features men&apos;s, women&apos;s, and youth teams that participate in various leagues and tournaments 
-                throughout the Czech Republic and Europe. Whether you&apos;re an experienced cricketer or new to the sport, 
-                there&apos;s a place for you at Prague Spartans.
+                At our core, we are a social club—welcoming players of all backgrounds and skill levels. Whether you&apos;re a seasoned cricketer or picking up the bat for the first time, the Prague Spartans offer a supportive and inclusive environment to enjoy the game.
               </p>
               <div className="flex space-x-4">
                 <span className="inline-flex items-center bg-[#1a3049] text-white px-4 py-2 rounded-full text-sm">
@@ -41,8 +38,7 @@ export default function Home() {
             <div className="bg-[#f3c066] rounded-lg p-8 shadow-xl">
               <h3 className="text-2xl font-bold text-[#1a3049] mb-4">Join Our Club</h3>
               <p className="text-[#1a3049] mb-6">
-                Looking to play cricket in Prague? We welcome players of all abilities. 
-                Practice sessions are held weekly and new members are always welcome.
+                Our mission is to promote camaraderie, sportsmanship, and a deep appreciation for cricket while having fun both on and off the field. Join us, and be part of a team where friendship and the spirit of the game come first.
               </p>
               <ul className="space-y-2 mb-6 text-[#1a3049]">
                 <li className="flex items-center">
@@ -65,7 +61,7 @@ export default function Home() {
                 </li>
               </ul>
               <a 
-                href="/join" 
+                href="/about" 
                 className="block w-full bg-[#1a3049] text-white text-center py-3 px-4 rounded-full font-bold hover:bg-[#2a4059] transition-colors"
               >
                 Learn More
@@ -76,6 +72,7 @@ export default function Home() {
       </section>
       
       <EventsSection />
+      <PracticeSection />
       <SponsorsSection />
     </div>
   );

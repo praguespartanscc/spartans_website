@@ -1,74 +1,67 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { getUpcomingMatches } from '@/services/matchService';
-import type { Match } from '@/types/supabase';
+import { getUpcomingPractices } from '@/services/practiceService';
+import type { Practice } from '@/types/supabase';
 import { isSupabaseConfigured } from '@/lib/supabase';
 
-const EventsSection = () => {
-  const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([]);
+const PracticeSection = () => {
+  const [upcomingPractices, setUpcomingPractices] = useState<Practice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadMatches() {
+    async function loadPractices() {
       try {
         // Skip API call if Supabase isn't configured
         if (!isSupabaseConfigured) {
-          console.warn('Supabase is not configured. Using fallback match data.');
-          setUpcomingMatches([]);
+          console.warn('Supabase is not configured. Using fallback practice data.');
+          setUpcomingPractices([]);
           setIsLoading(false);
           return;
         }
 
-        const matches = await getUpcomingMatches();
-        setUpcomingMatches(matches);
+        const practices = await getUpcomingPractices();
+        setUpcomingPractices(practices);
       } catch (err) {
-        console.error('Failed to load matches:', err);
-        setError('Failed to load upcoming matches. Please try again later.');
+        console.error('Failed to load practices:', err);
+        setError('Failed to load upcoming practices. Please try again later.');
       } finally {
         setIsLoading(false);
       }
     }
 
-    loadMatches();
+    loadPractices();
   }, []);
 
   // Fallback data for when we're loading or if there's an error
-  const fallbackMatches = [
+  const fallbackPractices = [
     {
       id: 1,
-      team1: 'Prague Spartans',
-      team2: 'Prague Eagles',
-      date: '2025-05-15',
-      time: '14:00',
+      title: 'Evening Net Practice',
+      date: '2025-05-12',
+      time: '18:00',
       venue: 'Prague Cricket Ground',
-      type: 'T20 Match - Czech Cricket League',
-      image_url: '/WhatsApp Image 2025-04-24 at 14.31.05.jpeg',
+      description: 'Regular net session for all members. Bring your own gear if possible.',
       created_at: new Date().toISOString()
     },
     {
       id: 2,
-      team1: 'Prague Spartans',
-      team2: 'Vienna CC',
-      date: '2025-05-28',
-      time: '13:30',
-      venue: 'Prague Cricket Ground',
-      type: 'T20 Match - Central European League',
-      image_url: '/WhatsApp Image 2025-04-24 at 14.31.05.jpeg',
+      title: 'Weekend Training Session',
+      date: '2025-05-16',
+      time: '10:00',
+      venue: 'Prague Cricket Academy',
+      description: 'Full team practice with coach. Focus on batting and fielding drills.',
       created_at: new Date().toISOString()
     },
     {
       id: 3,
-      team1: 'Dresden CC',
-      team2: 'Prague Spartans',
-      date: '2025-06-05',
-      time: '13:00',
-      venue: 'Dresden Cricket Field',
-      type: 'International Friendly Match',
-      image_url: '/WhatsApp Image 2025-04-24 at 14.31.05.jpeg',
+      title: 'Bowling Workshop',
+      date: '2025-05-19',
+      time: '18:30',
+      venue: 'Prague Cricket Ground',
+      description: 'Special workshop focused on pace and spin bowling techniques.',
       created_at: new Date().toISOString()
     }
   ];
@@ -84,17 +77,17 @@ const EventsSection = () => {
   };
 
   // Use fallback data if loading or error
-  const displayMatches = (isLoading || error || upcomingMatches.length === 0) 
-    ? fallbackMatches 
-    : upcomingMatches;
+  const displayPractices = (isLoading || error || upcomingPractices.length === 0) 
+    ? fallbackPractices 
+    : upcomingPractices;
 
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-[#1a3049] mb-2">Upcoming Matches</h2>
+          <h2 className="text-3xl font-bold text-[#1a3049] mb-2">Practice Sessions</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Support the Prague Spartans at our upcoming cricket matches
+            Join us for our regular practice sessions to improve your cricket skills
           </p>
           {error && <p className="text-red-500 mt-2">{error}</p>}
         </div>
@@ -105,9 +98,9 @@ const EventsSection = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {displayMatches.map((match) => (
+            {displayPractices.map((practice) => (
               <div 
-                key={match.id} 
+                key={practice.id} 
                 className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200"
               >
                 <div className="h-32 bg-gradient-to-r from-[#1a3049] to-[#570808] flex items-center justify-center">
@@ -123,13 +116,14 @@ const EventsSection = () => {
                 
                 <div className="p-4">
                   <span className="block text-lg font-bold text-[#1a3049] mb-2">
-                    {match.team1} vs {match.team2}
+                    {practice.title}
                   </span>
+                  
                   <div className="flex items-center text-gray-600 mb-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-[#1a3049]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span className="font-medium">{formatDate(match.date)} at {match.time}</span>
+                    <span className="font-medium">{formatDate(practice.date)} at {practice.time}</span>
                   </div>
                   
                   <div className="flex items-center text-gray-600 mb-3">
@@ -137,11 +131,11 @@ const EventsSection = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <span className="font-medium">{match.venue}</span>
+                    <span className="font-medium">{practice.venue}</span>
                   </div>
                   
                   <div className="mt-4 flex justify-between items-center">
-                    <span className="text-xs text-gray-500">{match.type}</span>
+                    <span className="text-xs text-gray-500">{practice.description}</span>
                   </div>
                 </div>
               </div>
@@ -150,16 +144,16 @@ const EventsSection = () => {
         )}
         
         <div className="text-center mt-12">
-          <Link 
-            href="/fixtures"
+          <a 
+            href="/practices"
             className="bg-[#1a3049] hover:bg-[#2a4059] text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all"
           >
-            View All Fixtures
-          </Link>
+            View All Practices
+          </a>
         </div>
       </div>
     </section>
   );
 };
 
-export default EventsSection; 
+export default PracticeSection; 

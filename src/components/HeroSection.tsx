@@ -15,7 +15,7 @@ const HeroSection = () => {
         <p className="text-xl md:text-2xl mb-8 max-w-2xl">Join us in bringing the spirit of cricket to the heart of Prague</p>
         <div className="flex flex-col sm:flex-row gap-4">
           <Link 
-            href="/join" 
+            href="/contact" 
             className="bg-[#f3c066] hover:bg-[#e2af50] text-[#1a3049] font-bold py-3 px-8 rounded-full shadow-lg transition-all transform hover:scale-105"
           >
             Join Our Club
