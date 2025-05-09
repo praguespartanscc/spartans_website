@@ -6,65 +6,6 @@ import type { Match } from '@/types/supabase';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { supabase } from '@/lib/supabase';
 
-// Fallback data for when we're loading or if there's an error
-const fallbackMatches = [
-  {
-    id: 1,
-    team1: 'Prague Spartans',
-    team2: 'Prague Eagles',
-    date: '2025-05-15',
-    time: '14:00',
-    venue: 'Prague Cricket Ground',
-    type: 'T20 Match - Czech Cricket League',
-    image_url: '/prague_spartans_home_logo.jpeg',
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 2,
-    team1: 'Prague Spartans',
-    team2: 'Vienna CC',
-    date: '2025-05-28',
-    time: '13:30',
-    venue: 'Prague Cricket Ground',
-    type: 'T20 Match - Central European League',
-    image_url: '/prague_spartans_home_logo.jpeg',
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 3,
-    team1: 'Dresden CC',
-    team2: 'Prague Spartans',
-    date: '2025-06-05',
-    time: '13:00',
-    venue: 'Dresden Cricket Field',
-    type: 'International Friendly Match',
-    image_url: '/prague_spartans_home_logo.jpeg',
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 4,
-    team1: 'Prague Spartans',
-    team2: 'Brno CC',
-    date: '2025-06-12',
-    time: '14:30',
-    venue: 'Prague Cricket Ground',
-    type: 'T20 Match - Czech Cricket League',
-    image_url: '/prague_spartans_home_logo.jpeg',
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 5,
-    team1: 'Prague Spartans',
-    team2: 'Vinohrady CC',
-    date: '2025-06-19',
-    time: '15:00',
-    venue: 'Prague Cricket Ground',
-    type: 'T20 Match - Czech Cricket League',
-    image_url: '/prague_spartans_home_logo.jpeg',
-    created_at: new Date().toISOString()
-  }
-];
-
 export default function FixturesPage() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -75,18 +16,15 @@ export default function FixturesPage() {
   useEffect(() => {
     async function loadMatches() {
       try {
-        // Skip API call when Supabase is not configured (development/test)
         if (!isSupabaseConfigured) {
           setMatches([]);
           setIsLoading(false);
           return;
         }
-
         const { data, error } = await supabase
           .from('matches')
           .select('*')
           .order('date', { ascending: true });
-
         if (error) throw error;
         setMatches(data || []);
       } catch (error) {
@@ -96,30 +34,20 @@ export default function FixturesPage() {
         setIsLoading(false);
       }
     }
-
     loadMatches();
   }, []);
 
-  // Format date for display
   const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    };
+    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('en-US', options);
   };
 
-  // Calculate pagination
-  const displayMatches = (isLoading || error || matches.length === 0) 
-    ? fallbackMatches 
-    : matches;
-    
+  // Only use actual API data
+  const displayMatches = matches;
   const indexOfLastMatch = currentPage * matchesPerPage;
   const indexOfFirstMatch = indexOfLastMatch - matchesPerPage;
   const currentMatches = displayMatches.slice(indexOfFirstMatch, indexOfLastMatch);
   const totalPages = Math.ceil(displayMatches.length / matchesPerPage);
-
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   return (
@@ -132,11 +60,12 @@ export default function FixturesPage() {
           </p>
           {error && <p className="text-red-500 mt-2">{error}</p>}
         </div>
-
         {isLoading ? (
           <div className="flex justify-center items-center h-60">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1a3049]"></div>
           </div>
+        ) : displayMatches.length === 0 ? (
+          <div className="text-center text-gray-500 text-lg py-12">No upcoming matches found.</div>
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -155,7 +84,6 @@ export default function FixturesPage() {
                       priority
                     />
                   </div>
-                  
                   <div className="p-4">
                     <span className="block text-lg font-bold text-[#1a3049] mb-2">
                       {match.team1} vs {match.team2}
@@ -166,7 +94,6 @@ export default function FixturesPage() {
                       </svg>
                       <span className="font-medium">{formatDate(match.date)} at {match.time}</span>
                     </div>
-                    
                     <div className="flex items-center text-gray-600 mb-3">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-[#1a3049]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -174,7 +101,6 @@ export default function FixturesPage() {
                       </svg>
                       <span className="font-medium">{match.venue}</span>
                     </div>
-                    
                     <div className="mt-4 flex justify-between items-center">
                       <span className="text-xs text-gray-500">{match.type}</span>
                     </div>
@@ -182,7 +108,6 @@ export default function FixturesPage() {
                 </div>
               ))}
             </div>
-            
             {totalPages > 1 && (
               <div className="flex justify-center mt-12">
                 <nav className="inline-flex rounded-md shadow-sm">
@@ -197,7 +122,6 @@ export default function FixturesPage() {
                   >
                     Prev
                   </button>
-                  
                   {[...Array(totalPages).keys()].map((number) => (
                     <button
                       key={number + 1}
@@ -211,7 +135,6 @@ export default function FixturesPage() {
                       {number + 1}
                     </button>
                   ))}
-                  
                   <button
                     onClick={() => paginate(currentPage < totalPages ? currentPage + 1 : totalPages)}
                     disabled={currentPage === totalPages}

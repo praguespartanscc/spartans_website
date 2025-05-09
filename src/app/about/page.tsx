@@ -32,7 +32,7 @@ export default function AboutPage() {
             </div>
             <div className="relative h-80 md:h-96 overflow-hidden rounded-lg shadow-xl">
               <Image 
-                src="/prague_spartans_home_logo.jpeg" 
+                src="/story1.jpeg" 
                 alt="Prague Spartans Cricket Club team" 
                 fill
                 className="object-cover"
@@ -43,7 +43,7 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
             <div className="order-2 lg:order-1 relative h-80 md:h-96 overflow-hidden rounded-lg shadow-xl">
               <Image 
-               src="/prague_spartans_home_logo.jpeg"
+               src="/story2.jpeg"
                 alt="Cricket match action" 
                 fill
                 className="object-cover"

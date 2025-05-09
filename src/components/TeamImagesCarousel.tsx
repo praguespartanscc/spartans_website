@@ -13,30 +13,37 @@ const TeamImagesCarousel = () => {
   const staticImages = useMemo<TeamImageType[]>(() => [
     { 
       id: 1, 
-      title: 'Prague Spartans Logo', 
+      title: 'Home Carousel 1', 
+      image_url: '/home_carousel.jpeg', 
+      alt_text: 'Prague Spartans team celebrating',
+      created_at: new Date().toISOString()
+    },
+    { 
+      id: 2, 
+      title: 'Home Carousel 2', 
+      image_url: '/home_carousel1.jpeg', 
+      alt_text: 'Prague Spartans team group photo',
+      created_at: new Date().toISOString()
+    },
+    { 
+      id: 3, 
+      title: 'Home Carousel 3', 
+      image_url: '/home_carouse2.jpeg', 
+      alt_text: 'Prague Spartans match action',
+      created_at: new Date().toISOString()
+    },
+    { 
+      id: 4, 
+      title: 'Spartans Logo', 
       image_url: '/prague_spartans_home_logo.jpeg', 
       alt_text: 'Prague Spartans Logo',
       created_at: new Date().toISOString()
     },
     { 
-      id: 2, 
-      title: 'Spartans in Action', 
+      id: 5, 
+      title: 'Spartan Team', 
       image_url: '/spartan_team.PNG', 
       alt_text: 'Spartans in Action',
-      created_at: new Date().toISOString()
-    },
-    { 
-      id: 3, 
-      title: 'Team Photo', 
-      image_url: '/prague_spartans_home_logo.jpeg', 
-      alt_text: 'Team Photo',
-      created_at: new Date().toISOString()
-    },
-    { 
-      id: 4, 
-      title: 'Match Day', 
-      image_url: '/WhatsApp Image 2025-04-24 at 14.31.05.jpeg', 
-      alt_text: 'Match Day',
       created_at: new Date().toISOString()
     }
   ], []);
@@ -125,7 +132,7 @@ const TeamImagesCarousel = () => {
             alt={image.alt_text}
             fill
             priority={index === 0}
-            style={{ objectFit: 'cover', objectPosition: 'center' }}
+            style={{ objectFit: 'cover', objectPosition: 'top' }}
             sizes="(max-width: 640px) 100vw, (max-width: 768px) 100vw, 100vw"
           />
         </div>

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useState, useEffect, useCallback } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import toast, { Toaster } from 'react-hot-toast';
 
 type Player = {
@@ -28,12 +28,10 @@ export default function TeamManagement() {
   const [editPlayerId, setEditPlayerId] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [playerToDelete, setPlayerToDelete] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const supabase = createClientComponentClient();
 
-  useEffect(() => {
-    fetchPlayers();
-  }, []);
-
-  async function fetchPlayers() {
+  const fetchPlayers = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('players')
@@ -47,7 +45,18 @@ export default function TeamManagement() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [supabase]);
+
+  useEffect(() => {
+    async function checkAdminAndFetch() {
+      await supabase.auth.refreshSession();
+      const { data: { user } } = await supabase.auth.getUser();
+      const admin = !!user?.user_metadata?.isAdmin;
+      setIsAdmin(admin);
+      fetchPlayers();
+    }
+    checkAdminAndFetch();
+  }, [supabase.auth, fetchPlayers]);
 
   async function handleAddPlayer(e: React.FormEvent) {
     e.preventDefault();
@@ -158,6 +167,24 @@ export default function TeamManagement() {
     setNewPlayer({ name: '', email: '', age: '', player_type: 'batsman', role: 'player' });
   }
 
+  if (isAdmin === null) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1a3049]"></div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center h-40">
+        <p className="text-red-600 font-semibold text-lg">
+          You need admin privileges to manage players.
+        </p>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-40">
@@ -222,6 +249,7 @@ export default function TeamManagement() {
               <option value="batsman">Batsman</option>
               <option value="bowler">Bowler</option>
               <option value="allrounder">All-rounder</option>
+              <option value="wicketkeeper">Wicketkeeper</option>
             </select>
           </div>
           

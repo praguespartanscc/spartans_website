@@ -7,6 +7,53 @@ import { getUpcomingMatches } from '@/services/matchService';
 import type { Match } from '@/types/supabase';
 import { isSupabaseConfigured } from '@/lib/supabase';
 
+// Add a MatchCard component similar to PracticeSessionCard
+function MatchCard({ match }: { match: Match }) {
+  const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('en-US', options);
+  };
+  return (
+    <div className="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col transition-transform hover:-translate-y-1 hover:shadow-2xl">
+      {/* Image Banner */}
+      <div className="relative h-32 w-full bg-gradient-to-r from-[#1a3049] to-[#570808] flex items-center justify-center">
+        <Image
+          src="/prague_spartans_home_logo.jpeg"
+          alt="Prague Spartans Logo"
+          width={100}
+          height={100}
+          className="object-contain drop-shadow-lg"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+      </div>
+      {/* Match Info */}
+      <div className="p-5 flex flex-col gap-2 flex-1">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-xs text-gray-400 font-medium">
+            {formatDate(match.date)} at {match.time}
+          </span>
+          <span className="px-2 py-1 rounded text-xs font-semibold bg-blue-100 text-blue-700 capitalize">
+            {match.type}
+          </span>
+        </div>
+        <div className="font-bold text-xl text-[#1a3049] mb-1">
+          {match.team1} <span className="text-gray-400 font-normal">vs</span> {match.team2}
+        </div>
+        {match.venue && (
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-[#1a3049]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span className="font-medium">{match.venue}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 const EventsSection = () => {
   const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -15,14 +62,11 @@ const EventsSection = () => {
   useEffect(() => {
     async function loadMatches() {
       try {
-        // Skip API call if Supabase isn't configured
         if (!isSupabaseConfigured) {
-          console.warn('Supabase is not configured. Using fallback match data.');
           setUpcomingMatches([]);
           setIsLoading(false);
           return;
         }
-
         const matches = await getUpcomingMatches();
         setUpcomingMatches(matches);
       } catch (err) {
@@ -32,61 +76,11 @@ const EventsSection = () => {
         setIsLoading(false);
       }
     }
-
     loadMatches();
   }, []);
 
-  // Fallback data for when we're loading or if there's an error
-  const fallbackMatches = [
-    {
-      id: 1,
-      team1: 'Prague Spartans',
-      team2: 'Prague Eagles',
-      date: '2025-05-15',
-      time: '14:00',
-      venue: 'Prague Cricket Ground',
-      type: 'T20 Match - Czech Cricket League',
-      image_url: '/WhatsApp Image 2025-04-24 at 14.31.05.jpeg',
-      created_at: new Date().toISOString()
-    },
-    {
-      id: 2,
-      team1: 'Prague Spartans',
-      team2: 'Vienna CC',
-      date: '2025-05-28',
-      time: '13:30',
-      venue: 'Prague Cricket Ground',
-      type: 'T20 Match - Central European League',
-      image_url: '/WhatsApp Image 2025-04-24 at 14.31.05.jpeg',
-      created_at: new Date().toISOString()
-    },
-    {
-      id: 3,
-      team1: 'Dresden CC',
-      team2: 'Prague Spartans',
-      date: '2025-06-05',
-      time: '13:00',
-      venue: 'Dresden Cricket Field',
-      type: 'International Friendly Match',
-      image_url: '/WhatsApp Image 2025-04-24 at 14.31.05.jpeg',
-      created_at: new Date().toISOString()
-    }
-  ];
-
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    };
-    return new Date(dateString).toLocaleDateString('en-US', options);
-  };
-
-  // Use fallback data if loading or error
-  const displayMatches = (isLoading || error || upcomingMatches.length === 0) 
-    ? fallbackMatches 
-    : upcomingMatches;
+  // Only use actual API data
+  const displayMatches = upcomingMatches;
 
   return (
     <section className="py-16 bg-white">
@@ -98,57 +92,19 @@ const EventsSection = () => {
           </p>
           {error && <p className="text-red-500 mt-2">{error}</p>}
         </div>
-        
         {isLoading ? (
           <div className="flex justify-center items-center h-40">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1a3049]"></div>
           </div>
+        ) : displayMatches.length === 0 ? (
+          <div className="text-center text-gray-500 py-8">No upcoming matches found.</div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {displayMatches.map((match) => (
-              <div 
-                key={match.id} 
-                className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200"
-              >
-                <div className="h-32 bg-gradient-to-r from-[#1a3049] to-[#570808] flex items-center justify-center">
-                  <Image
-                    src="/prague_spartans_home_logo.jpeg"
-                    alt="Prague Spartans"
-                    width={120}
-                    height={80}
-                    className="object-contain"
-                    priority
-                  />
-                </div>
-                
-                <div className="p-4">
-                  <span className="block text-lg font-bold text-[#1a3049] mb-2">
-                    {match.team1} vs {match.team2}
-                  </span>
-                  <div className="flex items-center text-gray-600 mb-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-[#1a3049]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span className="font-medium">{formatDate(match.date)} at {match.time}</span>
-                  </div>
-                  
-                  <div className="flex items-center text-gray-600 mb-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-[#1a3049]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span className="font-medium">{match.venue}</span>
-                  </div>
-                  
-                  <div className="mt-4 flex justify-between items-center">
-                    <span className="text-xs text-gray-500">{match.type}</span>
-                  </div>
-                </div>
-              </div>
+              <MatchCard key={match.id} match={match} />
             ))}
           </div>
         )}
-        
         <div className="text-center mt-12">
           <Link 
             href="/fixtures"

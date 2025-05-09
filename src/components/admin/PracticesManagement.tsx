@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useState, useEffect, useCallback } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import toast, { Toaster } from 'react-hot-toast';
 
 type Practice = {
@@ -32,17 +32,15 @@ export default function PracticesManagement() {
   const [editPracticeId, setEditPracticeId] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [practiceToDelete, setPracticeToDelete] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const supabase = createClientComponentClient();
 
-  useEffect(() => {
-    fetchPractices();
-  }, []);
-
-  async function fetchPractices() {
+  const fetchPractices = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('practices')
         .select('*')
-        .order('date', { ascending: true });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setPractices(data || []);
@@ -51,7 +49,18 @@ export default function PracticesManagement() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [supabase]);
+
+  useEffect(() => {
+    async function checkAdminAndFetch() {
+      await supabase.auth.refreshSession();
+      const { data: { user } } = await supabase.auth.getUser();
+      const admin = !!user?.user_metadata?.isAdmin;
+      setIsAdmin(admin);
+      fetchPractices();
+    }
+    checkAdminAndFetch();
+  }, [supabase.auth, fetchPractices]);
 
   async function handleAddPractice(e: React.FormEvent) {
     e.preventDefault();
@@ -154,6 +163,24 @@ export default function PracticesManagement() {
   function handleCancelEdit() {
     setEditPracticeId(null);
     setNewPractice({ date: '', time: '', venue: '', type: 'regular', notes: '', first_team: '', second_team: '' });
+  }
+
+  if (isAdmin === null) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1a3049]"></div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center h-40">
+        <p className="text-red-600 font-semibold text-lg">
+          You need admin privileges to manage practices.
+        </p>
+      </div>
+    );
   }
 
   if (isLoading) {

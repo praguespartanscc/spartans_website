@@ -7,44 +7,7 @@ import type { Practice } from '@/types/supabase';
 import { isSupabaseConfigured } from '@/lib/supabase';
 
 // Fallback data for when we're loading or if there's an error
-const fallbackPractices = [
-  {
-    id: 1,
-    title: 'Regular Training Session',
-    date: '2025-05-12',
-    time: '18:00 - 20:00',
-    venue: 'Prague Cricket Ground',
-    description: 'Weekly training session focusing on batting technique and fielding drills.',
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 2,
-    title: 'Beginners Practice',
-    date: '2025-05-14',
-    time: '17:00 - 19:00',
-    venue: 'Prague Cricket Ground',
-    description: 'Special session for beginners and new members to learn the basics.',
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 3,
-    title: 'Bowling Masterclass',
-    date: '2025-05-16',
-    time: '18:00 - 20:00',
-    venue: 'Prague Cricket Ground',
-    description: 'Advanced bowling techniques and strategies with our specialist coach.',
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 4,
-    title: 'Weekend Team Practice',
-    date: '2025-05-18',
-    time: '10:00 - 13:00',
-    venue: 'Prague Cricket Ground',
-    description: 'Full team practice session including match scenarios and tactical discussions.',
-    created_at: new Date().toISOString()
-  }
-];
+
 
 export default function PracticesPage() {
   const [practices, setPractices] = useState<Practice[]>([]);
@@ -58,7 +21,7 @@ export default function PracticesPage() {
       try {
         if (!isSupabaseConfigured) {
           console.warn('Supabase is not configured. Using fallback practice data.');
-          setPractices(fallbackPractices);
+          setPractices([]);
           setIsLoading(false);
           return;
         }
@@ -88,7 +51,7 @@ export default function PracticesPage() {
 
   // Calculate pagination
   const displayPractices = (isLoading || error || practices.length === 0) 
-    ? fallbackPractices 
+    ? []
     : practices;
     
   const indexOfLastPractice = currentPage * practicesPerPage;

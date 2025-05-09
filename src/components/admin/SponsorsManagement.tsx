@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useState, useEffect, useCallback } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import toast, { Toaster } from 'react-hot-toast';
 import Image from 'next/image';
 import type { Sponsor } from '@/types/supabase';
@@ -20,14 +20,11 @@ export default function SponsorsManagement() {
     website_url: '',
     description: ''
   });
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const supabase = createClientComponentClient();
 
-  useEffect(() => {
-    fetchSponsors();
-  }, []);
-
-  async function fetchSponsors() {
+  const fetchSponsors = useCallback(async () => {
     try {
-      setIsLoading(true);
       const { data, error } = await supabase
         .from('sponsors')
         .select('*')
@@ -37,47 +34,114 @@ export default function SponsorsManagement() {
       setSponsors(data || []);
     } catch (error) {
       console.error('Error fetching sponsors:', error);
-      toast.error('Failed to load sponsors');
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [supabase]);
+
+  useEffect(() => {
+    async function checkAdminAndFetch() {
+      await supabase.auth.refreshSession();
+      const { data: { user } } = await supabase.auth.getUser();
+      const admin = !!user?.user_metadata?.isAdmin;
+      setIsAdmin(admin);
+      fetchSponsors();
+    }
+    checkAdminAndFetch();
+  }, [supabase.auth, fetchSponsors]);
 
   function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    try {
+      const file = e.target.files?.[0];
+      console.log('File selected:', file ? true : false);
+      
+      if (!file) {
+        console.warn('No file selected');
+        return;
+      }
 
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/png'];
-    if (!validTypes.includes(file.type)) {
-      toast.error('Only JPEG and PNG files are allowed');
-      e.target.value = '';
-      return;
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/png'];
+      if (!validTypes.includes(file.type)) {
+        console.warn('Invalid file type:', file.type);
+        toast.error('Only JPEG and PNG files are allowed');
+        e.target.value = '';
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        console.warn('File too large:', file.size);
+        toast.error('File size must be less than 5MB');
+        e.target.value = '';
+        return;
+      }
+
+      console.log('Setting logo file:', {
+        name: file.name,
+        type: file.type,
+        size: file.size
+      });
+      
+      setLogoFile(file);
+      
+      // Create a preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error handling logo change:', error);
+      toast.error('Failed to process the selected file');
     }
-
-    setLogoFile(file);
-    
-    // Create a preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setLogoPreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
   }
 
   async function uploadLogo(file: File): Promise<string> {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = `${fileName}`;
+    try {
+      if (!file) {
+        throw new Error("File is null or undefined");
+      }
+      
+      console.log("File details:", {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+      });
+      
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = fileName;
+      
+      // Upload with options
+      const { data, error } = await supabase.storage
+        .from('sponsor-logos')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true,
+          contentType: file.type
+        });
 
-    const { error: uploadError } = await supabase.storage
-      .from('sponsor-logos')
-      .upload(filePath, file);
+      if (error) {
+        console.error('Upload error details:', error);
+        throw error;
+      }
+      
+      console.log('Upload success, data:', data);
 
-    if (uploadError) throw uploadError;
-
-    const { data } = supabase.storage.from('sponsor-logos').getPublicUrl(filePath);
-    return data.publicUrl;
+      // Create the public URL directly using the supabase URL and bucket info
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const bucketName = 'sponsor-logos';
+      const publicUrl = `${supabaseUrl}/storage/v1/object/public/${bucketName}/${filePath}`;
+      
+      console.log('Generated public URL:', publicUrl);
+      
+      return publicUrl;
+    } catch (error) {
+      console.error('Upload function error:', error);
+      throw error;
+    }
   }
 
   async function handleAddSponsor(e: React.FormEvent) {
@@ -91,17 +155,28 @@ export default function SponsorsManagement() {
     setIsSubmitting(true);
     
     try {
+      // Use isAdmin state instead of isUserAdmin function
+      if (!isAdmin) {
+        toast.error('You need admin privileges to add or edit sponsors');
+        setIsSubmitting(false);
+        return;
+      }
+      
       let logoUrl = '';
       
       // If adding a new sponsor or updating logo
       if (logoFile) {
+        console.log('Uploading logo file...');
         logoUrl = await uploadLogo(logoFile);
+        console.log('Logo uploaded, URL:', logoUrl);
       } else if (editSponsorId) {
         // If editing but not changing logo, keep existing URL
         logoUrl = sponsors.find(s => s.id === editSponsorId)?.logo_url || '';
+        console.log('Using existing logo URL:', logoUrl);
       }
       
       if (editSponsorId) {
+        console.log('Updating sponsor with ID:', editSponsorId);
         // Update existing sponsor
         const { data, error } = await supabase
           .from('sponsors')
@@ -114,12 +189,24 @@ export default function SponsorsManagement() {
           .eq('id', editSponsorId)
           .select();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Update error details:', error);
+          throw error;
+        }
         
         setSponsors(sponsors.map(s => s.id === editSponsorId ? (data ? data[0] : s) : s));
         toast.success('Sponsor updated successfully!');
       } else {
-        // Add new sponsor
+        console.log('Adding new sponsor with data:', {
+          name: newSponsor.name,
+          website_url: newSponsor.website_url,
+          logo_url: logoUrl ? 'Set' : 'Not set'
+        });
+        
+        // Instead of inserting directly through the client, consider using a server endpoint
+        // that has admin access via service role
+        
+        // Try client-side insert first
         const { data, error } = await supabase
           .from('sponsors')
           .insert([{
@@ -130,7 +217,52 @@ export default function SponsorsManagement() {
           }])
           .select();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Insert error details:', error);
+          
+          // If it's an RLS error, try a workaround using a server endpoint
+          if (error.code === '42501' || error.message.includes('security policy')) {
+            try {
+              // You'd need to create this API endpoint to use the service role
+              const response = await fetch('/api/admin/sponsors', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  name: newSponsor.name,
+                  website_url: newSponsor.website_url,
+                  logo_url: logoUrl,
+                  description: newSponsor.description
+                }),
+              });
+              
+              if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `Server error: ${response.status}`);
+              }
+              
+              const result = await response.json();
+              console.log('Added sponsor via API:', result);
+              
+              // Refresh sponsors list
+              await fetchSponsors();
+              toast.success('Sponsor added successfully!');
+              resetForm();
+              return;
+            } catch (apiError) {
+              console.error('API error:', apiError);
+              if (apiError instanceof Error && apiError.message.includes('Server configuration error')) {
+                toast.error('Server configuration issue. Please contact the administrator to set up the SUPABASE_SERVICE_ROLE_KEY.');
+              } else {
+                toast.error('You do not have permission to add sponsors. Please contact an administrator.');
+              }
+              return;
+            }
+          }
+          
+          throw error;
+        }
         
         setSponsors([...(data || []), ...sponsors]);
         toast.success('Sponsor added successfully!');
@@ -218,6 +350,26 @@ export default function SponsorsManagement() {
     });
     setLogoFile(null);
     setLogoPreview(null);
+  }
+
+  if (isAdmin === null) {
+    // Still checking admin status
+    return (
+      <div className="flex justify-center items-center h-40">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1a3049]"></div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    // Not an admin
+    return (
+      <div className="flex flex-col items-center justify-center h-40">
+        <p className="text-red-600 font-semibold text-lg">
+          You need admin privileges to manage sponsors.
+        </p>
+      </div>
+    );
   }
 
   if (isLoading) {

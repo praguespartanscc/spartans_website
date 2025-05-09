@@ -45,11 +45,15 @@ export type TeamImage = {
 };
 
 export type Practice = {
-  id: number;
-  title: string;
+  id: string | number;
   date: string;
   time: string;
   venue: string;
-  description: string;
-  created_at: string;
+  type: string;
+  notes?: string;
+  first_team?: string;
+  second_team?: string;
+  created_at?: string;
+  description?: string;
+  title?: string;
 }; 

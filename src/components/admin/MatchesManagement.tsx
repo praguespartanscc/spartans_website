@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useState, useEffect, useCallback } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import toast, { Toaster } from 'react-hot-toast';
 
 type Match = {
@@ -30,17 +30,15 @@ export default function MatchesManagement() {
   const [editMatchId, setEditMatchId] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [matchToDelete, setMatchToDelete] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const supabase = createClientComponentClient();
 
-  useEffect(() => {
-    fetchMatches();
-  }, []);
-
-  async function fetchMatches() {
+  const fetchMatches = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('matches')
         .select('*')
-        .order('date', { ascending: true });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setMatches(data || []);
@@ -49,7 +47,18 @@ export default function MatchesManagement() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [supabase]);
+
+  useEffect(() => {
+    async function checkAdminAndFetch() {
+      await supabase.auth.refreshSession();
+      const { data: { user } } = await supabase.auth.getUser();
+      const admin = !!user?.user_metadata?.isAdmin;
+      setIsAdmin(admin);
+      fetchMatches();
+    }
+    checkAdminAndFetch();
+  }, [supabase.auth, fetchMatches]);
 
   async function handleAddMatch(e: React.FormEvent) {
     e.preventDefault();
@@ -154,6 +163,24 @@ export default function MatchesManagement() {
   function handleCancelEdit() {
     setEditMatchId(null);
     setNewMatch({ team1: '', team2: '', date: '', time: '', venue: '', type: 'friendly' });
+  }
+
+  if (isAdmin === null) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1a3049]"></div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center h-40">
+        <p className="text-red-600 font-semibold text-lg">
+          You need admin privileges to manage matches.
+        </p>
+      </div>
+    );
   }
 
   if (isLoading) {
