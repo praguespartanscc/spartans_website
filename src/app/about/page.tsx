@@ -1,4 +1,26 @@
+import { Metadata } from "next";
 import Image from 'next/image';
+
+export const metadata: Metadata = {
+  title: 'About Us',
+  description: 'Learn about Prague Spartans Cricket Club - our history, mission, and community. Founded in 2019, we welcome cricket players of all skill levels in Prague.',
+  alternates: {
+    canonical: '/about',
+  },
+  openGraph: {
+    title: 'About Prague Spartans Cricket Club',
+    description: 'Learn about Prague Spartans Cricket Club - our history, mission, and community. Founded in 2019, we welcome cricket players of all skill levels in Prague.',
+    url: 'https://praguespartanscc.com/about',
+    images: [
+      {
+        url: '/story1.jpeg',
+        width: 1200,
+        height: 630,
+        alt: 'Prague Spartans Cricket Club Team Photo',
+      }
+    ],
+  }
+};
 
 export default function AboutPage() {
   return (

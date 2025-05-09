@@ -1,7 +1,29 @@
+import { Metadata } from "next";
 import HeroSection from "@/components/HeroSection";
 import SponsorsSection from "@/components/SponsorsSection";
 import EventsSection from "@/components/EventsSection";
 import PracticeSection from "@/components/PracticeSection";
+
+export const metadata: Metadata = {
+  title: 'Home',
+  description: 'Welcome to Prague Spartans Cricket Club - Join our vibrant community of cricket enthusiasts in Prague. Find upcoming matches, practice sessions, and club events.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'Prague Spartans Cricket Club - Official Website',
+    description: 'Welcome to Prague Spartans Cricket Club - Join our vibrant community of cricket enthusiasts in Prague. Find upcoming matches, practice sessions, and club events.',
+    url: 'https://praguespartanscc.com/',
+    images: [
+      {
+        url: '/images/home-banner.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Prague Spartans Cricket Club Team',
+      }
+    ],
+  }
+};
 
 export default function Home() {
   return (
