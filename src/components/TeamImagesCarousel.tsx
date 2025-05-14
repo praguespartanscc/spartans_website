@@ -77,27 +77,27 @@ const TeamImagesCarousel = () => {
   }, [isAutoPlaying, staticImages.length]);
 
   // Navigation handlers
-  const goToNext = useCallback(() => {
-    if (staticImages.length <= 1) return;
+  // const goToNext = useCallback(() => {
+  //   if (staticImages.length <= 1) return;
     
-    setIsAutoPlaying(false);
-    setCurrentIndex((prevIndex) => 
-      prevIndex === staticImages.length - 1 ? 0 : prevIndex + 1
-    );
+  //   setIsAutoPlaying(false);
+  //   setCurrentIndex((prevIndex) => 
+  //     prevIndex === staticImages.length - 1 ? 0 : prevIndex + 1
+  //   );
     
-    setTimeout(() => setIsAutoPlaying(true), 10000);
-  }, [staticImages.length]);
+  //   setTimeout(() => setIsAutoPlaying(true), 10000);
+  // }, [staticImages.length]);
 
-  const goToPrevious = useCallback(() => {
-    if (staticImages.length <= 1) return;
+  // const goToPrevious = useCallback(() => {
+  //   if (staticImages.length <= 1) return;
     
-    setIsAutoPlaying(false);
-    setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? staticImages.length - 1 : prevIndex - 1
-    );
+  //   setIsAutoPlaying(false);
+  //   setCurrentIndex((prevIndex) => 
+  //     prevIndex === 0 ? staticImages.length - 1 : prevIndex - 1
+  //   );
     
-    setTimeout(() => setIsAutoPlaying(true), 10000);
-  }, [staticImages.length]);
+  //   setTimeout(() => setIsAutoPlaying(true), 10000);
+  // }, [staticImages.length]);
 
   const goToSlide = useCallback((index: number) => {
     if (staticImages.length <= 1) return;
@@ -145,26 +145,7 @@ const TeamImagesCarousel = () => {
       {staticImages.length > 1 && (
         <>
           {/* Navigation buttons */}
-          <div className="absolute inset-x-0 top-1/2 transform -translate-y-1/2 flex justify-between px-2 sm:px-4 z-20">
-            <button 
-              onClick={goToPrevious}
-              className="bg-[#1a3049]/50 hover:bg-[#1a3049]/70 text-white p-1.5 sm:p-2 rounded-full transition-all hover:scale-110 cursor-pointer"
-              aria-label="Previous slide"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5 sm:w-6 sm:h-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-              </svg>
-            </button>
-            <button 
-              onClick={goToNext}
-              className="bg-[#1a3049]/50 hover:bg-[#1a3049]/70 text-white p-1.5 sm:p-2 rounded-full transition-all hover:scale-110 cursor-pointer"
-              aria-label="Next slide"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5 sm:w-6 sm:h-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
-            </button>
-          </div>
+    
           
           {/* Indicator dots */}
           <div className="absolute bottom-4 sm:bottom-6 inset-x-0 flex justify-center space-x-2 sm:space-x-3 z-20">

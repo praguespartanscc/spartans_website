@@ -12,19 +12,37 @@ type Match = {
   time: string;
   venue: string;
   type: string;
+  result: string;
+  division: string;
+  url: string;
   created_at: string;
+};
+
+type NewMatch = {
+  team1: string;
+  team2: string;
+  date: string;
+  time: string;
+  venue: string;
+  type: string;
+  result: string;
+  division: string;
+  url: string;
 };
 
 export default function MatchesManagement() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [newMatch, setNewMatch] = useState({
+  const [newMatch, setNewMatch] = useState<NewMatch>({
     team1: '',
     team2: '',
     date: '',
     time: '',
     venue: '',
-    type: 'friendly'
+    type: 'friendly',
+    result: 'will be played',
+    division: 'division1',
+    url: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editMatchId, setEditMatchId] = useState<string | null>(null);
@@ -78,7 +96,10 @@ export default function MatchesManagement() {
         date: '',
         time: '',
         venue: '',
-        type: 'friendly'
+        type: 'friendly',
+        result: 'will be played',
+        division: 'division1',
+        url: ''
       });
       toast.success('Match added successfully!');
     } catch (error) {
@@ -126,7 +147,10 @@ export default function MatchesManagement() {
       date: match.date,
       time: match.time,
       venue: match.venue,
-      type: match.type
+      type: match.type,
+      result: match.result,
+      division: match.division,
+      url: match.url
     });
   }
 
@@ -143,14 +167,27 @@ export default function MatchesManagement() {
           date: newMatch.date,
           time: newMatch.time,
           venue: newMatch.venue,
-          type: newMatch.type
+          type: newMatch.type,
+          result: newMatch.result,
+          division: newMatch.division,
+          url: newMatch.url
         })
         .eq('id', editMatchId)
         .select();
       if (error) throw error;
       setMatches(matches.map(m => m.id === editMatchId ? (data ? data[0] : m) : m));
       setEditMatchId(null);
-      setNewMatch({ team1: '', team2: '', date: '', time: '', venue: '', type: 'friendly' });
+      setNewMatch({ 
+        team1: '', 
+        team2: '', 
+        date: '', 
+        time: '', 
+        venue: '', 
+        type: 'friendly',
+        result: 'will be played',
+        division: 'division1',
+        url: ''
+      });
       toast.success('Match updated successfully!');
     } catch (error) {
       console.error('Error updating match:', error);
@@ -162,7 +199,17 @@ export default function MatchesManagement() {
 
   function handleCancelEdit() {
     setEditMatchId(null);
-    setNewMatch({ team1: '', team2: '', date: '', time: '', venue: '', type: 'friendly' });
+    setNewMatch({ 
+      team1: '', 
+      team2: '', 
+      date: '', 
+      time: '', 
+      venue: '', 
+      type: 'friendly',
+      result: 'will be played',
+      division: 'division1',
+      url: ''
+    });
   }
 
   if (isAdmin === null) {
@@ -266,6 +313,44 @@ export default function MatchesManagement() {
               <option value="tournament">Tournament</option>
             </select>
           </div>
+          <div>
+            <label htmlFor="result" className="block text-sm font-medium text-gray-700">Result</label>
+            <select
+              id="result"
+              value={newMatch.result}
+              onChange={(e) => setNewMatch({ ...newMatch, result: e.target.value })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049]"
+            >
+              <option value="will be played">Will be played</option>
+              <option value="win">Win</option>
+              <option value="loss">Loss</option>
+              <option value="draw">Draw</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="division" className="block text-sm font-medium text-gray-700">Division</label>
+            <select
+              id="division"
+              value={newMatch.division}
+              onChange={(e) => setNewMatch({ ...newMatch, division: e.target.value })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049]"
+            >
+              <option value="division1">Division 1</option>
+              <option value="division2">Division 2</option>
+              <option value="division3">Division 3</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="url" className="block text-sm font-medium text-gray-700">URL</label>
+            <input
+              type="url"
+              id="url"
+              value={newMatch.url}
+              onChange={(e) => setNewMatch({ ...newMatch, url: e.target.value })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049]"
+              placeholder="https://example.com"
+            />
+          </div>
         </div>
         <div className="mt-4 flex gap-2 justify-end">
           <button
@@ -313,28 +398,87 @@ export default function MatchesManagement() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Match Type</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Result</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Division</th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {matches.map((match) => (
-                <tr key={match.id}>
+                <tr 
+                  key={match.id}
+                  onClick={() => match.url && window.open(match.url, '_blank')}
+                  className={match.url ? 'cursor-pointer hover:bg-gray-50' : ''}
+                >
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{match.team1}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{match.team2}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{match.venue}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{match.time}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(match.date).toLocaleDateString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{match.type}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">
+                    {match.result === 'win' && (
+                      <span className="relative inline-flex items-center group">
+                        <span className="absolute inset-0 rounded-full opacity-25 bg-green-400 blur-sm group-hover:opacity-100 transition-opacity duration-300"></span>
+                        <span className="relative inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-bold px-4 py-1.5 rounded-full border border-green-600 shadow-lg transform hover:scale-105 transition-all duration-300">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                          </svg>
+                          Win
+                        </span>
+                      </span>
+                    )}
+                    {match.result === 'loss' && (
+                      <span className="relative inline-flex items-center group">
+                        <span className="absolute inset-0 rounded-full opacity-25 bg-red-400 blur-sm group-hover:opacity-100 transition-opacity duration-300"></span>
+                        <span className="relative inline-flex items-center gap-2 bg-gradient-to-r from-red-500 to-rose-600 text-white text-sm font-bold px-4 py-1.5 rounded-full border border-red-600 shadow-lg transform hover:scale-105 transition-all duration-300">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          Loss
+                        </span>
+                      </span>
+                    )}
+                    {match.result === 'draw' && (
+                      <span className="relative inline-flex items-center group">
+                        <span className="absolute inset-0 rounded-full opacity-25 bg-blue-400 blur-sm group-hover:opacity-100 transition-opacity duration-300"></span>
+                        <span className="relative inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-bold px-4 py-1.5 rounded-full border border-blue-600 shadow-lg transform hover:scale-105 transition-all duration-300">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 12h8" />
+                          </svg>
+                          Draw
+                        </span>
+                      </span>
+                    )}
+                    {match.result === 'will be played' && (
+                      <span className="relative inline-flex items-center group">
+                        <span className="absolute inset-0 rounded-full opacity-25 bg-gray-400 blur-sm group-hover:opacity-100 transition-opacity duration-300"></span>
+                        <span className="relative inline-flex items-center gap-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white text-sm font-bold px-4 py-1.5 rounded-full border border-gray-600 shadow-lg transform hover:scale-105 transition-all duration-300">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Upcoming
+                        </span>
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{match.division}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
-                      onClick={() => handleEditMatch(match)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditMatch(match);
+                      }}
                       className="text-blue-600 hover:text-blue-900 mr-4 cursor-pointer"
                       disabled={isSubmitting}
                     >
                       Edit
                     </button>
                     <button
-                      onClick={() => confirmRemoveMatch(match.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        confirmRemoveMatch(match.id);
+                      }}
                       className="text-red-600 hover:text-red-900 cursor-pointer"
                       disabled={isSubmitting}
                     >

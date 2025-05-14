@@ -73,12 +73,10 @@ const SponsorsSection = () => {
                 </div>
                 <div className="text-center">
                   <h3 className="text-lg font-semibold text-[#1a3049] mb-2">{sponsor.name}</h3>
-                  {sponsor.description && (
+                  {/* {sponsor.description && (
                     <p className="text-gray-600 text-sm">{sponsor.description}</p>
-                  )}
-                  <div className="mt-3 text-blue-600 text-xs font-medium group-hover:underline">
-                    Visit website →
-                  </div>
+                  )} */}
+                 
                 </div>
               </a>
             ))}

@@ -8,6 +8,9 @@ export type Match = {
   type: string;
   image_url: string;
   created_at: string;
+  result: string;
+  division: string;
+  url: string;
 };
 
 export type Player = {

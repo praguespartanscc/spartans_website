@@ -11,6 +11,7 @@ type Player = {
   age: number;
   player_type: string;
   role: string;
+  team: string;
   created_at: string;
 };
 
@@ -23,7 +24,8 @@ export default function TeamManagement() {
     email: '',
     age: '',
     player_type: 'batsman',
-    role: 'player'
+    role: 'player',
+    team: 'Vanguards'
   });
   const [editPlayerId, setEditPlayerId] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -78,7 +80,7 @@ export default function TeamManagement() {
       if (error) throw error;
 
       setPlayers([...(data || []), ...players]);
-      setNewPlayer({ name: '', email: '', age: '', player_type: 'batsman', role: 'player' });
+      setNewPlayer({ name: '', email: '', age: '', player_type: 'batsman', role: 'player', team: 'Vanguards' });
       toast.success('Player added successfully!');
     } catch (error) {
       console.error('Error adding player:', error);
@@ -124,7 +126,8 @@ export default function TeamManagement() {
       email: player.email,
       age: player.age.toString(),
       player_type: player.player_type,
-      role: player.role
+      role: player.role,
+      team: player.team || 'Vanguards'
     });
   }
 
@@ -145,14 +148,15 @@ export default function TeamManagement() {
           email: newPlayer.email,
           age,
           player_type: newPlayer.player_type,
-          role: newPlayer.role
+          role: newPlayer.role,
+          team: newPlayer.team
         })
         .eq('id', editPlayerId)
         .select();
       if (error) throw error;
       setPlayers(players.map(p => p.id === editPlayerId ? (data ? data[0] : p) : p));
       setEditPlayerId(null);
-      setNewPlayer({ name: '', email: '', age: '', player_type: 'batsman', role: 'player' });
+      setNewPlayer({ name: '', email: '', age: '', player_type: 'batsman', role: 'player', team: 'Vanguards' });
       toast.success('Player updated successfully!');
     } catch (error) {
       console.error('Error updating player:', error);
@@ -164,7 +168,7 @@ export default function TeamManagement() {
 
   function handleCancelEdit() {
     setEditPlayerId(null);
-    setNewPlayer({ name: '', email: '', age: '', player_type: 'batsman', role: 'player' });
+    setNewPlayer({ name: '', email: '', age: '', player_type: 'batsman', role: 'player', team: 'Vanguards' });
   }
 
   if (isAdmin === null) {
@@ -266,6 +270,20 @@ export default function TeamManagement() {
               <option value="vice-captain">Vice Captain</option>
             </select>
           </div>
+          
+          <div>
+            <label htmlFor="team" className="block text-sm font-medium text-gray-700">Team</label>
+            <select
+              id="team"
+              value={newPlayer.team}
+              onChange={(e) => setNewPlayer({ ...newPlayer, team: e.target.value })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049]"
+            >
+              <option value="Vanguards">Vanguards</option>
+              <option value="Mobilizers">Mobilizers</option>
+              <option value="Strikers">Strikers</option>
+            </select>
+          </div>
         </div>
         <div className="mt-4 flex gap-2 justify-end">
           <button
@@ -307,6 +325,7 @@ export default function TeamManagement() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Player Type</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team Role</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
@@ -318,6 +337,7 @@ export default function TeamManagement() {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{player.age}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{player.player_type}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{player.role}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{player.team || 'Vanguards'}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button
                     onClick={() => confirmRemovePlayer(player.id)}
