@@ -3,6 +3,7 @@ import HeroSection from "@/components/HeroSection";
 import SponsorsSection from "@/components/SponsorsSection";
 import EventsSection from "@/components/EventsSection";
 import PracticeSection from "@/components/PracticeSection";
+import CommitteeSection from "@/components/CommitteeSection";
 
 export const metadata: Metadata = {
   title: 'Home',
@@ -95,6 +96,7 @@ export default function Home() {
       
       <EventsSection />
       <PracticeSection />
+      <CommitteeSection />
       <SponsorsSection />
     </div>
   );

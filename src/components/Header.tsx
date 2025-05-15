@@ -11,6 +11,7 @@ const navLinks = [
   { href: '/players', label: 'Team' },
   { href: '/fixtures', label: 'Fixtures' },
   { href: '/about', label: 'About' },
+  { href: '/committee', label: 'Committee' },
   { href: '/contact', label: 'Contact' },
 ];
 
