@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { getAllPractices } from '@/services/practiceService';
 import type { Practice } from '@/types/supabase';
 import { isSupabaseConfigured } from '@/lib/supabase';
