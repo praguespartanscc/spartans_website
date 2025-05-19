@@ -95,24 +95,22 @@ export default function CommitteePage() {
     }
   };
 
-  // Helper function to organize members by position
-  const getOrganizedMembers = () => {
-    const positionOrder = ['President', 'Chairman', 'Secretary', 'Treasurer', 'Manager'];
-    
-    // Sort members by position order
-    return [...committeeMembers].sort((a, b) => {
-      return positionOrder.indexOf(a.position) - positionOrder.indexOf(b.position);
-    });
+  // Helper function to organize members as a tree
+  const getTreeStructure = () => {
+    const president = committeeMembers.find(m => m.position === 'President');
+    const chairman = committeeMembers.find(m => m.position === 'Chairman');
+    const others = committeeMembers.filter(m => !['President', 'Chairman'].includes(m.position));
+    return { president, chairman, others };
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-16">
-      <div className="container mx-auto px-4">
-        <div className="max-w-8xl mx-auto">
+    <div className="min-h-screen bg-gray-50 py-8 sm:py-16 overflow-x-hidden">
+      <div className="container mx-auto px-2 sm:px-4">
+        <div className="max-w-full sm:max-w-8xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-[#1a3049] mb-4">Club Committee</h1>
-            <p className="text-gray-600 max-w-3xl mx-auto">
+          <div className="text-center mb-8 sm:mb-12">
+            <h1 className="text-2xl sm:text-4xl font-bold text-[#1a3049] mb-4">Club Committee</h1>
+            <p className="text-gray-600 max-w-full sm:max-w-3xl mx-auto text-base sm:text-lg">
               Meet the dedicated team behind Prague Spartans Cricket Club. Our committee members work tirelessly to ensure the smooth running of the club and to create the best possible experience for all our members.
             </p>
           </div>
@@ -131,32 +129,85 @@ export default function CommitteePage() {
             </div>
           )}
 
-          {/* Committee Members Grid */}
+          {/* Committee Members Tree Structure */}
           {!loading && !error && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {getOrganizedMembers().map((member) => {
-                const positionData = getPositionData(member.position);
-                
+            <div className="flex flex-col items-center w-full">
+              {(() => {
+                const { president, chairman, others } = getTreeStructure();
                 return (
-                  <div key={member.id} className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:-translate-y-2">
-                    <div className={`${positionData.color} h-2`}></div>
-                    <div className="p-6">
-                      <div className="flex items-center mb-4">
-                        <div className="w-12 h-12 flex items-center justify-center rounded-full bg-[#1a3049] text-white text-2xl mr-4">
-                          {positionData.icon}
-                        </div>
-                        <div>
-                          <h3 className="text-xl font-bold text-[#1a3049]">{member.name}</h3>
-                          <div className="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium mt-1">
-                            {member.position}
+                  <>
+                    {/* President */}
+                    {president && (
+                      <div className="flex flex-col items-center w-full">
+                        <div className="bg-white rounded-lg shadow-md w-full max-w-xs sm:w-80 mb-2">
+                          <div className={`${getPositionData(president.position).color} h-2`}></div>
+                          <div className="p-4 sm:p-6 flex items-center">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-[#1a3049] text-white text-xl sm:text-2xl mr-3 sm:mr-4">
+                              {getPositionData(president.position).icon}
+                            </div>
+                            <div>
+                              <h3 className="text-lg sm:text-xl font-bold text-[#1a3049]">{president.name}</h3>
+                              <div className="inline-block bg-gray-100 text-gray-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium mt-1">
+                                {president.position}
+                              </div>
+                            </div>
                           </div>
+                          <p className="text-gray-600 text-xs sm:text-sm px-4 sm:px-6 pb-3 sm:pb-4">{getPositionData(president.position).description}</p>
                         </div>
+                        {/* Line to Chairman */}
+                        {chairman && <div className="h-4 sm:h-6 w-1 bg-gray-300 mx-auto" />}
                       </div>
-                      <p className="text-gray-600 text-sm">{positionData.description}</p>
-                    </div>
-                  </div>
+                    )}
+                    {/* Chairman */}
+                    {chairman && (
+                      <div className="flex flex-col items-center w-full">
+                        <div className="bg-white rounded-lg shadow-md w-full max-w-xs sm:w-72 mb-2">
+                          <div className={`${getPositionData(chairman.position).color} h-2`}></div>
+                          <div className="p-4 sm:p-6 flex items-center">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-[#1a3049] text-white text-xl sm:text-2xl mr-3 sm:mr-4">
+                              {getPositionData(chairman.position).icon}
+                            </div>
+                            <div>
+                              <h3 className="text-lg sm:text-xl font-bold text-[#1a3049]">{chairman.name}</h3>
+                              <div className="inline-block bg-gray-100 text-gray-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium mt-1">
+                                {chairman.position}
+                              </div>
+                            </div>
+                          </div>
+                          <p className="text-gray-600 text-xs sm:text-sm px-4 sm:px-6 pb-3 sm:pb-4">{getPositionData(chairman.position).description}</p>
+                        </div>
+                        {/* Lines to other members */}
+                        {others.length > 0 && (
+                          <div className="flex flex-col items-center w-full">
+                            <div className="h-4 sm:h-6 w-1 bg-gray-300 mx-auto" />
+                            <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 mt-0 w-full items-center justify-center">
+                              {others.map(member => (
+                                <div key={member.id} className="flex flex-col items-center w-full max-w-xs">
+                                  <div className="bg-white rounded-lg shadow-md w-full">
+                                    <div className={`${getPositionData(member.position).color} h-2`}></div>
+                                    <div className="p-4 sm:p-6 flex items-center">
+                                      <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-[#1a3049] text-white text-xl sm:text-2xl mr-3 sm:mr-4">
+                                        {getPositionData(member.position).icon}
+                                      </div>
+                                      <div>
+                                        <h3 className="text-lg sm:text-xl font-bold text-[#1a3049]">{member.name}</h3>
+                                        <div className="inline-block bg-gray-100 text-gray-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium mt-1">
+                                          {member.position}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <p className="text-gray-600 text-xs sm:text-sm px-4 sm:px-6 pb-3 sm:pb-4">{getPositionData(member.position).description}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
                 );
-              })}
+              })()}
             </div>
           )}
 
