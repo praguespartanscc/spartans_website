@@ -241,72 +241,78 @@ export default function MatchesManagement() {
   return (
     <div className="space-y-6">
       <Toaster position="top-right" />
+      
+      <div className="mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold mb-2">Match Management</h2>
+        <p className="text-sm sm:text-base text-gray-600">Add, edit, and manage team matches.</p>
+      </div>
+      
       {/* Add/Edit Match Form */}
-      <form onSubmit={editMatchId ? handleUpdateMatch : handleAddMatch} className="bg-gray-50 p-6 rounded-lg">
-        <h3 className="text-lg font-semibold text-[#1a3049] mb-4">{editMatchId ? 'Edit Match' : 'Add New Match'}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <form onSubmit={editMatchId ? handleUpdateMatch : handleAddMatch} className="bg-gray-50 p-4 sm:p-6 rounded-lg">
+        <h3 className="text-base sm:text-lg font-semibold text-[#1a3049] mb-3 sm:mb-4">{editMatchId ? 'Edit Match' : 'Add New Match'}</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <div>
-            <label htmlFor="team1" className="block text-sm font-medium text-gray-700">Team 1</label>
+            <label htmlFor="team1" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Team 1</label>
             <input
               type="text"
               id="team1"
               value={newMatch.team1}
               onChange={(e) => setNewMatch({ ...newMatch, team1: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049]"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
               required
             />
           </div>
           <div>
-            <label htmlFor="team2" className="block text-sm font-medium text-gray-700">Team 2</label>
+            <label htmlFor="team2" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Team 2</label>
             <input
               type="text"
               id="team2"
               value={newMatch.team2}
               onChange={(e) => setNewMatch({ ...newMatch, team2: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049]"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
               required
             />
           </div>
           <div>
-            <label htmlFor="date" className="block text-sm font-medium text-gray-700">Date</label>
+            <label htmlFor="date" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Date</label>
             <input
               type="date"
               id="date"
               value={newMatch.date}
               onChange={(e) => setNewMatch({ ...newMatch, date: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049]"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
               required
             />
           </div>
           <div>
-            <label htmlFor="time" className="block text-sm font-medium text-gray-700">Time</label>
+            <label htmlFor="time" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Time</label>
             <input
               type="time"
               id="time"
               value={newMatch.time}
               onChange={(e) => setNewMatch({ ...newMatch, time: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049]"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
               required
             />
           </div>
           <div>
-            <label htmlFor="venue" className="block text-sm font-medium text-gray-700">Venue</label>
+            <label htmlFor="venue" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Venue</label>
             <input
               type="text"
               id="venue"
               value={newMatch.venue}
               onChange={(e) => setNewMatch({ ...newMatch, venue: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049]"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
               required
             />
           </div>
           <div>
-            <label htmlFor="type" className="block text-sm font-medium text-gray-700">Match Type</label>
+            <label htmlFor="type" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Match Type</label>
             <select
               id="type"
               value={newMatch.type}
               onChange={(e) => setNewMatch({ ...newMatch, type: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049]"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
             >
               <option value="friendly">Friendly</option>
               <option value="league">League</option>
@@ -314,12 +320,12 @@ export default function MatchesManagement() {
             </select>
           </div>
           <div>
-            <label htmlFor="result" className="block text-sm font-medium text-gray-700">Result</label>
+            <label htmlFor="result" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Result</label>
             <select
               id="result"
               value={newMatch.result}
               onChange={(e) => setNewMatch({ ...newMatch, result: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049]"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
             >
               <option value="will be played">Will be played</option>
               <option value="win">Win</option>
@@ -328,12 +334,12 @@ export default function MatchesManagement() {
             </select>
           </div>
           <div>
-            <label htmlFor="division" className="block text-sm font-medium text-gray-700">Division</label>
+            <label htmlFor="division" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Division</label>
             <select
               id="division"
               value={newMatch.division}
               onChange={(e) => setNewMatch({ ...newMatch, division: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049]"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
             >
               <option value="division1">Division 1</option>
               <option value="division2">Division 2</option>
@@ -341,25 +347,25 @@ export default function MatchesManagement() {
             </select>
           </div>
           <div>
-            <label htmlFor="url" className="block text-sm font-medium text-gray-700">URL</label>
+            <label htmlFor="url" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">URL</label>
             <input
               type="url"
               id="url"
               value={newMatch.url}
               onChange={(e) => setNewMatch({ ...newMatch, url: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049]"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
               placeholder="https://example.com"
             />
           </div>
         </div>
-        <div className="mt-4 flex gap-2 justify-end">
+        <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-end">
           <button
             type="submit"
-            className="bg-[#1a3049] text-white px-4 py-2 rounded-md hover:bg-[#1a3049]/90 transition-colors cursor-pointer"
+            className="bg-[#1a3049] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-[#1a3049]/90 transition-colors cursor-pointer text-xs sm:text-sm w-full sm:w-auto"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
-              <span className="flex items-center"><span className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></span>{editMatchId ? 'Updating...' : 'Adding...'}</span>
+              <span className="flex items-center justify-center"><span className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-t-2 border-b-2 border-white mr-2"></span>{editMatchId ? 'Updating...' : 'Adding...'}</span>
             ) : (
               editMatchId ? 'Update Match' : 'Add Match'
             )}
@@ -368,7 +374,7 @@ export default function MatchesManagement() {
             <button
               type="button"
               onClick={handleCancelEdit}
-              className="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors cursor-pointer"
+              className="bg-gray-300 text-gray-800 px-3 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-gray-400 transition-colors cursor-pointer text-xs sm:text-sm w-full sm:w-auto"
               disabled={isSubmitting}
             >
               Cancel
@@ -380,7 +386,7 @@ export default function MatchesManagement() {
       {/* Matches List */}
       {matches.length === 0 ? (
         <div className="flex justify-center items-center h-40">
-          <p className="text-gray-500">No matches found.</p>
+          <p className="text-gray-500 text-sm sm:text-base">No matches found.</p>
         </div>
       ) : (
         <div className="bg-white shadow-md rounded-lg overflow-hidden">
@@ -389,87 +395,164 @@ export default function MatchesManagement() {
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1a3049]"></div>
             </div>
           )}
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team 1</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team 2</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Venue</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Match Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Result</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Division</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+          
+          {/* Desktop view */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team 1</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team 2</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Venue</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Match Type</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Result</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Division</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {matches.map((match) => (
+                  <tr 
+                    key={match.id}
+                    onClick={() => match.url && window.open(match.url, '_blank')}
+                    className={match.url ? 'cursor-pointer hover:bg-gray-50' : ''}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{match.team1}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{match.team2}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{match.venue}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{match.time}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(match.date).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{match.type}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">
+                      {match.result === 'win' && (
+                        <span className="relative inline-flex items-center group">
+                          <span className="absolute inset-0 rounded-full opacity-25 bg-green-400 blur-sm group-hover:opacity-100 transition-opacity duration-300"></span>
+                          <span className="relative inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-bold px-4 py-1.5 rounded-full border border-green-600 shadow-lg transform hover:scale-105 transition-all duration-300">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Win
+                          </span>
+                        </span>
+                      )}
+                      {match.result === 'loss' && (
+                        <span className="relative inline-flex items-center group">
+                          <span className="absolute inset-0 rounded-full opacity-25 bg-red-400 blur-sm group-hover:opacity-100 transition-opacity duration-300"></span>
+                          <span className="relative inline-flex items-center gap-2 bg-gradient-to-r from-red-500 to-rose-600 text-white text-sm font-bold px-4 py-1.5 rounded-full border border-red-600 shadow-lg transform hover:scale-105 transition-all duration-300">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Loss
+                          </span>
+                        </span>
+                      )}
+                      {match.result === 'draw' && (
+                        <span className="relative inline-flex items-center group">
+                          <span className="absolute inset-0 rounded-full opacity-25 bg-blue-400 blur-sm group-hover:opacity-100 transition-opacity duration-300"></span>
+                          <span className="relative inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-bold px-4 py-1.5 rounded-full border border-blue-600 shadow-lg transform hover:scale-105 transition-all duration-300">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 12h8" />
+                            </svg>
+                            Draw
+                          </span>
+                        </span>
+                      )}
+                      {match.result === 'will be played' && (
+                        <span className="relative inline-flex items-center group">
+                          <span className="absolute inset-0 rounded-full opacity-25 bg-gray-400 blur-sm group-hover:opacity-100 transition-opacity duration-300"></span>
+                          <span className="relative inline-flex items-center gap-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white text-sm font-bold px-4 py-1.5 rounded-full border border-gray-600 shadow-lg transform hover:scale-105 transition-all duration-300">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Upcoming
+                          </span>
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{match.division}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditMatch(match);
+                        }}
+                        className="text-blue-600 hover:text-blue-900 mr-4 cursor-pointer"
+                        disabled={isSubmitting}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          confirmRemoveMatch(match.id);
+                        }}
+                        className="text-red-600 hover:text-red-900 cursor-pointer"
+                        disabled={isSubmitting}
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Mobile card view */}
+          <div className="md:hidden">
+            <div className="grid grid-cols-1 gap-4 px-2 py-3">
               {matches.map((match) => (
-                <tr 
-                  key={match.id}
+                <div 
+                  key={match.id} 
+                  className={`bg-white border rounded-lg shadow-sm p-4 ${match.url ? 'cursor-pointer active:bg-gray-50' : ''}`}
                   onClick={() => match.url && window.open(match.url, '_blank')}
-                  className={match.url ? 'cursor-pointer hover:bg-gray-50' : ''}
                 >
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{match.team1}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{match.team2}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{match.venue}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{match.time}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(match.date).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{match.type}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">
-                    {match.result === 'win' && (
-                      <span className="relative inline-flex items-center group">
-                        <span className="absolute inset-0 rounded-full opacity-25 bg-green-400 blur-sm group-hover:opacity-100 transition-opacity duration-300"></span>
-                        <span className="relative inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-bold px-4 py-1.5 rounded-full border border-green-600 shadow-lg transform hover:scale-105 transition-all duration-300">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-                          </svg>
-                          Win
-                        </span>
-                      </span>
-                    )}
-                    {match.result === 'loss' && (
-                      <span className="relative inline-flex items-center group">
-                        <span className="absolute inset-0 rounded-full opacity-25 bg-red-400 blur-sm group-hover:opacity-100 transition-opacity duration-300"></span>
-                        <span className="relative inline-flex items-center gap-2 bg-gradient-to-r from-red-500 to-rose-600 text-white text-sm font-bold px-4 py-1.5 rounded-full border border-red-600 shadow-lg transform hover:scale-105 transition-all duration-300">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                          Loss
-                        </span>
-                      </span>
-                    )}
-                    {match.result === 'draw' && (
-                      <span className="relative inline-flex items-center group">
-                        <span className="absolute inset-0 rounded-full opacity-25 bg-blue-400 blur-sm group-hover:opacity-100 transition-opacity duration-300"></span>
-                        <span className="relative inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-bold px-4 py-1.5 rounded-full border border-blue-600 shadow-lg transform hover:scale-105 transition-all duration-300">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 12h8" />
-                          </svg>
-                          Draw
-                        </span>
-                      </span>
-                    )}
-                    {match.result === 'will be played' && (
-                      <span className="relative inline-flex items-center group">
-                        <span className="absolute inset-0 rounded-full opacity-25 bg-gray-400 blur-sm group-hover:opacity-100 transition-opacity duration-300"></span>
-                        <span className="relative inline-flex items-center gap-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white text-sm font-bold px-4 py-1.5 rounded-full border border-gray-600 shadow-lg transform hover:scale-105 transition-all duration-300">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          Upcoming
-                        </span>
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{match.division}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="font-medium text-gray-900">
+                      {match.team1} vs {match.team2}
+                    </h3>
+                    <div>
+                      {match.result === 'win' && (
+                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Win</span>
+                      )}
+                      {match.result === 'loss' && (
+                        <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">Loss</span>
+                      )}
+                      {match.result === 'draw' && (
+                        <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Draw</span>
+                      )}
+                      {match.result === 'will be played' && (
+                        <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">Upcoming</span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-y-2 text-sm mb-3">
+                    <div className="text-gray-500">Date:</div>
+                    <div className="text-gray-900">{new Date(match.date).toLocaleDateString()}</div>
+                    
+                    <div className="text-gray-500">Time:</div>
+                    <div className="text-gray-900">{match.time}</div>
+                    
+                    <div className="text-gray-500">Venue:</div>
+                    <div className="text-gray-900">{match.venue}</div>
+                    
+                    <div className="text-gray-500">Type:</div>
+                    <div className="text-gray-900 capitalize">{match.type}</div>
+                    
+                    <div className="text-gray-500">Division:</div>
+                    <div className="text-gray-900 capitalize">{match.division}</div>
+                  </div>
+                  
+                  <div className="flex justify-end space-x-2 pt-2 border-t border-gray-100">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleEditMatch(match);
                       }}
-                      className="text-blue-600 hover:text-blue-900 mr-4 cursor-pointer"
+                      className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 py-1 px-2 rounded disabled:opacity-50 cursor-pointer"
                       disabled={isSubmitting}
                     >
                       Edit
@@ -479,55 +562,55 @@ export default function MatchesManagement() {
                         e.stopPropagation();
                         confirmRemoveMatch(match.id);
                       }}
-                      className="text-red-600 hover:text-red-900 cursor-pointer"
+                      className="text-xs bg-red-100 text-red-700 hover:bg-red-200 py-1 px-2 rounded disabled:opacity-50 cursor-pointer"
                       disabled={isSubmitting}
                     >
                       Remove
                     </button>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Confirmation Dialog */}
       {showConfirm && (
-        <div className="fixed inset-0  bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity duration-300">
+        <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm transition-opacity duration-300">
           <div className="bg-white bg-opacity-95 rounded-lg max-w-md w-full shadow-xl transform transition-all">
-            <div className="px-6 py-4 border-b border-gray-200">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900">Confirm Removal</h3>
+                <h3 className="text-base sm:text-lg font-medium text-gray-900">Confirm Removal</h3>
                 <button 
                   onClick={() => setShowConfirm(false)}
                   className="text-gray-400 hover:text-gray-500 cursor-pointer"
                 >
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
             </div>
             
-            <div className="px-6 py-4">
-              <p className="text-gray-700 mb-4">Are you sure you want to remove this match? This action cannot be undone.</p>
+            <div className="px-4 sm:px-6 py-3 sm:py-4">
+              <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4">Are you sure you want to remove this match? This action cannot be undone.</p>
               
-              <div className="flex justify-end space-x-3 mt-6">
+              <div className="flex justify-end space-x-3 mt-4 sm:mt-6">
                 <button
                   onClick={() => setShowConfirm(false)}
-                  className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none cursor-pointer transition-colors"
+                  className="inline-flex justify-center py-1.5 sm:py-2 px-3 sm:px-4 border border-gray-300 shadow-sm text-xs sm:text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleRemoveMatch}
                   disabled={isSubmitting}
-                  className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none disabled:opacity-50 cursor-pointer transition-colors"
+                  className="inline-flex justify-center py-1.5 sm:py-2 px-3 sm:px-4 border border-transparent shadow-sm text-xs sm:text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none disabled:opacity-50 cursor-pointer transition-colors"
                 >
                   {isSubmitting ? (
                     <span className="flex items-center">
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin -ml-1 mr-2 h-3 w-3 sm:h-4 sm:w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>

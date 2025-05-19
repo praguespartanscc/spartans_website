@@ -7,12 +7,17 @@ import type { Practice } from '@/types/supabase';
  */
 export async function getUpcomingPractices(): Promise<Practice[]> {
   try {
-    const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+    // Get today's date in YYYY-MM-DD format, but set time to beginning of day
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
+    
+    console.log('Fetching practices on or after:', todayStr);
     
     const { data, error } = await supabase
       .from('practices')
       .select('*')
-      .gte('date', today) // Get practices on or after today
+      .gte('date', todayStr) // Get practices on or after today
       .order('date', { ascending: true })
       .limit(3);
     
@@ -21,6 +26,7 @@ export async function getUpcomingPractices(): Promise<Practice[]> {
       throw new Error(error.message);
     }
     
+    console.log('Fetched practices:', data);
     return data || [];
   } catch (error) {
     console.error('Failed to get upcoming practices:', error);

@@ -112,17 +112,17 @@ export default function AdminDashboard() {
       </div>
 
       {/* Main content */}
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="container mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Tabs */}
-        <div className="border-b border-gray-200 mb-8">
-          <nav className="-mb-px flex space-x-8 overflow-x-auto">
+        <div className="border-b border-gray-200 mb-4 sm:mb-8">
+          <nav className="-mb-px flex space-x-3 sm:space-x-8 overflow-x-auto py-1 sm:py-0 scrollbar-hide">
             <button
               onClick={() => handleTabChange('team')}
               className={ `${
                 activeTab === 'team'
                   ? 'border-[#1a3049] text-[#1a3049]'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm cursor-pointer`}
+              } whitespace-nowrap py-2 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm cursor-pointer flex-shrink-0`}
             >
               Team Management
             </button>
@@ -132,7 +132,7 @@ export default function AdminDashboard() {
                 activeTab === 'matches'
                   ? 'border-[#1a3049] text-[#1a3049]'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm cursor-pointer`}
+              } whitespace-nowrap py-2 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm cursor-pointer flex-shrink-0`}
             >
               Upcoming Matches  
             </button>
@@ -142,7 +142,7 @@ export default function AdminDashboard() {
                 activeTab === 'practices'
                   ? 'border-[#1a3049] text-[#1a3049]'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm cursor-pointer`}
+              } whitespace-nowrap py-2 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm cursor-pointer flex-shrink-0`}
             >
               Upcoming Practices
             </button>
@@ -152,7 +152,7 @@ export default function AdminDashboard() {
                 activeTab === 'applications'
                   ? 'border-[#1a3049] text-[#1a3049]'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm cursor-pointer`}
+              } whitespace-nowrap py-2 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm cursor-pointer flex-shrink-0`}
             >
               Team Applications  
             </button>
@@ -162,7 +162,7 @@ export default function AdminDashboard() {
                 activeTab === 'sponsors'
                   ? 'border-[#1a3049] text-[#1a3049]'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm cursor-pointer`}
+              } whitespace-nowrap py-2 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm cursor-pointer flex-shrink-0`}
             >
               Sponsors
             </button>
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
                 activeTab === 'committee'
                   ? 'border-[#1a3049] text-[#1a3049]'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm cursor-pointer`}
+              } whitespace-nowrap py-2 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm cursor-pointer flex-shrink-0`}
             >
               Committee
             </button>
@@ -180,7 +180,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Tab content */}
-        <div className="bg-white shadow-md rounded-lg p-6">
+        <div className="bg-white shadow-md rounded-lg p-3 sm:p-6">
           {activeTab === 'team' && <TeamManagement />}
           {activeTab === 'matches' && <MatchesManagement />}
           {activeTab === 'practices' && <PracticesManagement />}

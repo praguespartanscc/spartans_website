@@ -260,15 +260,15 @@ export default function ApplicationsManagement() {
     <div className="space-y-6">
       <Toaster position="top-right" />
       
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-4">Team Applications</h2>
-        <p className="text-gray-600">Manage applications from players who want to join the team.</p>
-        <div className="mt-4 flex justify-between items-center">
+      <div className="mb-4 sm:mb-8">
+        <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-4">Team Applications</h2>
+        <p className="text-sm sm:text-base text-gray-600">Manage applications from players who want to join the team.</p>
+        <div className="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
           <button 
             onClick={forceSessionRefresh}
-            className="text-sm bg-[#1a3049] text-white px-4 py-2 rounded-md hover:bg-[#2a4059] transition-colors cursor-pointer flex items-center"
+            className="text-xs sm:text-sm bg-[#1a3049] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-[#2a4059] transition-colors cursor-pointer flex items-center self-start"
           >
-            <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-3 w-3 sm:h-4 sm:w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
             Refresh Applications
@@ -276,17 +276,17 @@ export default function ApplicationsManagement() {
           
           {/* Application stats */}
           {!isLoading && !error && applications.length > 0 && (
-            <div className="flex space-x-3 text-sm">
-              <div className="px-3 py-1 rounded-full bg-gray-100 text-gray-800">
+            <div className="flex flex-wrap gap-2 text-xs sm:text-sm">
+              <div className="px-2 sm:px-3 py-1 rounded-full bg-gray-100 text-gray-800">
                 Total: {applications.length}
               </div>
-              <div className="px-3 py-1 rounded-full bg-yellow-100 text-yellow-800">
+              <div className="px-2 sm:px-3 py-1 rounded-full bg-yellow-100 text-yellow-800">
                 Pending: {applications.filter(a => !a.status || a.status === 'pending').length}
               </div>
-              <div className="px-3 py-1 rounded-full bg-green-100 text-green-800">
+              <div className="px-2 sm:px-3 py-1 rounded-full bg-green-100 text-green-800">
                 Accepted: {applications.filter(a => a.status === 'accepted').length}
               </div>
-              <div className="px-3 py-1 rounded-full bg-red-100 text-red-800">
+              <div className="px-2 sm:px-3 py-1 rounded-full bg-red-100 text-red-800">
                 Rejected: {applications.filter(a => a.status === 'rejected').length}
               </div>
             </div>
@@ -303,45 +303,45 @@ export default function ApplicationsManagement() {
       )} */}
 
       {/* Status filter */}
-      <div className="mb-6 flex justify-end">
+      <div className="mb-4 sm:mb-6 flex justify-start sm:justify-end overflow-x-auto py-1 sm:py-0">
         <div className="inline-flex rounded-md shadow-sm">
           <button
             onClick={() => setFilterStatus('all')}
-            className={`px-4 py-2 text-sm font-medium rounded-l-md ${
+            className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-medium rounded-l-md ${
               filterStatus === 'all'
                 ? 'bg-[#1a3049] text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
-            } border border-gray-300 cursor-pointer`}
+            } border border-gray-300 cursor-pointer flex-shrink-0`}
           >
             All
           </button>
           <button
             onClick={() => setFilterStatus('pending')}
-            className={`px-4 py-2 text-sm font-medium ${
+            className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-medium ${
               filterStatus === 'pending'
                 ? 'bg-[#1a3049] text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
-            } border-t border-b border-gray-300 cursor-pointer`}
+            } border-t border-b border-gray-300 cursor-pointer flex-shrink-0`}
           >
             Pending
           </button>
           <button
             onClick={() => setFilterStatus('accepted')}
-            className={`px-4 py-2 text-sm font-medium ${
+            className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-medium ${
               filterStatus === 'accepted'
                 ? 'bg-[#1a3049] text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
-            } border-t border-b border-gray-300 cursor-pointer`}
+            } border-t border-b border-gray-300 cursor-pointer flex-shrink-0`}
           >
             Accepted
           </button>
           <button
             onClick={() => setFilterStatus('rejected')}
-            className={`px-4 py-2 text-sm font-medium rounded-r-md ${
+            className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-medium rounded-r-md ${
               filterStatus === 'rejected'
                 ? 'bg-[#1a3049] text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
-            } border border-gray-300 cursor-pointer`}
+            } border border-gray-300 cursor-pointer flex-shrink-0`}
           >
             Rejected
           </button>
@@ -404,39 +404,112 @@ export default function ApplicationsManagement() {
           </p>
         </div>
       ) : (
-        <div className="bg-white shadow-md rounded-lg overflow-x-auto">
-          <table className="min-w-full bg-white rounded-lg overflow-hidden border border-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Experience</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
+        <div className="bg-white shadow-md rounded-lg overflow-hidden">
+          {/* Desktop table view */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="min-w-full bg-white rounded-lg overflow-hidden border border-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Experience</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredApplications.map((application) => (
+                  <tr key={application.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button 
+                        onClick={() => viewApplicationDetails(application)}
+                        className="font-medium text-[#1a3049] hover:underline cursor-pointer"
+                      >
+                        {application.name}
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                      {application.email}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                        {application.specification}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        application.status === 'accepted' 
+                          ? 'bg-green-100 text-green-800' 
+                          : application.status === 'rejected'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {application.status || 'pending'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-normal max-w-xs">
+                      <div className="text-sm text-gray-600 truncate hover:text-clip hover:whitespace-normal">
+                        {application.experience.length > 60 
+                          ? `${application.experience.substring(0, 60)}...` 
+                          : application.experience}
+                        <span className="block text-xs text-blue-600 hover:underline cursor-pointer mt-1" 
+                          onClick={() => viewApplicationDetails(application)}>
+                          View details
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(application.created_at)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex justify-end space-x-2">
+                        {(application.status === 'pending') && (
+                          <>
+                            <button
+                              onClick={() => handleUpdateStatus(application.id, 'accepted')}
+                              disabled={processingId === application.id}
+                              className="text-green-600 hover:text-green-900 mr-2 disabled:opacity-50 cursor-pointer"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => handleUpdateStatus(application.id, 'rejected')}
+                              disabled={processingId === application.id}
+                              className="text-red-600 hover:text-red-900 mr-2 disabled:opacity-50 cursor-pointer"
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
+                        <button
+                          onClick={() => confirmDeleteApplication(application.id)}
+                          disabled={processingId === application.id}
+                          className="text-red-600 hover:text-red-900 disabled:opacity-50 cursor-pointer"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Mobile card view */}
+          <div className="md:hidden">
+            <div className="grid grid-cols-1 gap-4 px-2 py-3">
               {filteredApplications.map((application) => (
-                <tr key={application.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                <div key={application.id} className="bg-white border rounded-lg shadow-sm p-4">
+                  <div className="flex justify-between items-start mb-3">
                     <button 
                       onClick={() => viewApplicationDetails(application)}
-                      className="font-medium text-[#1a3049] hover:underline cursor-pointer"
+                      className="font-medium text-[#1a3049] hover:underline cursor-pointer text-lg"
                     >
                       {application.name}
                     </button>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                    {application.email}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                      {application.specification}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                       application.status === 'accepted' 
                         ? 'bg-green-100 text-green-800' 
@@ -446,78 +519,88 @@ export default function ApplicationsManagement() {
                     }`}>
                       {application.status || 'pending'}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-normal max-w-xs">
-                    <div className="text-sm text-gray-600 truncate hover:text-clip hover:whitespace-normal">
-                      {application.experience.length > 60 
-                        ? `${application.experience.substring(0, 60)}...` 
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-y-2 text-sm mb-3">
+                    <div className="text-gray-500">Email:</div>
+                    <div className="text-gray-900 break-all">{application.email}</div>
+                    
+                    <div className="text-gray-500">Type:</div>
+                    <div className="text-gray-900">{application.specification}</div>
+                    
+                    <div className="text-gray-500">Date:</div>
+                    <div className="text-gray-900">{formatDate(application.created_at).split(',')[0]}</div>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <div className="text-sm text-gray-600 line-clamp-2">
+                      {application.experience.length > 100 
+                        ? `${application.experience.substring(0, 100)}...` 
                         : application.experience}
-                      <span className="block text-xs text-blue-600 hover:underline cursor-pointer mt-1" 
-                        onClick={() => viewApplicationDetails(application)}>
-                        View details
-                      </span>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDate(application.created_at)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end space-x-2">
-                      {(application.status === 'pending') && (
-                        <>
-                          <button
-                            onClick={() => handleUpdateStatus(application.id, 'accepted')}
-                            disabled={processingId === application.id}
-                            className="text-green-600 hover:text-green-900 mr-2 disabled:opacity-50 cursor-pointer"
-                          >
-                            Accept
-                          </button>
-                          <button
-                            onClick={() => handleUpdateStatus(application.id, 'rejected')}
-                            disabled={processingId === application.id}
-                            className="text-red-600 hover:text-red-900 mr-2 disabled:opacity-50 cursor-pointer"
-                          >
-                            Reject
-                          </button>
-                        </>
-                      )}
-                      <button
-                        onClick={() => confirmDeleteApplication(application.id)}
-                        disabled={processingId === application.id}
-                        className="text-red-600 hover:text-red-900 disabled:opacity-50 cursor-pointer"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                    <button 
+                      className="mt-1 text-xs text-blue-600 hover:underline cursor-pointer" 
+                      onClick={() => viewApplicationDetails(application)}
+                    >
+                      View full details
+                    </button>
+                  </div>
+                  
+                  <div className="flex justify-end space-x-2 pt-2 border-t border-gray-100">
+                    {(application.status === 'pending') && (
+                      <>
+                        <button
+                          onClick={() => handleUpdateStatus(application.id, 'accepted')}
+                          disabled={processingId === application.id}
+                          className="text-xs bg-green-100 text-green-700 hover:bg-green-200 py-1 px-2 rounded disabled:opacity-50 cursor-pointer"
+                        >
+                          Accept
+                        </button>
+                        <button
+                          onClick={() => handleUpdateStatus(application.id, 'rejected')}
+                          disabled={processingId === application.id}
+                          className="text-xs bg-red-100 text-red-700 hover:bg-red-200 py-1 px-2 rounded disabled:opacity-50 cursor-pointer"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+                    <button
+                      onClick={() => confirmDeleteApplication(application.id)}
+                      disabled={processingId === application.id}
+                      className="text-xs bg-gray-100 text-red-700 hover:bg-gray-200 py-1 px-2 rounded disabled:opacity-50 cursor-pointer"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Application Details Modal */}
       {showDetails && selectedApplication && (
-        <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity duration-300">
-          <div className="bg-white bg-opacity-95 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl transform transition-all">
-            <div className="px-6 py-4 border-b border-gray-200">
+        <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm transition-opacity duration-300">
+          <div className="bg-white bg-opacity-95 rounded-lg w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl transform transition-all">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900">Application Details</h3>
+                <h3 className="text-base sm:text-lg font-medium text-gray-900">Application Details</h3>
                 <button 
                   onClick={() => setShowDetails(false)}
                   className="text-gray-400 hover:text-gray-500 cursor-pointer"
                 >
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
             </div>
             
-            <div className="px-6 py-4">
+            <div className="px-4 sm:px-6 py-3 sm:py-4">
               <div className="mb-4">
-                <div className="text-sm font-medium text-gray-500 mb-1">Status</div>
+                <div className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Status</div>
                 <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                   selectedApplication.status === 'accepted' 
                     ? 'bg-green-100 text-green-800' 
@@ -529,58 +612,58 @@ export default function ApplicationsManagement() {
                 </span>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
                 <div>
-                  <div className="text-sm font-medium text-gray-500 mb-1">Name</div>
-                  <div className="text-gray-900">{selectedApplication.name}</div>
+                  <div className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Name</div>
+                  <div className="text-sm sm:text-base text-gray-900">{selectedApplication.name}</div>
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-gray-500 mb-1">Email</div>
-                  <div className="text-gray-900">{selectedApplication.email}</div>
+                  <div className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Email</div>
+                  <div className="text-sm sm:text-base text-gray-900 break-all">{selectedApplication.email}</div>
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-gray-500 mb-1">Age</div>
-                  <div className="text-gray-900">{selectedApplication.age}</div>
+                  <div className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Age</div>
+                  <div className="text-sm sm:text-base text-gray-900">{selectedApplication.age}</div>
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-gray-500 mb-1">Location</div>
-                  <div className="text-gray-900">{selectedApplication.location}</div>
+                  <div className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Location</div>
+                  <div className="text-sm sm:text-base text-gray-900">{selectedApplication.location}</div>
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-gray-500 mb-1">Player Type</div>
-                  <div className="text-gray-900">{selectedApplication.specification}</div>
+                  <div className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Player Type</div>
+                  <div className="text-sm sm:text-base text-gray-900">{selectedApplication.specification}</div>
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-gray-500 mb-1">Date Applied</div>
-                  <div className="text-gray-900">{formatDate(selectedApplication.created_at)}</div>
+                  <div className="text-xs sm:text-sm font-medium text-gray-500 mb-1">Date Applied</div>
+                  <div className="text-sm sm:text-base text-gray-900">{formatDate(selectedApplication.created_at)}</div>
                 </div>
               </div>
               
-              <div className="mb-6">
-                <div className="text-sm font-medium text-[#1a3049] mb-2 uppercase tracking-wider">Player Experience Summary</div>
-                <div className="text-gray-900 bg-gray-50 p-4 rounded-md border border-gray-200 whitespace-pre-wrap shadow-inner">
+              <div className="mb-4 sm:mb-6">
+                <div className="text-xs sm:text-sm font-medium text-[#1a3049] mb-2 uppercase tracking-wider">Player Experience Summary</div>
+                <div className="text-gray-900 bg-gray-50 p-3 sm:p-4 rounded-md border border-gray-200 whitespace-pre-wrap shadow-inner">
                   <p className="italic text-gray-600 mb-2">&quot;</p>
-                  <p className="leading-relaxed text-gray-800">
+                  <p className="leading-relaxed text-sm sm:text-base text-gray-800">
                     {selectedApplication.experience}
                   </p>
                   <p className="italic text-gray-600 text-right mt-2">&quot;</p>
                 </div>
               </div>
               
-              <div className="border-t border-gray-200 pt-4 flex justify-end space-x-3">
+              <div className="border-t border-gray-200 pt-3 sm:pt-4 flex flex-wrap justify-end gap-2 sm:space-x-3">
                 {selectedApplication.status === 'pending' && (
                   <>
                     <button
                       onClick={() => handleUpdateStatus(selectedApplication.id, 'accepted')}
                       disabled={processingId === selectedApplication.id}
-                      className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none disabled:opacity-50 cursor-pointer transition-colors"
+                      className="inline-flex justify-center py-1.5 sm:py-2 px-3 sm:px-4 border border-transparent shadow-sm text-xs sm:text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none disabled:opacity-50 cursor-pointer transition-colors"
                     >
                       Accept Application
                     </button>
                     <button
                       onClick={() => handleUpdateStatus(selectedApplication.id, 'rejected')}
                       disabled={processingId === selectedApplication.id}
-                      className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none disabled:opacity-50 cursor-pointer transition-colors"
+                      className="inline-flex justify-center py-1.5 sm:py-2 px-3 sm:px-4 border border-transparent shadow-sm text-xs sm:text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none disabled:opacity-50 cursor-pointer transition-colors"
                     >
                       Reject Application
                     </button>
@@ -589,13 +672,13 @@ export default function ApplicationsManagement() {
                 <button
                   onClick={() => confirmDeleteApplication(selectedApplication.id)}
                   disabled={processingId === selectedApplication.id}
-                  className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-white hover:bg-gray-50 focus:outline-none disabled:opacity-50 cursor-pointer transition-colors"
+                  className="inline-flex justify-center py-1.5 sm:py-2 px-3 sm:px-4 border border-gray-300 shadow-sm text-xs sm:text-sm font-medium rounded-md text-red-700 bg-white hover:bg-gray-50 focus:outline-none disabled:opacity-50 cursor-pointer transition-colors"
                 >
                   Delete
                 </button>
                 <button
                   onClick={() => setShowDetails(false)}
-                  className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none cursor-pointer transition-colors"
+                  className="inline-flex justify-center py-1.5 sm:py-2 px-3 sm:px-4 border border-gray-300 shadow-sm text-xs sm:text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none cursor-pointer transition-colors"
                 >
                   Close
                 </button>
@@ -607,40 +690,40 @@ export default function ApplicationsManagement() {
       
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0  bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity duration-300">
+        <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity duration-300">
           <div className="bg-white bg-opacity-95 rounded-lg max-w-md w-full shadow-xl transform transition-all">
-            <div className="px-6 py-4 border-b border-gray-200">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900">Confirm Deletion</h3>
+                <h3 className="text-base sm:text-lg font-medium text-gray-900">Confirm Deletion</h3>
                 <button 
                   onClick={() => setShowDeleteConfirm(false)}
                   className="text-gray-400 hover:text-gray-500 cursor-pointer"
                 >
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
             </div>
             
-            <div className="px-6 py-4">
-              <p className="text-gray-700 mb-4">Are you sure you want to delete this application? This action cannot be undone.</p>
+            <div className="px-4 sm:px-6 py-3 sm:py-4">
+              <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4">Are you sure you want to delete this application? This action cannot be undone.</p>
               
-              <div className="flex justify-end space-x-3 mt-6">
+              <div className="flex justify-end space-x-3 mt-4 sm:mt-6">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none cursor-pointer transition-colors"
+                  className="inline-flex justify-center py-1.5 sm:py-2 px-3 sm:px-4 border border-gray-300 shadow-sm text-xs sm:text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDeleteApplication}
                   disabled={processingId !== null}
-                  className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none disabled:opacity-50 cursor-pointer transition-colors"
+                  className="inline-flex justify-center py-1.5 sm:py-2 px-3 sm:px-4 border border-transparent shadow-sm text-xs sm:text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none disabled:opacity-50 cursor-pointer transition-colors"
                 >
                   {processingId !== null ? (
                     <span className="flex items-center">
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin -ml-1 mr-2 h-3 w-3 sm:h-4 sm:w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>

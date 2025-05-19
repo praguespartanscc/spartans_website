@@ -201,35 +201,35 @@ export default function TeamManagement() {
     <div className="space-y-6">
       <Toaster position="top-right" />
       {/* Add Player Form */}
-      <form onSubmit={editPlayerId ? handleUpdatePlayer : handleAddPlayer} className="bg-gray-50 p-6 rounded-lg">
-        <h3 className="text-lg font-semibold text-[#1a3049] mb-4">{editPlayerId ? 'Edit Player' : 'Add New Player'}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <form onSubmit={editPlayerId ? handleUpdatePlayer : handleAddPlayer} className="bg-gray-50 p-4 sm:p-6 rounded-lg">
+        <h3 className="text-base sm:text-lg font-semibold text-[#1a3049] mb-3 sm:mb-4">{editPlayerId ? 'Edit Player' : 'Add New Player'}</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
+            <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Name</label>
             <input
               type="text"
               id="name"
               value={newPlayer.name}
               onChange={(e) => setNewPlayer({ ...newPlayer, name: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049]"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
               required
             />
           </div>
           
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+            <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
               type="email"
               id="email"
               value={newPlayer.email}
               onChange={(e) => setNewPlayer({ ...newPlayer, email: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049]"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
               required
             />
           </div>
           
           <div>
-            <label htmlFor="age" className="block text-sm font-medium text-gray-700">Age</label>
+            <label htmlFor="age" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Age</label>
             <input
               type="number"
               id="age"
@@ -237,18 +237,18 @@ export default function TeamManagement() {
               max="80"
               value={newPlayer.age}
               onChange={(e) => setNewPlayer({ ...newPlayer, age: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049]"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
               required
             />
           </div>
           
           <div>
-            <label htmlFor="player_type" className="block text-sm font-medium text-gray-700">Player Type</label>
+            <label htmlFor="player_type" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Player Type</label>
             <select
               id="player_type"
               value={newPlayer.player_type}
               onChange={(e) => setNewPlayer({ ...newPlayer, player_type: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049]"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
             >
               <option value="batsman">Batsman</option>
               <option value="bowler">Bowler</option>
@@ -258,12 +258,12 @@ export default function TeamManagement() {
           </div>
           
           <div>
-            <label htmlFor="role" className="block text-sm font-medium text-gray-700">Team Role</label>
+            <label htmlFor="role" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Team Role</label>
             <select
               id="role"
               value={newPlayer.role}
               onChange={(e) => setNewPlayer({ ...newPlayer, role: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049]"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
             >
               <option value="player">Player</option>
               <option value="captain">Captain</option>
@@ -272,12 +272,12 @@ export default function TeamManagement() {
           </div>
           
           <div>
-            <label htmlFor="team" className="block text-sm font-medium text-gray-700">Team</label>
+            <label htmlFor="team" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Team</label>
             <select
               id="team"
               value={newPlayer.team}
               onChange={(e) => setNewPlayer({ ...newPlayer, team: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049]"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
             >
               <option value="Vanguards">Vanguards</option>
               <option value="Mobilizers">Mobilizers</option>
@@ -285,14 +285,14 @@ export default function TeamManagement() {
             </select>
           </div>
         </div>
-        <div className="mt-4 flex gap-2 justify-end">
+        <div className="mt-4 flex flex-col sm:flex-row gap-2 sm:justify-end">
           <button
             type="submit"
-            className="bg-[#1a3049] text-white px-4 py-2 rounded-md hover:bg-[#1a3049]/90 transition-colors cursor-pointer"
+            className="w-full sm:w-auto bg-[#1a3049] text-white px-4 py-2 rounded-md hover:bg-[#1a3049]/90 transition-colors cursor-pointer text-sm"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
-              <span className="flex items-center"><span className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></span>{editPlayerId ? 'Updating...' : 'Adding...'}</span>
+              <span className="flex items-center justify-center"><span className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></span>{editPlayerId ? 'Updating...' : 'Adding...'}</span>
             ) : (
               editPlayerId ? 'Update Player' : 'Add Player'
             )}
@@ -301,7 +301,7 @@ export default function TeamManagement() {
             <button
               type="button"
               onClick={handleCancelEdit}
-              className="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors cursor-pointer"
+              className="w-full sm:w-auto mt-2 sm:mt-0 bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors cursor-pointer text-sm"
               disabled={isSubmitting}
             >
               Cancel
@@ -317,85 +317,134 @@ export default function TeamManagement() {
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1a3049]"></div>
           </div>
         )}
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Player Type</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team Role</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {players.map((player) => (
-              <tr key={player.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{player.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{player.email}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{player.age}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{player.player_type}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{player.role}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{player.team || 'Vanguards'}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => confirmRemovePlayer(player.id)}
-                    className="text-red-600 hover:text-red-900 mr-4 cursor-pointer"
-                    disabled={isSubmitting}
-                  >
-                    Remove
-                  </button>
-                  <button
-                    onClick={() => handleEditPlayer(player)}
-                    className="text-blue-600 hover:text-blue-900 cursor-pointer"
-                    disabled={isSubmitting}
-                  >
-                    Edit
-                  </button>
-                </td>
+        
+        {/* Table for desktop view */}
+        <div className="hidden md:block">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Player Type</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team Role</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {players.map((player) => (
+                <tr key={player.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{player.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{player.email}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{player.age}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{player.player_type}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{player.role}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{player.team || 'Vanguards'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button
+                      onClick={() => confirmRemovePlayer(player.id)}
+                      className="text-red-600 hover:text-red-900 mr-4 cursor-pointer"
+                      disabled={isSubmitting}
+                    >
+                      Remove
+                    </button>
+                    <button
+                      onClick={() => handleEditPlayer(player)}
+                      className="text-blue-600 hover:text-blue-900 cursor-pointer"
+                      disabled={isSubmitting}
+                    >
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Card view for mobile */}
+        <div className="md:hidden">
+          <div className="grid grid-cols-1 gap-4 px-2 py-3">
+            {players.map((player) => (
+              <div key={player.id} className="bg-white border rounded-lg shadow-sm p-4">
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="text-lg font-medium text-gray-900">{player.name}</h3>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleEditPlayer(player)}
+                      className="text-blue-600 hover:text-blue-900 text-sm cursor-pointer p-1"
+                      disabled={isSubmitting}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => confirmRemovePlayer(player.id)}
+                      className="text-red-600 hover:text-red-900 text-sm cursor-pointer p-1"
+                      disabled={isSubmitting}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-y-2 text-sm">
+                  <div className="text-gray-500">Email:</div>
+                  <div className="text-gray-900 break-all">{player.email}</div>
+                  
+                  <div className="text-gray-500">Age:</div>
+                  <div className="text-gray-900">{player.age}</div>
+                  
+                  <div className="text-gray-500">Player Type:</div>
+                  <div className="text-gray-900 capitalize">{player.player_type}</div>
+                  
+                  <div className="text-gray-500">Team Role:</div>
+                  <div className="text-gray-900 capitalize">{player.role}</div>
+                  
+                  <div className="text-gray-500">Team:</div>
+                  <div className="text-gray-900 capitalize">{player.team || 'Vanguards'}</div>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </div>
       </div>
       
       {/* Confirmation Dialog */}
       {showConfirm && (
         <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity duration-300">
           <div className="bg-white bg-opacity-95 rounded-lg max-w-md w-full shadow-xl transform transition-all">
-            <div className="px-6 py-4 border-b border-gray-200">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900">Confirm Removal</h3>
+                <h3 className="text-base sm:text-lg font-medium text-gray-900">Confirm Removal</h3>
                 <button 
                   onClick={() => setShowConfirm(false)}
                   className="text-gray-400 hover:text-gray-500 cursor-pointer"
                 >
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
             </div>
             
-            <div className="px-6 py-4">
-              <p className="text-gray-700 mb-4">Are you sure you want to remove this player? This action cannot be undone.</p>
+            <div className="px-4 sm:px-6 py-3 sm:py-4">
+              <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4">Are you sure you want to remove this player? This action cannot be undone.</p>
               
-              <div className="flex justify-end space-x-3 mt-6">
+              <div className="flex justify-end space-x-3 mt-4 sm:mt-6">
                 <button
                   onClick={() => setShowConfirm(false)}
-                  className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none cursor-pointer transition-colors"
+                  className="inline-flex justify-center py-1.5 sm:py-2 px-3 sm:px-4 border border-gray-300 shadow-sm text-xs sm:text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleRemovePlayer}
                   disabled={isSubmitting}
-                  className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none disabled:opacity-50 cursor-pointer transition-colors"
+                  className="inline-flex justify-center py-1.5 sm:py-2 px-3 sm:px-4 border border-transparent shadow-sm text-xs sm:text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none disabled:opacity-50 cursor-pointer transition-colors"
                 >
                   {isSubmitting ? (
                     <span className="flex items-center">
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin -ml-1 mr-2 h-3 w-3 sm:h-4 sm:w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>

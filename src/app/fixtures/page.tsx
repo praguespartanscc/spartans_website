@@ -15,6 +15,8 @@ export default function FixturesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [matchesPerPage] = useState(12);
   const [resultFilter, setResultFilter] = useState<ResultFilterType>('all');
+  const [teamFilter, setTeamFilter] = useState<string>('all');
+  const [teams, setTeams] = useState<string[]>([]);
 
   const resultFilters = [
     { id: 'all', name: 'All Matches' },
@@ -40,6 +42,14 @@ export default function FixturesPage() {
         if (error) throw error;
         setMatches(data || []);
         setFilteredMatches(data || []);
+        
+        // Extract unique teams
+        const uniqueTeams = new Set<string>();
+        data?.forEach(match => {
+          uniqueTeams.add(match.team1);
+          uniqueTeams.add(match.team2);
+        });
+        setTeams(Array.from(uniqueTeams).sort());
       } catch (error) {
         console.error('Error loading matches:', error);
         setError('Failed to load matches. Please try again later.');
@@ -50,20 +60,30 @@ export default function FixturesPage() {
     loadMatches();
   }, []);
 
-  // Filter matches when result filter changes
+  // Filter matches when result filter or team filter changes
   useEffect(() => {
-    if (resultFilter === 'all') {
-      setFilteredMatches(matches);
-    } else if (resultFilter === 'upcoming') {
-      const filtered = matches.filter(match => match.result === 'will be played');
-      setFilteredMatches(filtered);
-    } else {
-      const filtered = matches.filter(match => match.result === resultFilter);
-      setFilteredMatches(filtered);
+    let filtered = [...matches];
+    
+    // Apply result filter
+    if (resultFilter !== 'all') {
+      if (resultFilter === 'upcoming') {
+        filtered = filtered.filter(match => match.result === 'will be played');
+      } else {
+        filtered = filtered.filter(match => match.result === resultFilter);
+      }
     }
+    
+    // Apply team filter
+    if (teamFilter !== 'all') {
+      filtered = filtered.filter(match => 
+        match.team1 === teamFilter || match.team2 === teamFilter
+      );
+    }
+    
+    setFilteredMatches(filtered);
     // Reset to first page when changing filters
     setCurrentPage(1);
-  }, [resultFilter, matches]);
+  }, [resultFilter, teamFilter, matches]);
 
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -89,26 +109,55 @@ export default function FixturesPage() {
           {error && <p className="text-red-500 mt-2">{error}</p>}
         </div>
 
-        {/* Result Filter */}
+        {/* Filters */}
         <div className="mb-8">
-          <div className="max-w-xl mx-auto">
-            <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
-              Filter by Result:
-            </label>
-            <div className="flex flex-wrap justify-center gap-2">
-              {resultFilters.map(filter => (
-                <button
-                  key={filter.id}
-                  onClick={() => setResultFilter(filter.id as ResultFilterType)}
-                  className={`px-4 py-2 rounded-full cursor-pointer transition-all duration-300 ${
-                    resultFilter === filter.id
-                      ? 'bg-[#1a3049] text-white shadow-md'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {filter.name}
-                </button>
-              ))}
+          <div className="max-w-3xl mx-auto">
+            <div className="grid gap-6 sm:grid-cols-2">
+              {/* Result Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
+                  Filter by Result:
+                </label>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {resultFilters.map(filter => (
+                    <button
+                      key={filter.id}
+                      onClick={() => setResultFilter(filter.id as ResultFilterType)}
+                      className={`px-4 py-2 rounded-full cursor-pointer transition-all duration-300 ${
+                        resultFilter === filter.id
+                          ? 'bg-[#1a3049] text-white shadow-md'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {filter.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Team Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
+                  Filter by Team:
+                </label>
+                <div className="relative">
+                  <select
+                    value={teamFilter}
+                    onChange={(e) => setTeamFilter(e.target.value)}
+                    className="block w-full rounded-full border-gray-200 py-2 pl-4 pr-10 text-sm focus:border-[#1a3049] focus:ring-[#1a3049] outline-none"
+                  >
+                    <option value="all">All Teams</option>
+                    {teams.map(team => (
+                      <option key={team} value={team}>{team}</option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4">
+                    <svg className="h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

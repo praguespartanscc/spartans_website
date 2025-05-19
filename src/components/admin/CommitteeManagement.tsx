@@ -222,17 +222,17 @@ export default function CommitteeManagement() {
   return (
     <div>
       <Toaster position="top-center" />
-      <h2 className="text-2xl font-bold mb-6">Committee Management</h2>
+      <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Committee Management</h2>
 
       {/* Add/Edit Committee Member Form */}
-      <div className="mb-8 bg-gray-50 p-6 rounded-lg">
-        <h3 className="text-lg font-semibold mb-4">
+      <div className="mb-6 sm:mb-8 bg-gray-50 p-4 sm:p-6 rounded-lg">
+        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">
           {isEditing ? 'Edit Committee Member' : 'Add New Committee Member'}
         </h3>
         <form onSubmit={isEditing ? handleUpdateMember : handleAddMember}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                 Name
               </label>
               <input
@@ -240,20 +240,20 @@ export default function CommitteeManagement() {
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3049]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3049] text-sm"
                 placeholder="Enter name"
               />
             </div>
             
             <div>
-              <label htmlFor="position" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="position" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                 Position
               </label>
               <select
                 id="position"
                 value={position}
                 onChange={(e) => setPosition(e.target.value as Position)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3049]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3049] text-sm"
               >
                 {positions.map((pos) => (
                   <option key={pos} value={pos}>
@@ -264,13 +264,13 @@ export default function CommitteeManagement() {
             </div>
           </div>
 
-          {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
+          {error && <div className="text-red-500 text-xs sm:text-sm mb-3 sm:mb-4">{error}</div>}
 
-          <div className="flex space-x-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:space-x-3">
             <button
               type="submit"
               disabled={isSubmitting}
-              className="cursor-pointer px-4 py-2 bg-[#1a3049] text-white rounded-md hover:bg-[#152538] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1a3049] disabled:opacity-50"
+              className="cursor-pointer px-3 sm:px-4 py-2 bg-[#1a3049] text-white rounded-md hover:bg-[#152538] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1a3049] disabled:opacity-50 text-xs sm:text-sm w-full sm:w-auto"
             >
               {isSubmitting 
                 ? (isEditing ? 'Updating...' : 'Adding...') 
@@ -281,7 +281,7 @@ export default function CommitteeManagement() {
               <button
                 type="button"
                 onClick={handleCancelEdit}
-                className="cursor-pointer px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                className="cursor-pointer px-3 sm:px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 text-xs sm:text-sm w-full sm:w-auto mt-2 sm:mt-0"
               >
                 Cancel
               </button>
@@ -292,58 +292,95 @@ export default function CommitteeManagement() {
 
       {/* Committee Members Table */}
       <div>
-        <h3 className="text-lg font-semibold mb-4">Committee Members</h3>
+        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Committee Members</h3>
         {loading ? (
           <div className="text-center py-4">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1a3049] mx-auto"></div>
           </div>
         ) : committeeMembers.length === 0 ? (
-          <div className="text-center py-4 text-gray-500">No committee members found</div>
+          <div className="text-center py-4 text-gray-500 text-sm">No committee members found</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Position
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+          <div className="bg-white shadow-md rounded-lg overflow-hidden">
+            {/* Desktop View */}
+            <div className="hidden md:block">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Position
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {committeeMembers.map((member) => (
+                      <tr key={member.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {member.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {member.position}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button
+                            onClick={() => handleEditMember(member)}
+                            className="text-blue-600 hover:text-blue-800 mr-4 cursor-pointer"
+                            disabled={isSubmitting}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => confirmRemoveMember(member.id)}
+                            className="text-red-600 hover:text-red-800 cursor-pointer"
+                            disabled={isSubmitting}
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Mobile View */}
+            <div className="md:hidden">
+              <div className="grid grid-cols-1 gap-3 px-3 py-3">
                 {committeeMembers.map((member) => (
-                  <tr key={member.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {member.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {member.position}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div key={member.id} className="bg-white border rounded-lg shadow-sm p-4">
+                    <div className="flex justify-between mb-2">
+                      <h4 className="font-medium text-gray-900">{member.name}</h4>
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                        {member.position}
+                      </span>
+                    </div>
+                    <div className="flex justify-end space-x-2 mt-3 pt-2 border-t border-gray-100">
                       <button
                         onClick={() => handleEditMember(member)}
-                        className="text-blue-600 hover:text-blue-800 mr-4 cursor-pointer"
+                        className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 py-1 px-2 rounded disabled:opacity-50 cursor-pointer"
                         disabled={isSubmitting}
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => confirmRemoveMember(member.id)}
-                        className="text-red-600 hover:text-red-800 cursor-pointer"
+                        className="text-xs bg-red-100 text-red-700 hover:bg-red-200 py-1 px-2 rounded disabled:opacity-50 cursor-pointer"
                         disabled={isSubmitting}
                       >
                         Remove
                       </button>
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -352,38 +389,38 @@ export default function CommitteeManagement() {
       {showConfirm && (
         <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity duration-300">
           <div className="bg-white bg-opacity-95 rounded-lg max-w-md w-full shadow-xl transform transition-all">
-            <div className="px-6 py-4 border-b border-gray-200">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900">Confirm Removal</h3>
+                <h3 className="text-base sm:text-lg font-medium text-gray-900">Confirm Removal</h3>
                 <button 
                   onClick={() => setShowConfirm(false)}
                   className="text-gray-400 hover:text-gray-500 cursor-pointer"
                 >
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
             </div>
             
-            <div className="px-6 py-4">
-              <p className="text-gray-700 mb-4">Are you sure you want to remove this committee member? This action cannot be undone.</p>
+            <div className="px-4 sm:px-6 py-3 sm:py-4">
+              <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4">Are you sure you want to remove this committee member? This action cannot be undone.</p>
               
-              <div className="flex justify-end space-x-3 mt-6">
+              <div className="flex justify-end space-x-3 mt-4 sm:mt-6">
                 <button
                   onClick={() => setShowConfirm(false)}
-                  className="cursor-pointer inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-colors"
+                  className="cursor-pointer inline-flex justify-center py-1.5 sm:py-2 px-3 sm:px-4 border border-gray-300 shadow-sm text-xs sm:text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleRemoveMember}
                   disabled={isSubmitting}
-                  className="cursor-pointer inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none disabled:opacity-50 transition-colors"
+                  className="cursor-pointer inline-flex justify-center py-1.5 sm:py-2 px-3 sm:px-4 border border-transparent shadow-sm text-xs sm:text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none disabled:opacity-50 transition-colors"
                 >
                   {isSubmitting ? (
                     <span className="flex items-center">
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin -ml-1 mr-2 h-3 w-3 sm:h-4 sm:w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
