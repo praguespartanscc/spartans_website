@@ -1,4 +1,5 @@
 import 'server-only';
+import { getSettings } from '@/lib/data';
 
 // Live detection for the club's YouTube channel.
 // 1. The channel's public video feed lists recent uploads and streams (free).
@@ -87,7 +88,8 @@ async function resolveChannelId(channel: string, key?: string): Promise<string |
 }
 
 export async function getLiveStatus(): Promise<LiveStatus> {
-  const channel = process.env.YOUTUBE_CHANNEL_ID?.trim();
+  // The channel can be set in Vercel or by admins in Settings.
+  const channel = process.env.YOUTUBE_CHANNEL_ID?.trim() || (await getSettings()).youtube_channel?.trim();
   const key = process.env.YOUTUBE_API_KEY?.trim() || undefined;
   if (!channel) return EMPTY;
 

@@ -96,6 +96,23 @@ export default function ApplicationsManagement() {
       }
       
       toast.success(`Application ${status} successfully`);
+
+      // Accepting usually means they're joining a squad: offer to add them as a player straight away.
+      const app = applications.find((x) => x.id === id);
+      if (status === 'accepted' && app && window.confirm(`Also add ${app.name} as a player? You can set their squad on the Players page.`)) {
+        const type = app.specification?.startsWith('wicketkeeper') ? 'wicketkeeper' : app.specification || 'batsman';
+        const { data: player, error: playerError } = await supabase
+          .from('players')
+          .insert([{ name: app.name, player_type: type, role: 'player', team: null, is_active: true }])
+          .select()
+          .single();
+        if (playerError) {
+          toast.error(`Player not created: ${playerError.message}`);
+        } else {
+          await supabase.from('player_private').upsert({ player_id: player.id, email: app.email, age: app.age ?? null });
+          toast.success(`${app.name} added to Players`);
+        }
+      }
     } catch (error) {
       console.error(`Error updating application status:`, error);
       toast.error(`Failed to update application status`);

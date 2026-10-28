@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getMatch, getMatches, pragueToday } from '@/lib/data';
+import { getMatch, getMatches, getSelection, pragueToday } from '@/lib/data';
 import { CLUB_NAME, SITE_URL } from '@/lib/club';
 import { dateParts, formatDivision, formatTime, titleCase, youTubeId } from '@/lib/format';
 import MatchRow, { ResultChip } from '@/components/MatchRow';
@@ -77,6 +77,7 @@ export default async function MatchPage({ params }: Props) {
   const videoId = youTubeId(match.stream_url) ?? channelLive?.id ?? null;
   const live = match.date === today && (!!match.stream_url || !!channelLive);
   const details = [titleCase(match.type), formatDivision(match.division)].filter(Boolean).join(' · ');
+  const selection = await getSelection(match.id);
   const others = (await getMatches())
     .filter((m) => m.id !== match.id && m.result === 'will be played' && m.date >= today)
     .slice(0, 3);
@@ -167,6 +168,29 @@ export default async function MatchPage({ params }: Props) {
           <div className="container-x">
             <h2 className="h-sub mb-5 text-[30px]">{live ? 'Watch live' : upcoming ? 'Live stream' : 'Match replay'}</h2>
             <YouTubeEmbed id={videoId} title={`${match.team1} vs ${match.team2} video`} />
+          </div>
+        </section>
+      )}
+
+      {selection.length > 0 && (
+        <section aria-labelledby="xi" className="border-t border-cream/12 py-12 sm:py-16">
+          <div className="container-x">
+            <h2 id="xi" className="h-section mb-6">
+              Playing XI
+            </h2>
+            <ol className="grid gap-px border border-cream/12 bg-cream/12 sm:grid-cols-2 lg:grid-cols-3">
+              {selection.map(({ player, slot, is_captain, is_keeper }, i) => (
+                <li key={player.id} className="flex items-center gap-4 bg-ink p-4">
+                  <span className="w-8 font-varsity text-[24px] text-gold">{slot === 'twelfth' ? '12' : i + 1}</span>
+                  <Link href={`/players/${player.slug}`} className="min-w-0 flex-1 font-semibold hover:text-gold">
+                    {player.name}
+                    {is_captain && <span className="ml-2 bg-gold px-1.5 font-display text-[13px] font-extrabold text-ink">C</span>}
+                    {is_keeper && <span className="ml-2 border border-cream/40 px-1.5 font-display text-[13px] font-extrabold">WK</span>}
+                  </Link>
+                  {slot === 'twelfth' && <span className="text-[13px] text-faint">12th</span>}
+                </li>
+              ))}
+            </ol>
           </div>
         </section>
       )}

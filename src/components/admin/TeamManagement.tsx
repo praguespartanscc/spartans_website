@@ -39,14 +39,19 @@ export default function TeamManagement() {
   const [form, setForm] = useState(EMPTY);
   const [editing, setEditing] = useState<Row | null>(null);
   const [toDelete, setToDelete] = useState<Row | null>(null);
+  const [search, setSearch] = useState('');
+  const [squad, setSquad] = useState('all');
+  const [linked, setLinked] = useState<Set<string>>(new Set());
   const supabase = createClientComponentClient();
 
   const fetchPlayers = useCallback(async () => {
     try {
-      const [{ data: rows, error }, { data: privateRows }] = await Promise.all([
+      const [{ data: rows, error }, { data: privateRows }, { data: profiles }] = await Promise.all([
         supabase.from('players').select('*').order('name', { ascending: true }),
         supabase.from('player_private').select('player_id, email, age'),
+        supabase.from('profiles').select('player_id').eq('status', 'approved'),
       ]);
+      setLinked(new Set(((profiles ?? []) as { player_id: string | null }[]).map((p) => String(p.player_id)).filter(Boolean)));
       if (error) throw error;
       const byId = new Map((privateRows as PlayerPrivate[] | null)?.map((p) => [p.player_id, p]) ?? []);
       setPlayers(
@@ -284,9 +289,30 @@ export default function TeamManagement() {
         </div>
       </form>
 
+      <div className="flex flex-wrap gap-3">
+        <input
+          type="search"
+          placeholder="Search players"
+          aria-label="Search players"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full rounded-md border-gray-300 text-sm sm:w-64"
+        />
+        <select aria-label="Filter by squad" value={squad} onChange={(e) => setSquad(e.target.value)} className="rounded-md border-gray-300 text-sm">
+          <option value="all">All squads</option>
+          <option>Vanguards</option>
+          <option>Mobilizers</option>
+          <option>Strikers</option>
+          <option value="hidden">Hidden players</option>
+        </select>
+      </div>
+
       <div className="overflow-hidden rounded-lg bg-white shadow-md">
         <ul className="divide-y divide-gray-200">
-          {players.map((p) => (
+          {players
+            .filter((p) => (squad === 'all' ? true : squad === 'hidden' ? p.is_active === false : p.team === squad))
+            .filter((p) => p.name.toLowerCase().includes(search.toLowerCase().trim()))
+            .map((p) => (
             <li key={p.id} className="flex flex-wrap items-center gap-4 px-4 py-3 sm:px-6">
               {p.photo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -302,6 +328,7 @@ export default function TeamManagement() {
                   {p.role === 'captain' && <span className="ml-2 rounded bg-yellow-100 px-1.5 text-xs text-yellow-800">C</span>}
                   {p.role === 'vice-captain' && <span className="ml-2 rounded bg-red-100 px-1.5 text-xs text-red-800">VC</span>}
                   {p.is_active === false && <span className="ml-2 rounded bg-gray-100 px-1.5 text-xs text-gray-600">hidden</span>}
+                  {linked.has(String(p.id)) && <span className="ml-2 rounded bg-green-100 px-1.5 text-xs text-green-800">member account</span>}
                 </p>
                 <p className="text-sm capitalize text-gray-500">
                   {p.team ?? 'No squad'} · {p.player_type}

@@ -2,7 +2,7 @@ import 'server-only';
 import { cache } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import type { CommitteeMember, Match, Player, Practice, Sponsor } from '@/types/supabase';
-import { POSITION_ORDER } from '@/lib/club';
+import { POSITION_ORDER, SQUADS } from '@/lib/club';
 import { slugify } from '@/lib/format';
 
 // Server-side reads for the public pages. Pages render this into their HTML
@@ -104,3 +104,30 @@ export const getSponsors = cache(async (): Promise<Sponsor[]> => {
       a.name.localeCompare(b.name),
   );
 });
+
+// Admin-editable settings (supabase/migrations/003). Empty until that migration runs.
+export const getSettings = cache(async (): Promise<Record<string, string | null>> => {
+  const rows = await readAll<{ key: string; value: string | null }>('site_settings');
+  return Object.fromEntries(rows.map((r) => [r.key, r.value]));
+});
+
+// Squads with their CricHeroes links from settings (falling back to the built-in ones).
+export async function getSquads() {
+  const settings = await getSettings();
+  return SQUADS.map((s) => ({ ...s, cricheroes: settings[`cricheroes_${s.slug}`] || s.cricheroes }));
+}
+
+export type SelectedPlayer = { player: PublicPlayer; slot: 'xi' | 'twelfth'; is_captain: boolean; is_keeper: boolean };
+
+// The published XI for a match (the database only returns it once an admin publishes it).
+export async function getSelection(matchId: number): Promise<SelectedPlayer[]> {
+  if (!db) return [];
+  const { data, error } = await db.from('match_selection').select('*').eq('match_id', matchId).order('sort_order');
+  if (error || !data?.length) return [];
+  const players = await getPlayers();
+  const byId = new Map(players.map((p) => [String(p.id), p]));
+  return data
+    .map((row) => ({ ...row, player: byId.get(String(row.player_id)) }))
+    .filter((row): row is SelectedPlayer & { player: PublicPlayer } => !!row.player)
+    .map(({ player, slot, is_captain, is_keeper }) => ({ player, slot, is_captain, is_keeper }));
+}

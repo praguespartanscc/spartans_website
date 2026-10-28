@@ -26,6 +26,7 @@ const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isLive, setIsLive] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -87,10 +88,25 @@ const Header = () => {
     };
   }, []);
 
-  // Close the menu on navigation.
+  // Close the menus on navigation.
   useEffect(() => {
     setMenuOpen(false);
+    setAccountOpen(false);
   }, [pathname]);
+
+  // Account dropdown closes on Escape or a click elsewhere.
+  useEffect(() => {
+    if (!accountOpen) return;
+    const close = (e: MouseEvent | KeyboardEvent) => {
+      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !(e.target as Element).closest('[data-account-menu]')) setAccountOpen(false);
+    };
+    document.addEventListener('click', close);
+    document.addEventListener('keydown', close);
+    return () => {
+      document.removeEventListener('click', close);
+      document.removeEventListener('keydown', close);
+    };
+  }, [accountOpen]);
 
   // While the menu is open: lock page scroll and close on Escape.
   useEffect(() => {
@@ -182,21 +198,34 @@ const Header = () => {
             {!loading && (
               <div className="hidden items-center gap-1 font-display text-[16px] font-bold uppercase tracking-[0.06em] lg:flex">
                 {user ? (
-                  <>
-                    <Link href="/dashboard" className="px-3 py-2 text-muted transition-colors hover:text-cream">
-                      My dashboard
-                    </Link>
-                    {isAdmin && (
-                      <Link href="/admin" className="px-3 py-2 text-muted transition-colors hover:text-cream">
-                        Admin
-                      </Link>
-                    )}
-                    <button type="button" onClick={handleSignOut} className="px-3 py-2 uppercase text-muted transition-colors hover:text-cream">
-                      Sign out
+                  <div className="relative" data-account-menu>
+                    <button
+                      type="button"
+                      aria-expanded={accountOpen}
+                      aria-haspopup="menu"
+                      onClick={() => setAccountOpen((o) => !o)}
+                      className="flex items-center gap-1.5 whitespace-nowrap px-3 py-2 uppercase text-muted transition-colors hover:text-cream"
+                    >
+                      Account <span aria-hidden="true" className={`text-[12px] transition-transform ${accountOpen ? 'rotate-180' : ''}`}>▼</span>
                     </button>
-                  </>
+                    {accountOpen && (
+                      <div role="menu" className="absolute right-0 top-full z-10 mt-2 flex min-w-52 flex-col border border-cream/15 bg-ink py-2 shadow-2xl">
+                        <Link role="menuitem" href="/dashboard" className="px-4 py-2.5 text-cream hover:bg-cream/10">
+                          My dashboard
+                        </Link>
+                        {isAdmin && (
+                          <Link role="menuitem" href="/admin" className="px-4 py-2.5 text-cream hover:bg-cream/10">
+                            Admin dashboard
+                          </Link>
+                        )}
+                        <button role="menuitem" type="button" onClick={handleSignOut} className="px-4 py-2.5 text-left uppercase text-muted hover:bg-cream/10 hover:text-cream">
+                          Sign out
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 ) : (
-                  <Link href="/login" className="px-3 py-2 text-muted transition-colors hover:text-cream">
+                  <Link href="/login" className="whitespace-nowrap px-3 py-2 text-muted transition-colors hover:text-cream">
                     Sign in
                   </Link>
                 )}

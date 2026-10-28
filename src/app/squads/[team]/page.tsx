@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getPlayers } from '@/lib/data';
+import { getPlayers, getSquads } from '@/lib/data';
 import { PLAYER_GROUPS, SITE_URL, SQUADS, squadBySlug } from '@/lib/club';
 import Reveal from '@/components/ui/Reveal';
 import Avatar from '@/components/ui/Avatar';
@@ -30,7 +30,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function SquadPage({ params }: Props) {
-  const squad = squadBySlug((await params).team);
+  const slug = (await params).team;
+  const squad = (await getSquads()).find((s) => s.slug === slug);
   if (!squad) notFound();
 
   const players = (await getPlayers()).filter((p) => p.team === squad.name);
