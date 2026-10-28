@@ -2,39 +2,57 @@ import type { MetadataRoute } from 'next';
 import { getMatches, getPlayers } from '@/lib/data';
 import { SITE_URL, SQUADS } from '@/lib/club';
 import { allAlbums, getGallery } from '@/lib/drive';
+import { photoUrl } from '@/lib/photos';
+import { localePath } from '@/lib/i18n';
 
 export const revalidate = 3600;
 
 type Entry = MetadataRoute.Sitemap[number];
+type Page = { path: string; lastModified?: string | Date | null; images?: string[] };
+
+// Every public page in English and Czech, each listing its other-language twin (hreflang).
+// lastModified is only given when it is actually known (search engines ignore made-up dates).
+function both({ path, lastModified, images }: Page): Entry[] {
+  const languages = {
+    en: `${SITE_URL}${path === '/' ? '' : path}`,
+    cs: `${SITE_URL}${localePath('cs', path)}`,
+    'x-default': `${SITE_URL}${path === '/' ? '' : path}`,
+  };
+  return (['en', 'cs'] as const).map((lang) => ({
+    url: languages[lang],
+    ...(lastModified ? { lastModified } : {}),
+    alternates: { languages },
+    ...(images?.length ? { images } : {}),
+  }));
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const now = new Date();
-  const page = (path: string, changeFrequency: Entry['changeFrequency'], priority: number): Entry => ({
-    url: `${SITE_URL}${path}`,
-    lastModified: now,
-    changeFrequency,
-    priority,
-  });
-
   const [players, matches, gallery] = await Promise.all([getPlayers(), getMatches(), getGallery()]);
 
-  return [
-    page('', 'daily', 1),
-    page('/fixtures', 'daily', 0.9),
-    page('/players', 'weekly', 0.9),
-    page('/practices', 'weekly', 0.8),
-    page('/about', 'monthly', 0.8),
-    page('/contact', 'monthly', 0.8),
-    page('/committee', 'monthly', 0.6),
-    page('/sponsors', 'monthly', 0.6),
-    page('/live', 'daily', 0.6),
-    page('/gallery', 'weekly', 0.7),
-    ...allAlbums(gallery.sections).map((a) => page(`/gallery/${a.path.join('/')}`, 'monthly', 0.5)),
-    ...SQUADS.map((s) => page(`/squads/${s.slug}`, 'weekly', 0.8)),
-    ...players.map((p) => ({
-      ...page(`/players/${p.slug}`, 'monthly', 0.6),
-      ...(p.updated_at ? { lastModified: new Date(p.updated_at) } : {}),
+  const pages: Page[] = [
+    { path: '/' },
+    { path: '/join' },
+    { path: '/about' },
+    { path: '/fixtures' },
+    { path: '/players' },
+    { path: '/practices' },
+    { path: '/ground' },
+    { path: '/cricket-in-prague', lastModified: '2026-10-28' },
+    { path: '/committee' },
+    { path: '/sponsors' },
+    { path: '/live' },
+    { path: '/gallery' },
+    ...SQUADS.map((s) => ({ path: `/squads/${s.slug}` })),
+    ...allAlbums(gallery.sections).map((a) => ({
+      path: `/gallery/${a.path.join('/')}`,
+      images: a.photos.slice(0, 50).map((p) => photoUrl(p.id, 1600)),
     })),
-    ...matches.map((m) => page(`/fixtures/${m.id}`, m.result === 'will be played' ? 'daily' : 'yearly', 0.5)),
+    // Player pages with neither a photo nor a bio are noindex until they have content.
+    ...players
+      .filter((p) => p.photo_url || p.bio)
+      .map((p) => ({ path: `/players/${p.slug}`, lastModified: p.updated_at, images: p.photo_url ? [p.photo_url] : [] })),
+    ...matches.map((m) => ({ path: `/fixtures/${m.id}`, lastModified: m.created_at })),
   ];
+
+  return pages.flatMap(both);
 }
