@@ -1,7 +1,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { PublicPlayer } from '@/lib/data';
-import { PLAYER_TYPE_LABEL } from '@/lib/club';
+import { PLAYER_TYPE_LABEL, PLAYER_TYPE_LABEL_CS } from '@/lib/club';
+import { localePath, tr, type Lang } from '@/lib/i18n';
 import { initials } from '@/lib/format';
 import { isOptimisable } from '@/lib/images';
 
@@ -18,11 +19,11 @@ export function sortLeadersFirst<T extends { role?: string | null }>(list: T[]):
 }
 
 // Squad-list card in the style of IPL / football club sites: tall photo, number, name, role.
-export default function PlayerCard({ player }: { player: PublicPlayer }) {
+export default function PlayerCard({ player, lang = 'en' }: { player: PublicPlayer; lang?: Lang }) {
   const badge = roleBadge(player.role);
   return (
     <Link
-      href={`/players/${player.slug}`}
+      href={localePath(lang, `/players/${player.slug}`)}
       className="group relative flex h-full flex-col overflow-hidden border border-cream/12 bg-panel transition-[transform,border-color] duration-500 ease-[var(--ease-out-expo)] hover:-translate-y-1.5 hover:border-gold"
     >
       <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-b from-panel-2 to-ink">
@@ -58,7 +59,7 @@ export default function PlayerCard({ player }: { player: PublicPlayer }) {
       <div className="flex flex-1 flex-col px-4 pb-4 pt-3">
         <p className="h-sub text-[21px] leading-tight transition-colors group-hover:text-gold sm:text-[23px]">{player.name}</p>
         <p className="mt-1 font-display text-[13px] font-semibold uppercase tracking-[0.14em] text-faint">
-          {PLAYER_TYPE_LABEL[player.player_type ?? ''] ?? 'Player'}
+          {(lang === 'cs' ? PLAYER_TYPE_LABEL_CS : PLAYER_TYPE_LABEL)[player.player_type ?? ''] ?? tr(lang, { en: 'Player', cs: 'Hráč' })}
         </p>
       </div>
     </Link>

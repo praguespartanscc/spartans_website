@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import type { Viewport } from "next";
 import { Barlow_Condensed, Graduate, Open_Sans } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { CLUB_NAME, SITE_URL } from "@/lib/club";
+import { OG_IMAGE } from "@/lib/seo";
 import { SupabaseProviderWrapper } from "@/components/ClientProviders";
 import { Analytics } from "@vercel/analytics/next";
 
@@ -39,57 +39,37 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+// Defaults for every page. Pages set their own title, description, canonical URL and
+// share image through pageMeta() (src/lib/seo.ts).
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    template: '%s | Prague Spartans Cricket Club',
-    default: 'Prague Spartans Cricket Club'
+    template: `%s | ${CLUB_NAME}`,
+    default: CLUB_NAME,
   },
-  description: "Official website of the Prague Spartans Cricket Club - Join us for matches, practices, and cricket events in Prague, Czech Republic",
-  keywords: ["cricket", "Prague", "sports", "cricket club", "Czech Republic", "Spartans", "cricket team"],
-  authors: [{ name: "Prague Spartans Cricket Club" }],
+  description: `${CLUB_NAME} – cricket club in Prague, Czech Republic, playing in the Czech Cricket Union leagues. Beginners welcome.`,
+  applicationName: CLUB_NAME,
+  authors: [{ name: CLUB_NAME }],
   category: 'Sports',
-  creator: "Prague Spartans Cricket Club",
-  publisher: "Prague Spartans Cricket Club",
-  formatDetection: {
-    email: false,
-    telephone: false,
-  },
-  metadataBase: new URL('https://praguespartanscc.com'),
-  alternates: {
-    canonical: '/',
-  },
-  openGraph: {
-    title: 'Prague Spartans Cricket Club',
-    description: 'Official website of the Prague Spartans Cricket Club - Join us for matches, practices, and cricket events in Prague, Czech Republic',
-    url: 'https://praguespartanscc.com',
-    siteName: 'Prague Spartans Cricket Club',
-    locale: 'en_US',
-    type: 'website',
-    images: [
-      {
-        url: '/spartan_team.PNG',
-        width: 1369,
-        height: 751,
-        alt: 'The Prague Spartans Cricket Club squad',
-      }
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Prague Spartans Cricket Club',
-    description: 'Official website of the Prague Spartans Cricket Club',
-    images: ['/spartan_team.PNG'],
-    creator: '@praguespartans',
-  },
+  creator: CLUB_NAME,
+  publisher: CLUB_NAME,
+  formatDetection: { email: false, telephone: false },
+  openGraph: { type: 'website', siteName: CLUB_NAME, locale: 'en_GB', images: [OG_IMAGE] },
+  twitter: { card: 'summary_large_image' },
   robots: {
     index: true,
     follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1, 'max-video-preview': -1 },
+  },
+  // Search engine ownership checks: paste each code into Vercel (Production) and redeploy.
+  verification: {
+    google: process.env.NEXT_PUBLIC_GSC_VERIFICATION || undefined,
+    other: Object.fromEntries(
+      Object.entries({
+        'msvalidate.01': process.env.NEXT_PUBLIC_BING_VERIFICATION,
+        'seznam-wmt': process.env.NEXT_PUBLIC_SEZNAM_VERIFICATION,
+      }).filter(([, v]) => !!v),
+    ) as Record<string, string>,
   },
 };
 
@@ -111,13 +91,8 @@ export default function RootLayout({
         >
           Skip to content
         </a>
-        <SupabaseProviderWrapper>
-          <Header />
-          <main id="main" className="flex-grow">
-            {children}
-          </main>
-          <Footer />
-        </SupabaseProviderWrapper>
+        {/* Header, main and footer come from the English (site) and Czech (cs) layouts. */}
+        <SupabaseProviderWrapper>{children}</SupabaseProviderWrapper>
         <Analytics />
       </body>
     </html>

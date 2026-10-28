@@ -1,3 +1,5 @@
+import { LOCALE, type Lang } from '@/lib/i18n';
+
 // Parse "YYYY-MM-DD" as a local date so the day never shifts across time zones.
 export function parseDate(value: string): Date {
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
@@ -5,25 +7,27 @@ export function parseDate(value: string): Date {
   return new Date(value);
 }
 
-export function dateParts(value: string) {
+export function dateParts(value: string, lang: Lang = 'en') {
   const date = parseDate(value);
   if (Number.isNaN(date.getTime())) {
     return { day: '--', month: '', weekday: '', long: value, year: '' };
   }
+  const locale = LOCALE[lang];
   return {
     day: String(date.getDate()).padStart(2, '0'),
-    month: date.toLocaleDateString('en-GB', { month: 'short' }),
-    weekday: date.toLocaleDateString('en-GB', { weekday: 'short' }),
+    month: date.toLocaleDateString(locale, { month: 'short' }),
+    weekday: date.toLocaleDateString(locale, { weekday: 'short' }),
     year: String(date.getFullYear()),
-    long: date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+    long: date.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
   };
 }
 
-// Database values like "division2" read as "Division 2".
-export function formatDivision(value?: string | null): string {
+// Database values like "division2" read as "Division 2" (Czech: "2. divize").
+export function formatDivision(value?: string | null, lang: Lang = 'en'): string {
   if (!value) return '';
   const match = /division\s*(\d+)/i.exec(value);
-  return match ? `Division ${match[1]}` : value;
+  if (!match) return value;
+  return lang === 'cs' ? `${match[1]}. divize` : `Division ${match[1]}`;
 }
 
 export function titleCase(value?: string | null): string {
