@@ -1,5 +1,4 @@
 -- Prague Spartans: team selection and editable site settings.
--- Run in Supabase > SQL Editor after 002_members.sql.
 
 begin;
 

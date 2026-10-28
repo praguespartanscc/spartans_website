@@ -1,30 +1,12 @@
--- Prague Spartans: lock down admin access (run in Supabase > SQL Editor).
+-- Prague Spartans: lock down admin access.
 --
 -- The website writes to the database straight from the browser, so these
 -- database rules are what actually stop non-admins from changing data.
--- Admin rights move from user_metadata (which any signed-in user can edit
--- for themselves) to app_metadata (which only the server can set).
---
--- STEP 1 (run on its own first): see who currently has the old admin flag.
--- Anyone on this list could have given it to themselves, so check each one.
---
---   select email, created_at, last_sign_in_at
---   from auth.users
---   where raw_user_meta_data ->> 'isAdmin' = 'true'
---   order by created_at;
---
--- STEP 2: put the emails of the people who should be admins in the list
--- below, then run this whole file.
+-- Admin rights live in app_metadata (only the server can set it), never in
+-- user_metadata (which any signed-in user can edit for themselves).
+-- Admins are granted by 06_admin_bootstrap.sql.
 
 begin;
-
--- Grant admin in app_metadata (server-only) to the trusted people.
-update auth.users
-set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"isAdmin": true}'::jsonb
-where email in (
-  'praguespartanscc@gmail.com'
-  -- , 'another.admin@example.com'
-);
 
 -- Remove the old, self-editable flag from everyone.
 update auth.users
@@ -106,10 +88,3 @@ create policy "Admins manage sponsor logos" on storage.objects
   with check (bucket_id = 'sponsor-logos' and public.is_admin());
 
 commit;
-
--- STEP 3 (check): this should list exactly your admins.
---
---   select email from auth.users where raw_app_meta_data ->> 'isAdmin' = 'true';
---
--- Admins then sign out of the website and sign back in, so their login
--- picks up the new flag.

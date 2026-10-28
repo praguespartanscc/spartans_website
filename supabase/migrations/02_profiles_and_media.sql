@@ -1,5 +1,5 @@
 -- Prague Spartans: richer player, committee, sponsor and match data.
--- Run in Supabase > SQL Editor AFTER supabase/security.sql (it uses public.is_admin()).
+-- Uses public.is_admin() from 01_security.sql.
 --
 -- Only adds things, so it is safe to run while the current website is live.
 -- Player emails and ages are copied into an admin-only table here; they are

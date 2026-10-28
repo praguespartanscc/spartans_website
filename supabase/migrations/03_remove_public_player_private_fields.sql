@@ -1,5 +1,5 @@
 -- Prague Spartans: remove email and age from the public players table.
--- Run ONLY after the new website (which keeps them in player_private) is live.
+-- (No-op on a new database, where players never had these columns.)
 
 begin;
 

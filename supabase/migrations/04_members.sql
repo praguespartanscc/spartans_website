@@ -1,5 +1,4 @@
 -- Prague Spartans: member accounts, availability, practice RSVPs and notices.
--- Run in Supabase > SQL Editor after security.sql and 001.
 --
 -- Anyone can register; they start "pending" and only see the member dashboard
 -- once an admin approves them (and links them to their player profile).
@@ -48,13 +47,14 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, email, full_name, cricheroes_url)
+  insert into public.profiles (id, email, full_name, cricheroes_url, status)
   values (
     new.id,
     new.email,
     nullif(new.raw_user_meta_data ->> 'full_name', ''),
     case when public.is_cricheroes_profile(new.raw_user_meta_data ->> 'cricheroes_url')
-         then new.raw_user_meta_data ->> 'cricheroes_url' end
+         then new.raw_user_meta_data ->> 'cricheroes_url' end,
+    case when new.raw_app_meta_data ->> 'isAdmin' = 'true' then 'approved' else 'pending' end
   )
   on conflict (id) do nothing;
   return new;
