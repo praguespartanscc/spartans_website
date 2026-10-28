@@ -99,8 +99,9 @@ export async function getLiveStatus(): Promise<LiveStatus> {
     const channelUrl = `https://www.youtube.com/channel/${channelId}`;
 
     const feedRes = await fetch(FEED + channelId, { next: { revalidate: 60 } });
-    if (!feedRes.ok) throw new Error(`feed ${feedRes.status}`);
-    const entries = parseFeed(await feedRes.text()).slice(0, 15);
+    // YouTube answers 404 for a channel with no public videos yet; that just means nothing to show.
+    if (!feedRes.ok && feedRes.status !== 404) throw new Error(`feed ${feedRes.status}`);
+    const entries = feedRes.ok ? parseFeed(await feedRes.text()).slice(0, 15) : [];
 
     let details = new Map<string, Pick<Video, 'status' | 'scheduledStart'>>();
     if (key && entries.length) {
