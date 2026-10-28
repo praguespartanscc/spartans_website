@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Facebook, Instagram, Mail } from '@/components/ui/Icons';
+import { getSponsors } from '@/lib/data';
+import SponsorLogo from '@/components/SponsorLogo';
 
 const columns = [
   {
@@ -24,9 +26,39 @@ const columns = [
   },
 ];
 
-const Footer = () => {
+const Footer = async () => {
+  const sponsors = await getSponsors();
   return (
     <footer className="border-t border-cream/12 bg-ink">
+      {sponsors.length > 0 && (
+        <div className="border-b border-cream/12">
+          <div className="container-x flex flex-col items-center gap-6 py-10 sm:py-12">
+            <p className="eyebrow text-faint">Proudly supported by</p>
+            <ul className="flex flex-wrap items-stretch justify-center gap-3 sm:gap-4">
+              {sponsors.map((sponsor) => (
+                <li key={sponsor.id} className="w-[calc(50%-6px)] sm:w-48">
+                  {sponsor.website_url ? (
+                    <a
+                      href={sponsor.website_url}
+                      target="_blank"
+                      rel="noopener noreferrer sponsored"
+                      title={`${sponsor.name} (opens their website)`}
+                      className="group block overflow-hidden transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_0_2px_var(--color-gold)]"
+                    >
+                      <SponsorLogo sponsor={sponsor} height={88} />
+                    </a>
+                  ) : (
+                    <SponsorLogo sponsor={sponsor} height={88} />
+                  )}
+                </li>
+              ))}
+            </ul>
+            <Link href="/sponsors" className="text-[14px] text-muted transition-colors hover:text-gold">
+              Our sponsors &amp; how to support the club
+            </Link>
+          </div>
+        </div>
+      )}
       <div className="container-x grid gap-12 py-16 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr] lg:gap-8">
         <div className="flex items-start gap-6">
           <Image src="/brand/spartans-logo.png" alt="" width={99} height={120} className="h-[120px] w-auto" />

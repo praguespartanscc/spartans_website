@@ -3,7 +3,7 @@ import type { Sponsor } from '@/types/supabase';
 import { CLUB_EMAIL } from '@/lib/club';
 import Reveal from '@/components/ui/Reveal';
 import SponsorLogo from '@/components/SponsorLogo';
-import { ArrowRight } from '@/components/ui/Icons';
+import { ArrowRight, ArrowUpRight } from '@/components/ui/Icons';
 
 const SponsorsSection = ({ sponsors }: { sponsors: Sponsor[] }) => {
   return (
@@ -14,7 +14,7 @@ const SponsorsSection = ({ sponsors }: { sponsors: Sponsor[] }) => {
           <h2 id="sponsors-heading" className="h-section">
             Our sponsors
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-muted">The partners who keep the Spartans playing.</p>
+          <p className="mx-auto mt-3 max-w-xl text-muted">The businesses that keep the Spartans playing. Please support them.</p>
         </Reveal>
 
         {sponsors.length === 0 ? (
@@ -27,11 +27,23 @@ const SponsorsSection = ({ sponsors }: { sponsors: Sponsor[] }) => {
           <>
             <div className="flex flex-wrap justify-center gap-4">
               {sponsors.slice(0, 8).map((sponsor, i) => (
-                <Reveal key={sponsor.id} delay={i * 60} className="w-full sm:w-[calc(50%-8px)] lg:w-[calc(25%-12px)]">
-                  <Link href="/sponsors" className="card card-hover group flex h-full flex-col items-center gap-4 overflow-hidden pb-5 text-center">
-                    <SponsorLogo sponsor={sponsor} />
-                    <span className="font-semibold">{sponsor.name}</span>
-                  </Link>
+                <Reveal key={sponsor.id} delay={i * 60} className="w-full sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-11px)]">
+                  <a
+                    href={sponsor.website_url || '/sponsors'}
+                    {...(sponsor.website_url ? { target: '_blank', rel: 'noopener noreferrer sponsored' } : {})}
+                    className="card card-hover group flex h-full flex-col overflow-hidden text-center"
+                  >
+                    <SponsorLogo sponsor={sponsor} height={140} />
+                    <span className="flex flex-1 flex-col items-center gap-2 p-5">
+                      <span className="h-sub text-[24px] transition-colors group-hover:text-gold">{sponsor.name}</span>
+                      {sponsor.description && <span className="text-[15px] leading-relaxed text-muted">{sponsor.description}</span>}
+                      {sponsor.website_url && (
+                        <span className="mt-auto inline-flex items-center gap-1.5 pt-2 font-display text-[15px] font-extrabold uppercase tracking-[0.04em] text-gold">
+                          Visit website <ArrowUpRight size={14} />
+                        </span>
+                      )}
+                    </span>
+                  </a>
                 </Reveal>
               ))}
             </div>

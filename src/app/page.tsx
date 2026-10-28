@@ -56,12 +56,12 @@ export default async function Home() {
       <ValuesBand />
       <SquadsSection />
       <EventsSection upcoming={upcoming.slice(0, 4)} latest={latest} today={today} />
+      <SponsorsSection sponsors={sponsors} />
       <QuoteBand />
       <PracticeSection practices={practices.filter((p) => p.date >= today).slice(0, 3)} />
       <StorySection />
       <GallerySection photos={gallery.map(({ photo, album }) => ({ photo, href: `/gallery/${album.path.join('/')}` }))} />
       <CommitteeSection members={committee} />
-      <SponsorsSection sponsors={sponsors} />
       <JoinCta />
     </>
   );
