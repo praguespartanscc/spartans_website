@@ -50,11 +50,8 @@ export default function SignUp() {
       {success ? (
         <SuccessNote title="Check your inbox">
           <p>
-            We sent a confirmation email to {email}. Click the link inside to activate your account, then{' '}
-            <Link href="/login" className="font-semibold text-gold hover:text-gold-hi">
-              sign in
-            </Link>
-            .
+            We sent a confirmation email to {email}. Click the link inside to activate your account. A committee member
+            will then approve you as a club member, and your member dashboard will open up.
           </p>
         </SuccessNote>
       ) : (

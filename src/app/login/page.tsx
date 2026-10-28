@@ -3,6 +3,7 @@
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { signInWithEmail } from '@/services/authService';
+import { homeFor, safeRedirect } from '@/lib/auth';
 import { useSearchParams } from 'next/navigation';
 import AuthShell from '@/components/AuthShell';
 
@@ -12,16 +13,15 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
-  const redirectPath = searchParams.get('redirect') || '/admin';
+  const redirectPath = safeRedirect(searchParams.get('redirect'));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
     try {
-      await signInWithEmail(email, password);
-      // Redirect to specified path or admin page by default
-      window.location.href = redirectPath;
+      const { user } = await signInWithEmail(email, password);
+      window.location.href = redirectPath ?? homeFor(user);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'An error occurred during sign in');
     } finally {

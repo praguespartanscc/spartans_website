@@ -132,6 +132,7 @@ export async function signUpWithEmail(email: string, password: string, fullName:
         data: {
           full_name: fullName,
         },
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
       },
     });
 
@@ -146,7 +147,8 @@ export async function resetPassword(email: string) {
   try {
     const supabase = getSupabaseClient();
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      // The emailed link signs them in via /auth/callback, then opens the new-password form.
+      redirectTo: `${window.location.origin}/auth/callback?next=/update-password`,
     });
     if (error) throw error;
   } catch (error) {
@@ -173,4 +175,4 @@ export async function updatePassword(newPassword: string) {
 export async function isUserAdmin(user: User) {
   if (!user) return false;
   return !!user.app_metadata?.isAdmin;
-} 
+}
