@@ -48,3 +48,32 @@ export function initials(name: string): string {
     .map((part) => part[0]?.toUpperCase() ?? '')
     .join('');
 }
+
+// "Aarav Shah" -> "aarav-shah" (accents dropped) for readable URLs.
+export function slugify(value: string): string {
+  return value
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+// YouTube video id from watch, youtu.be, /live/, /shorts/ or /embed/ links.
+export function youTubeId(url?: string | null): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\.|^m\./, '');
+    if (host === 'youtu.be') return u.pathname.slice(1).split('/')[0] || null;
+    if (host === 'youtube.com' || host === 'youtube-nocookie.com') {
+      const v = u.searchParams.get('v');
+      if (v) return v;
+      const m = /^\/(?:live|embed|shorts)\/([\w-]{6,})/.exec(u.pathname);
+      return m ? m[1] : null;
+    }
+  } catch {
+    // not a URL
+  }
+  return null;
+}

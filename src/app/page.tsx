@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { getCommittee, getMatches, getPractices, getSponsors, pragueToday } from "@/lib/data";
 import HeroSection from "@/components/HeroSection";
 import NextMatchBar from "@/components/NextMatchBar";
 import ValuesBand from "@/components/ValuesBand";
@@ -11,42 +12,43 @@ import CommitteeSection from "@/components/CommitteeSection";
 import SponsorsSection from "@/components/SponsorsSection";
 import JoinCta from "@/components/JoinCta";
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: {
     absolute: 'Prague Spartans Cricket Club · Cricket in Prague',
   },
-  description: 'Welcome to Prague Spartans Cricket Club - Join our vibrant community of cricket enthusiasts in Prague. Find upcoming matches, practice sessions, and club events.',
+  description:
+    'Prague Spartans Cricket Club: three squads, league and tournament cricket in Prague since 2019. Fixtures, results, practice sessions and how to join. Beginners welcome.',
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'Prague Spartans Cricket Club - Official Website',
-    description: 'Welcome to Prague Spartans Cricket Club - Join our vibrant community of cricket enthusiasts in Prague. Find upcoming matches, practice sessions, and club events.',
-    url: 'https://praguespartanscc.com/',
-    images: [
-      {
-        url: '/spartan_team.PNG',
-        width: 1369,
-        height: 751,
-        alt: 'Prague Spartans Cricket Club Team',
-      }
-    ],
-  }
+    title: 'Prague Spartans Cricket Club · Cricket in Prague',
+    url: '/',
+  },
 };
 
-export default function Home() {
+export default async function Home() {
+  const today = pragueToday();
+  const [matches, practices, committee, sponsors] = await Promise.all([getMatches(), getPractices(), getCommittee(), getSponsors()]);
+
+  const upcoming = matches.filter((m) => m.result === 'will be played' && m.date >= today);
+  const next = upcoming[0] ?? null;
+  const latest = [...matches].reverse().find((m) => m.result !== 'will be played' && m.date <= today) ?? null;
+
   return (
     <>
       <HeroSection />
-      <NextMatchBar />
+      <NextMatchBar match={next} live={!!next && next.date === today && !!next.stream_url} />
       <ValuesBand />
       <SquadsSection />
-      <EventsSection />
+      <EventsSection upcoming={upcoming.slice(0, 4)} latest={latest} today={today} />
       <QuoteBand />
-      <PracticeSection />
+      <PracticeSection practices={practices.filter((p) => p.date >= today).slice(0, 3)} />
       <StorySection />
-      <CommitteeSection />
-      <SponsorsSection />
+      <CommitteeSection members={committee} />
+      <SponsorsSection sponsors={sponsors} />
       <JoinCta />
     </>
   );

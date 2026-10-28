@@ -36,16 +36,14 @@ export default function ApplicationsManagement() {
     setError(null);
 
     try {
-      console.log('Fetching applications from Supabase...');
       
       // Make the API request directly without strict session validation
       // This matches the pattern used in other admin components
-      const { data, error, status } = await supabase
+      const { data, error } = await supabase
         .from('team_applications')
         .select('*')
         .order('created_at', { ascending: false });
 
-      console.log('Supabase response status:', status);
       
       if (error) {
         console.error('Supabase error:', error);
@@ -59,7 +57,6 @@ export default function ApplicationsManagement() {
         return;
       }
       
-      console.log('Data received:', data);
       setApplications(data || []);
     } catch (error: Error | unknown) {
       console.error('Error fetching applications:', error);
@@ -207,7 +204,6 @@ export default function ApplicationsManagement() {
         return;
       }
       
-      console.log('Current user data:', userData.user);
       
       // Check session status
       const { data: sessionData } = await supabase.auth.getSession();
@@ -238,7 +234,6 @@ export default function ApplicationsManagement() {
         }
         
         if (refreshData.session) {
-          console.log('Session successfully refreshed');
           // Reload applications with new session
           fetchApplications();
         } else {

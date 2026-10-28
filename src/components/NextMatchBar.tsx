@@ -1,51 +1,37 @@
-'use client';
-
 import Link from 'next/link';
-import { useUpcomingMatches } from '@/hooks/useUpcomingMatches';
+import type { Match } from '@/types/supabase';
 import { dateParts, formatDivision, formatTime, titleCase } from '@/lib/format';
 import { ArrowRight } from '@/components/ui/Icons';
 
-// Kit-red scoreboard strip under the hero. Hidden when no match is scheduled.
-export default function NextMatchBar() {
-  const { matches, isLoading } = useUpcomingMatches();
-  const next = matches.find((m) => m.result === 'will be played') ?? matches[0];
-
-  // Sits just below the full-height hero, so appearing after load causes no visible jump.
-  if (isLoading || !next) return null;
-
-  const d = dateParts(next.date);
-  const details = [titleCase(next.type), formatDivision(next.division)].filter(Boolean).join(' · ');
+// Warrior Red scoreboard strip under the hero. On match day with a stream it becomes a "Live now" bar.
+export default function NextMatchBar({ match, live }: { match: Match | null; live?: boolean }) {
+  if (!match) return null;
+  const d = dateParts(match.date);
+  const details = [titleCase(match.type), formatDivision(match.division)].filter(Boolean).join(' · ');
 
   return (
-    <section aria-label="Next match" className="bg-crimson text-white">
+    <section aria-label={live ? 'Live match' : 'Next match'} className="bg-crimson text-white">
       <div className="container-x flex flex-wrap items-center justify-between gap-x-10 gap-y-4 py-5 sm:py-6">
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-5 gap-y-1">
           <span className="flex items-center gap-2 font-display text-[16px] font-extrabold uppercase tracking-[0.14em]">
             <span className="live-dot h-2 w-2 rounded-full bg-white" />
-            Next match
+            {live ? 'Live now' : 'Next match'}
           </span>
           <span className="h-sub text-[26px] leading-tight sm:text-[36px]">
-            {next.team1} vs {next.team2}
+            {match.team1} vs {match.team2}
           </span>
         </div>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[15px]">
           <span>
             {d.weekday} {d.day} {d.month}
-            {next.time ? ` · ${formatTime(next.time)}` : ''}
+            {match.time ? ` · ${formatTime(match.time)}` : ''}
           </span>
-          {next.venue && <span>{next.venue}</span>}
+          {match.venue && <span>{match.venue}</span>}
           {details && <span className="hidden md:inline">{details}</span>}
-          {next.url ? (
-            <a href={next.url} target="_blank" rel="noopener noreferrer" className="btn btn-dark min-h-11">
-              Match details
-              <ArrowRight size={16} className="btn-arrow" />
-            </a>
-          ) : (
-            <Link href="/fixtures" className="btn btn-dark min-h-11">
-              All fixtures
-              <ArrowRight size={16} className="btn-arrow" />
-            </Link>
-          )}
+          <Link href={`/fixtures/${match.id}`} className={`btn min-h-11 ${live ? 'bg-white text-crimson hover:bg-sand' : 'btn-dark'}`}>
+            {live ? 'Watch live' : 'Match details'}
+            <ArrowRight size={16} className="btn-arrow" />
+          </Link>
         </div>
       </div>
     </section>

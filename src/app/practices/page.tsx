@@ -1,44 +1,26 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { getAllPractices } from '@/services/practiceService';
-import type { Practice } from '@/types/supabase';
-import { isSupabaseConfigured } from '@/lib/supabase';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { getPractices, pragueToday } from '@/lib/data';
 import PageHero from '@/components/ui/PageHero';
 import EmptyState from '@/components/ui/EmptyState';
-import { SkeletonList } from '@/components/ui/Skeleton';
-import { PracticeRow } from '@/components/PracticeSection';
+import PracticeRow from '@/components/PracticeRow';
 import JoinCta from '@/components/JoinCta';
-import Link from 'next/link';
 
-const PRACTICES_PER_PAGE = 20;
+export const revalidate = 60;
 
-export default function PracticesPage() {
-  const [practices, setPractices] = useState<Practice[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
+export const metadata: Metadata = {
+  title: 'Practice Sessions',
+  description:
+    'Cricket practice in Prague with Prague Spartans Cricket Club: nets for every level, plus batting, bowling and fielding sessions. Beginners welcome.',
+  alternates: { canonical: '/practices' },
+  openGraph: { url: '/practices', title: 'Cricket practice in Prague · Prague Spartans' },
+};
 
-  useEffect(() => {
-    async function loadPractices() {
-      try {
-        if (!isSupabaseConfigured) {
-          setPractices([]);
-          return;
-        }
-        setPractices(await getAllPractices());
-      } catch (err) {
-        console.error('Failed to load practices:', err);
-        setError('We could not load practice sessions right now. Please try again later.');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    loadPractices();
-  }, []);
-
-  const totalPages = Math.ceil(practices.length / PRACTICES_PER_PAGE);
-  const currentPractices = practices.slice((currentPage - 1) * PRACTICES_PER_PAGE, currentPage * PRACTICES_PER_PAGE);
+export default async function PracticesPage() {
+  const today = pragueToday();
+  const all = await getPractices();
+  const upcoming = all.filter((p) => p.date >= today);
+  const past = all.filter((p) => p.date < today).reverse().slice(0, 8);
 
   return (
     <>
@@ -54,13 +36,12 @@ export default function PracticesPage() {
         imagePosition="center 40%"
       />
 
-      <section className="py-12 sm:py-16">
+      <section className="py-12 sm:py-16" aria-labelledby="upcoming-practices">
         <div className="container-x max-w-4xl">
-          {isLoading ? (
-            <SkeletonList rows={5} height={84} label="Loading practice sessions" />
-          ) : error ? (
-            <p className="alert-error">{error}</p>
-          ) : practices.length === 0 ? (
+          <h2 id="upcoming-practices" className="h-sub mb-5 text-[30px]">
+            Coming up
+          </h2>
+          {upcoming.length === 0 ? (
             <EmptyState
               title="No sessions scheduled"
               action={
@@ -72,29 +53,25 @@ export default function PracticesPage() {
               The practice calendar is empty right now. Get in touch and we&apos;ll let you know when nets are on.
             </EmptyState>
           ) : (
-            <div key={currentPage} className="page-enter flex flex-col gap-3">
-              {currentPractices.map((practice) => (
+            <div className="flex flex-col gap-3">
+              {upcoming.map((practice) => (
                 <PracticeRow key={practice.id} practice={practice} />
               ))}
             </div>
           )}
 
-          {totalPages > 1 && (
-            <nav aria-label="Practice pages" className="mt-10 flex flex-wrap items-center justify-center gap-2">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <button
-                  key={page}
-                  type="button"
-                  onClick={() => setCurrentPage(page)}
-                  aria-current={currentPage === page ? 'page' : undefined}
-                  className={`h-11 w-11 rounded-full text-[15px] font-semibold transition-colors ${
-                    currentPage === page ? 'bg-gold text-ink' : 'text-muted hover:bg-cream/10 hover:text-cream'
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
-            </nav>
+          {past.length > 0 && (
+            <details className="group mt-14">
+              <summary className="h-sub cursor-pointer list-none text-[24px] text-muted transition-colors hover:text-cream">
+                Recent sessions <span className="font-display text-[16px] text-dim">{past.length}</span>
+                <span className="ml-2 inline-block transition-transform group-open:rotate-90">›</span>
+              </summary>
+              <div className="mt-5 flex flex-col gap-3">
+                {past.map((practice) => (
+                  <PracticeRow key={practice.id} practice={practice} past />
+                ))}
+              </div>
+            </details>
           )}
         </div>
       </section>

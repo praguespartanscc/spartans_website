@@ -1,18 +1,14 @@
-'use client';
-
 import Link from 'next/link';
-import { useUpcomingMatches } from '@/hooks/useUpcomingMatches';
+import type { Match } from '@/types/supabase';
 import MatchRow from '@/components/MatchRow';
 import SectionHeading from '@/components/ui/SectionHeading';
 import Reveal from '@/components/ui/Reveal';
 import EmptyState from '@/components/ui/EmptyState';
-import { SkeletonList } from '@/components/ui/Skeleton';
 import { ArrowRight } from '@/components/ui/Icons';
 
-const EventsSection = () => {
-  const { matches, isLoading, error } = useUpcomingMatches();
-  const shown = matches.slice(0, 4);
+type Props = { upcoming: Match[]; latest: Match | null; today: string };
 
+export default function EventsSection({ upcoming, latest, today }: Props) {
   return (
     <section className="bg-brown py-20 sm:py-28" aria-labelledby="fixtures-heading">
       <div className="container-x">
@@ -28,11 +24,7 @@ const EventsSection = () => {
           }
         />
 
-        {isLoading ? (
-          <SkeletonList rows={3} label="Loading upcoming matches" />
-        ) : error ? (
-          <p className="alert-error">{error}</p>
-        ) : shown.length === 0 ? (
+        {upcoming.length === 0 ? (
           <EmptyState
             title="No matches scheduled yet"
             action={
@@ -45,16 +37,23 @@ const EventsSection = () => {
           </EmptyState>
         ) : (
           <div className="border-t border-cream/20">
-            {shown.map((match, i) => (
+            {upcoming.map((match, i) => (
               <Reveal key={match.id} delay={i * 70}>
-                <MatchRow match={match} />
+                <MatchRow match={match} live={match.date === today && !!match.stream_url} />
               </Reveal>
             ))}
           </div>
         )}
+
+        {latest && (
+          <Reveal className="mt-12">
+            <p className="eyebrow mb-3 text-gold-hi">Latest result</p>
+            <div className="border-t border-cream/20">
+              <MatchRow match={latest} />
+            </div>
+          </Reveal>
+        )}
       </div>
     </section>
   );
-};
-
-export default EventsSection;
+}

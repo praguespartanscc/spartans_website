@@ -15,6 +15,8 @@ type Match = {
   result: string;
   division: string;
   url: string;
+  stream_url: string | null;
+  summary: string | null;
   created_at: string;
 };
 
@@ -28,6 +30,8 @@ type NewMatch = {
   result: string;
   division: string;
   url: string;
+  stream_url: string;
+  summary: string;
 };
 
 export default function MatchesManagement() {
@@ -42,7 +46,9 @@ export default function MatchesManagement() {
     type: 'friendly',
     result: 'will be played',
     division: 'division1',
-    url: ''
+    url: '',
+    stream_url: '',
+    summary: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editMatchId, setEditMatchId] = useState<string | null>(null);
@@ -84,7 +90,7 @@ export default function MatchesManagement() {
     try {
       const { data, error } = await supabase
         .from('matches')
-        .insert([newMatch])
+        .insert([{ ...newMatch, url: newMatch.url || null, stream_url: newMatch.stream_url || null, summary: newMatch.summary || null }])
         .select();
 
       if (error) throw error;
@@ -99,7 +105,9 @@ export default function MatchesManagement() {
         type: 'friendly',
         result: 'will be played',
         division: 'division1',
-        url: ''
+        url: '',
+        stream_url: '',
+        summary: ''
       });
       toast.success('Match added successfully!');
     } catch (error) {
@@ -150,7 +158,9 @@ export default function MatchesManagement() {
       type: match.type,
       result: match.result,
       division: match.division,
-      url: match.url
+      url: match.url ?? '',
+      stream_url: match.stream_url ?? '',
+      summary: match.summary ?? ''
     });
   }
 
@@ -170,7 +180,9 @@ export default function MatchesManagement() {
           type: newMatch.type,
           result: newMatch.result,
           division: newMatch.division,
-          url: newMatch.url
+          url: newMatch.url || null,
+          stream_url: newMatch.stream_url || null,
+          summary: newMatch.summary || null
         })
         .eq('id', editMatchId)
         .select();
@@ -186,7 +198,9 @@ export default function MatchesManagement() {
         type: 'friendly',
         result: 'will be played',
         division: 'division1',
-        url: ''
+        url: '',
+        stream_url: '',
+        summary: ''
       });
       toast.success('Match updated successfully!');
     } catch (error) {
@@ -208,7 +222,9 @@ export default function MatchesManagement() {
       type: 'friendly',
       result: 'will be played',
       division: 'division1',
-      url: ''
+      url: '',
+      stream_url: '',
+      summary: ''
     });
   }
 
@@ -347,14 +363,35 @@ export default function MatchesManagement() {
             </select>
           </div>
           <div>
-            <label htmlFor="url" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">URL</label>
+            <label htmlFor="url" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">CricHeroes match / scorecard link</label>
             <input
               type="url"
               id="url"
               value={newMatch.url}
               onChange={(e) => setNewMatch({ ...newMatch, url: e.target.value })}
               className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#000000] focus:ring-[#000000] text-sm"
-              placeholder="https://example.com"
+              placeholder="https://cricheroes.com/scorecard/…"
+            />
+          </div>
+          <div>
+            <label htmlFor="stream_url" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Live stream / replay link (YouTube)</label>
+            <input
+              type="url"
+              id="stream_url"
+              value={newMatch.stream_url}
+              onChange={(e) => setNewMatch({ ...newMatch, stream_url: e.target.value })}
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#000000] focus:ring-[#000000] text-sm"
+              placeholder="https://youtube.com/live/…"
+            />
+          </div>
+          <div className="sm:col-span-2 lg:col-span-3">
+            <label htmlFor="summary" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Result summary (shown on the website)</label>
+            <input
+              id="summary"
+              value={newMatch.summary}
+              onChange={(e) => setNewMatch({ ...newMatch, summary: e.target.value })}
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#000000] focus:ring-[#000000] text-sm"
+              placeholder="Vanguards 164/6 beat Prague CC 141 by 23 runs"
             />
           </div>
         </div>

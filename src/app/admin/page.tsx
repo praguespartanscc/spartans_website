@@ -51,7 +51,6 @@ export default function AdminDashboard() {
         }
 
         if (!user) {
-          console.log('No user found, redirecting to login');
           router.push('/login?redirect=/admin');
           return;
         }
@@ -60,7 +59,6 @@ export default function AdminDashboard() {
         const isUserAdmin = !!user.app_metadata?.isAdmin;
         
         if (!isUserAdmin) {
-          console.log('User is not an admin, redirecting to not-admin page');
           router.push('/not-admin');
           return;
         }
@@ -131,7 +129,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <main className="container-x py-8 sm:py-10">
+      <div className="container-x py-8 sm:py-10">
         {/* Management tools keep a light, high-contrast panel for data entry. */}
         <div key={activeTab} className="page-enter rounded-lg bg-[#F5F5F5] p-3 text-gray-900 [color-scheme:light] sm:p-6">
           {activeTab === 'team' && <TeamManagement />}
@@ -141,7 +139,7 @@ export default function AdminDashboard() {
           {activeTab === 'sponsors' && <SponsorsManagement />}
           {activeTab === 'committee' && <CommitteeManagement />}
         </div>
-      </main>
+      </div>
     </div>
   );
 }

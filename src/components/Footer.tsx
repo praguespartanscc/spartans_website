@@ -8,6 +8,7 @@ const columns = [
     links: [
       { href: '/about', label: 'About' },
       { href: '/committee', label: 'Committee' },
+      { href: '/sponsors', label: 'Sponsors' },
       { href: '/contact', label: 'Join the club' },
     ],
   },

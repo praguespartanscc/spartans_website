@@ -11,6 +11,7 @@ type Practice = {
   venue: string;
   type: string;
   notes: string;
+  title?: string | null;
   first_team: string;
   second_team: string;
   created_at: string;
@@ -24,6 +25,7 @@ export default function PracticesManagement() {
     time: '',
     venue: '',
     type: 'regular',
+    title: '',
     notes: '',
     first_team: '',
     second_team: ''
@@ -67,7 +69,7 @@ export default function PracticesManagement() {
     try {
       const { data, error } = await supabase
         .from('practices')
-        .insert([newPractice])
+        .insert([{ ...newPractice, title: newPractice.title || null }])
         .select();
 
       if (error) throw error;
@@ -78,6 +80,7 @@ export default function PracticesManagement() {
         time: '',
         venue: '',
         type: 'regular',
+        title: '',
         notes: '',
         first_team: '',
         second_team: ''
@@ -123,6 +126,7 @@ export default function PracticesManagement() {
       time: practice.time,
       venue: practice.venue,
       type: practice.type,
+      title: practice.title ?? '',
       notes: practice.notes,
       first_team: practice.first_team,
       second_team: practice.second_team
@@ -141,6 +145,7 @@ export default function PracticesManagement() {
           time: newPractice.time,
           venue: newPractice.venue,
           type: newPractice.type,
+          title: newPractice.title || null,
           notes: newPractice.notes,
           first_team: newPractice.first_team,
           second_team: newPractice.second_team
@@ -150,7 +155,7 @@ export default function PracticesManagement() {
       if (error) throw error;
       setPractices(practices.map(p => p.id === editPracticeId ? (data ? data[0] : p) : p));
       setEditPracticeId(null);
-      setNewPractice({ date: '', time: '', venue: '', type: 'regular', notes: '', first_team: '', second_team: '' });
+      setNewPractice({ date: '', time: '', venue: '', type: 'regular', title: '', notes: '', first_team: '', second_team: '' });
       toast.success('Practice updated successfully!');
     } catch (error) {
       console.error('Error updating practice:', error);
@@ -162,7 +167,7 @@ export default function PracticesManagement() {
 
   function handleCancelEdit() {
     setEditPracticeId(null);
-    setNewPractice({ date: '', time: '', venue: '', type: 'regular', notes: '', first_team: '', second_team: '' });
+    setNewPractice({ date: '', time: '', venue: '', type: 'regular', title: '', notes: '', first_team: '', second_team: '' });
   }
 
   if (isAdmin === null) {
@@ -204,6 +209,15 @@ export default function PracticesManagement() {
       <form onSubmit={editPracticeId ? handleUpdatePractice : handleAddPractice} className="bg-gray-50 p-4 sm:p-6 rounded-lg">
         <h3 className="text-base sm:text-lg font-semibold text-[#000000] mb-3 sm:mb-4">{editPracticeId ? 'Edit Practice' : 'Add New Practice'}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <div className="sm:col-span-2 lg:col-span-3">
+            <label htmlFor="title" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Title (optional, e.g. &quot;Pre-season nets&quot;)</label>
+            <input
+              id="title"
+              value={newPractice.title}
+              onChange={(e) => setNewPractice({ ...newPractice, title: e.target.value })}
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#000000] focus:ring-[#000000] text-sm"
+            />
+          </div>
           <div>
             <label htmlFor="date" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Date</label>
             <input

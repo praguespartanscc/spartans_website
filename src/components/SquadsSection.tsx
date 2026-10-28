@@ -3,12 +3,7 @@ import Link from 'next/link';
 import SectionHeading from '@/components/ui/SectionHeading';
 import Reveal from '@/components/ui/Reveal';
 import { ArrowRight } from '@/components/ui/Icons';
-
-export const SQUADS = [
-  { name: 'Vanguards', logo: '/brand/vanguards.png' },
-  { name: 'Mobilizers', logo: '/brand/mobilizers.png' },
-  { name: 'Strikers', logo: '/brand/strikers.png' },
-];
+import { SQUADS } from '@/lib/club';
 
 export default function SquadsSection() {
   return (
@@ -35,7 +30,7 @@ export default function SquadsSection() {
             <Reveal key={squad.name} delay={i * 90}>
               {/* Official squad logos always sit on solid black and are never altered (brand manual). */}
               <Link
-                href={`/players?team=${squad.name}`}
+                href={`/squads/${squad.slug}`}
                 className="group flex h-full flex-col items-center border border-cream/12 bg-ink px-6 pb-8 pt-10 text-center transition-[transform,border-color] duration-500 ease-[var(--ease-out-expo)] hover:-translate-y-2 hover:border-gold"
               >
                 <Image src={squad.logo} alt={`${squad.name} squad logo`} width={204} height={240} className="h-[180px] w-auto sm:h-[240px]" />
