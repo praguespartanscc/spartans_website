@@ -19,7 +19,7 @@ export default function DebugPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold mb-6 text-[#1a3049]">Environment Debug Page</h1>
+        <h1 className="text-2xl font-bold mb-6 text-gold">Environment Debug Page</h1>
         
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-2">Supabase Environment Variables</h2>

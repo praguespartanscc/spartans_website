@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getCurrentUser } from '@/services/authService';
 import { User } from '@supabase/supabase-js';
+import AuthShell from '@/components/AuthShell';
 
 export default function NotAdminPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -26,54 +27,30 @@ export default function NotAdminPage() {
         setIsLoading(false);
       }
     }
-
     loadUser();
   }, [router]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1a3049]"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="text-center">
-          <div className="text-yellow-500 mb-4">
-            <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900">
-            Administrator Access Required
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            This area is restricted to administrators only. 
-            {user?.email && <span> Your account ({user.email}) does not have administrator privileges.</span>}
+    <AuthShell title="Admins only" subtitle="This area is restricted to club administrators.">
+      {isLoading ? (
+        <div className="skeleton h-40" />
+      ) : (
+        <div className="card flex flex-col gap-4 p-6">
+          <p className="text-muted">
+            {user?.email ? (
+              <>
+                Your account (<span className="text-cream">{user.email}</span>) doesn&apos;t have administrator access.
+              </>
+            ) : (
+              "Your account doesn't have administrator access."
+            )}{' '}
+            If you think it should, contact a committee member.
           </p>
+          <Link href="/" className="btn btn-gold w-full">
+            Back to the home page
+          </Link>
         </div>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <div className="space-y-6">
-            <div>
-              <p className="text-sm text-gray-700 mb-4">
-                If you believe you should have administrator access, please contact the site administrator.
-              </p>
-              <Link
-                href="/"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#1a3049] hover:bg-[#1a3049]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1a3049]"
-              >
-                Return to Home Page
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+      )}
+    </AuthShell>
   );
-} 
+}

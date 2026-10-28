@@ -1,62 +1,97 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { Facebook, Instagram, Mail } from '@/components/ui/Icons';
+
+const columns = [
+  {
+    title: 'Club',
+    links: [
+      { href: '/about', label: 'About' },
+      { href: '/committee', label: 'Committee' },
+      { href: '/contact', label: 'Join the club' },
+    ],
+  },
+  {
+    title: 'Cricket',
+    links: [
+      { href: '/players', label: 'Team' },
+      { href: '/fixtures', label: 'Fixtures & results' },
+      { href: '/practices', label: 'Practices' },
+    ],
+  },
+];
 
 const Footer = () => {
   return (
-    <footer className="bg-[#1a3049] text-white pt-10 pb-8">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <footer className="border-t border-cream/10 bg-[#0a0a0a]">
+      <div className="container-x grid gap-12 py-16 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr] lg:gap-8">
+        <div className="flex items-start gap-4">
+          <Image src="/crest.png" alt="" width={56} height={68} className="h-[68px] w-14 object-contain" />
           <div>
-            <div className="flex items-center mb-4">
-              <Image 
-                src="/prague_spartans_home_logo.jpeg" 
-                alt="Prague Spartans Cricket Club" 
-                width={50} 
-                height={50}
-                className="rounded-full"
-              />
-            </div>
-            <p className="text-sm text-gray-300 mb-4">
-              Prague Spartans Cricket Club was established in 2019, bringing the joy of cricket to Prague.
+            <p className="font-display text-xl font-semibold uppercase tracking-[0.04em]">Prague Spartans Cricket Club</p>
+            <p className="mt-2 max-w-xs text-[15px] leading-relaxed text-faint">
+              Bringing the joy of cricket to Prague since 2019.
             </p>
           </div>
-          
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Links</h3>
-            <ul className="space-y-2">
-              <li><Link href="/" className="text-gray-300 hover:text-[#f3c066]">Home</Link></li>
-              <li><Link href="/players" className="text-gray-300 hover:text-[#f3c066]">Team</Link></li>
-              <li><Link href="/about" className="text-gray-300 hover:text-[#f3c066]">About</Link></li>
-              <li><Link href="/contact" className="text-gray-300 hover:text-[#f3c066]">Contact</Link></li>
+        </div>
+
+        {columns.map((column) => (
+          <nav key={column.title} aria-label={column.title}>
+            <p className="eyebrow mb-4 text-faint">{column.title}</p>
+            <ul className="flex flex-col gap-2.5">
+              {column.links.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="text-[15px] text-muted transition-colors hover:text-cream">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
-          </div>
-          
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
-            <p className="text-sm text-gray-300 mb-1">Prague, Czech Republic</p>
-            <p className="text-sm text-gray-300 mb-1">Email: praguespartanscc@gmail.com</p>
-            
-            <div className="flex space-x-4 mt-4">
-              <a href="https://www.facebook.com/praguespartans" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-[#f3c066]">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-                  <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/>
-                </svg>
-              </a>
-              <a href="https://www.instagram.com/praguespartanscc_/#" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-[#f3c066]">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                </svg>
-              </a>
-            </div>
+          </nav>
+        ))}
+
+        <div>
+          <p className="eyebrow mb-4 text-faint">Get in touch</p>
+          <p className="text-[15px] text-muted">Prague, Czech Republic</p>
+          <a
+            href="mailto:praguespartanscc@gmail.com"
+            className="mt-1 inline-flex items-center gap-2 text-[15px] text-gold transition-colors hover:text-gold-hi"
+          >
+            <Mail size={16} />
+            praguespartanscc@gmail.com
+          </a>
+          <div className="mt-5 flex gap-2">
+            <a
+              href="https://www.facebook.com/praguespartans"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Prague Spartans on Facebook"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-cream/20 text-cream transition-[color,border-color,transform] duration-300 hover:-translate-y-0.5 hover:border-gold hover:text-gold"
+            >
+              <Facebook size={18} />
+            </a>
+            <a
+              href="https://www.instagram.com/praguespartanscc_/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Prague Spartans on Instagram"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-cream/20 text-cream transition-[color,border-color,transform] duration-300 hover:-translate-y-0.5 hover:border-gold hover:text-gold"
+            >
+              <Instagram size={18} />
+            </a>
           </div>
         </div>
-        
-        <div className="border-t border-gray-700 mt-8 pt-6 text-center text-sm text-gray-400">
-          <p>© {new Date().getFullYear()} Prague Spartans Cricket Club. All rights reserved.</p>
+      </div>
+      <div className="border-t border-cream/[0.07]">
+        <div className="container-x flex flex-wrap items-center justify-between gap-3 py-6 text-[13px] text-dim">
+          <p>© {new Date().getFullYear()} Prague Spartans Cricket Club</p>
+          <Link href="/login" className="transition-colors hover:text-cream">
+            Member sign in
+          </Link>
         </div>
       </div>
     </footer>
   );
 };
 
-export default Footer; 
+export default Footer;

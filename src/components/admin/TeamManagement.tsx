@@ -174,7 +174,7 @@ export default function TeamManagement() {
   if (isAdmin === null) {
     return (
       <div className="flex justify-center items-center h-40">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1a3049]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#0e0e0e]"></div>
       </div>
     );
   }
@@ -192,7 +192,7 @@ export default function TeamManagement() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-40">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1a3049]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#0e0e0e]"></div>
       </div>
     );
   }
@@ -202,7 +202,7 @@ export default function TeamManagement() {
       <Toaster position="top-right" />
       {/* Add Player Form */}
       <form onSubmit={editPlayerId ? handleUpdatePlayer : handleAddPlayer} className="bg-gray-50 p-4 sm:p-6 rounded-lg">
-        <h3 className="text-base sm:text-lg font-semibold text-[#1a3049] mb-3 sm:mb-4">{editPlayerId ? 'Edit Player' : 'Add New Player'}</h3>
+        <h3 className="text-base sm:text-lg font-semibold text-[#0e0e0e] mb-3 sm:mb-4">{editPlayerId ? 'Edit Player' : 'Add New Player'}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <div>
             <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Name</label>
@@ -211,7 +211,7 @@ export default function TeamManagement() {
               id="name"
               value={newPlayer.name}
               onChange={(e) => setNewPlayer({ ...newPlayer, name: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
               required
             />
           </div>
@@ -223,7 +223,7 @@ export default function TeamManagement() {
               id="email"
               value={newPlayer.email}
               onChange={(e) => setNewPlayer({ ...newPlayer, email: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
               required
             />
           </div>
@@ -237,7 +237,7 @@ export default function TeamManagement() {
               max="80"
               value={newPlayer.age}
               onChange={(e) => setNewPlayer({ ...newPlayer, age: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
               required
             />
           </div>
@@ -248,7 +248,7 @@ export default function TeamManagement() {
               id="player_type"
               value={newPlayer.player_type}
               onChange={(e) => setNewPlayer({ ...newPlayer, player_type: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
             >
               <option value="batsman">Batsman</option>
               <option value="bowler">Bowler</option>
@@ -263,7 +263,7 @@ export default function TeamManagement() {
               id="role"
               value={newPlayer.role}
               onChange={(e) => setNewPlayer({ ...newPlayer, role: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
             >
               <option value="player">Player</option>
               <option value="captain">Captain</option>
@@ -277,7 +277,7 @@ export default function TeamManagement() {
               id="team"
               value={newPlayer.team}
               onChange={(e) => setNewPlayer({ ...newPlayer, team: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
             >
               <option value="Vanguards">Vanguards</option>
               <option value="Mobilizers">Mobilizers</option>
@@ -288,7 +288,7 @@ export default function TeamManagement() {
         <div className="mt-4 flex flex-col sm:flex-row gap-2 sm:justify-end">
           <button
             type="submit"
-            className="w-full sm:w-auto bg-[#1a3049] text-white px-4 py-2 rounded-md hover:bg-[#1a3049]/90 transition-colors cursor-pointer text-sm"
+            className="w-full sm:w-auto bg-[#0e0e0e] text-white px-4 py-2 rounded-md hover:bg-[#0e0e0e]/90 transition-colors cursor-pointer text-sm"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
@@ -314,7 +314,7 @@ export default function TeamManagement() {
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         {isSubmitting && (
           <div className="flex justify-center items-center py-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1a3049]"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#0e0e0e]"></div>
           </div>
         )}
         

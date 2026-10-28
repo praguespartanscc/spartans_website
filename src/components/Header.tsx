@@ -1,25 +1,29 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { User } from '@supabase/supabase-js';
+import { ArrowRight, Close, Facebook, Instagram, Menu } from '@/components/ui/Icons';
 
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/players', label: 'Team' },
   { href: '/fixtures', label: 'Fixtures' },
+  { href: '/practices', label: 'Practices' },
   { href: '/about', label: 'About' },
   { href: '/committee', label: 'Committee' },
-  { href: '/contact', label: 'Contact' },
 ];
 
 const Header = () => {
+  const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -32,12 +36,10 @@ const Header = () => {
           }
           setUser(null);
           setIsAdmin(false);
-          setLoading(false);
           return;
         }
-        const isUserAdmin = user?.user_metadata?.isAdmin === true;
         setUser(user);
-        setIsAdmin(isUserAdmin);
+        setIsAdmin(user?.user_metadata?.isAdmin === true);
       } catch (error) {
         console.error('Error in Header auth check:', error);
         setUser(null);
@@ -48,6 +50,44 @@ const Header = () => {
     };
     getUser();
   }, []);
+
+  // Solid, compact bar once the page scrolls. rAF-throttled and passive so it never blocks scrolling.
+  useEffect(() => {
+    let frame = 0;
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        setScrolled(window.scrollY > 12);
+      });
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  // Close the menu on navigation.
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  // While the menu is open: lock page scroll and close on Escape.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [menuOpen]);
 
   const handleSignOut = async () => {
     try {
@@ -61,179 +101,171 @@ const Header = () => {
     }
   };
 
-  // Close drawer on route change or ESC
-  useEffect(() => {
-    if (!drawerOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setDrawerOpen(false);
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [drawerOpen]);
+  const isActive = (href: string) => (href === '/' ? pathname === '/' : pathname?.startsWith(href));
 
   return (
-    <header className="bg-[#1a3049] text-white shadow-md z-100 sticky top-0">
-      <div className="container mx-auto px-4 py-4 flex flex-row items-center justify-between">
-        <div className="flex items-center mb-4 md:mb-0">
-          <Link href="/" className="flex items-center">
-            <Image 
-              src="/prague_spartans_home_logo.jpeg" 
-              alt="Prague Spartans Cricket Club" 
-              width={50} 
-              height={50}
-              className="rounded-full"
-            />
-          </Link>
-        </div>
-        {/* Hamburger for mobile */}
-        <button
-          className="md:hidden ml-auto flex items-center justify-center p-2 rounded focus:outline-none focus:ring-2 focus:ring-[#f3c066]"
-          aria-label="Open menu"
-          onClick={() => setDrawerOpen(true)}
+    <>
+      <header
+        className={`sticky top-0 z-[100] border-b transition-[background-color,border-color,backdrop-filter] duration-500 ${
+          scrolled || menuOpen
+            ? 'border-cream/10 bg-ink/85 backdrop-blur-xl backdrop-saturate-150'
+            : 'border-transparent bg-ink'
+        }`}
+      >
+        <div
+          className={`container-x flex items-center justify-between gap-6 transition-[height] duration-500 ease-[var(--ease-out-expo)] ${
+            scrolled ? 'h-[64px]' : 'h-[72px]'
+          }`}
         >
-          <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-        {/* Desktop nav */}
-        <nav className="hidden md:flex flex-wrap items-center justify-center gap-x-6">
-          {navLinks.map(link => (
-            <Link key={link.href} href={link.href} className="hover:text-[#f3c066] transition-colors font-medium">
-              {link.label}
-            </Link>
-          ))}
-          {!loading && (
-            <>
-              {user ? (
-                <div className="flex items-center ml-4">
-                  {isAdmin && (
-                    <Link 
-                      href="/admin" 
-                      className="hover:text-[#f3c066] transition-colors font-medium flex items-center"
-                    >
-                      {user?.user_metadata?.avatar_url && (
-                        <Image
-                          src={user.user_metadata.avatar_url}
-                          alt={user.user_metadata.full_name || 'User'}
-                          width={30}
-                          height={30}
-                          className="rounded-full mr-2"
-                        />
-                      )}
-                      <span>Admin Dashboard</span>
-                    </Link>
-                  )}
-                  <button
-                    onClick={handleSignOut}
-                    className="ml-4 cursor-pointer bg-transparent hover:bg-[#f3c066]/20 text-[#f3c066] font-medium py-1 px-3 border border-[#f3c066] rounded-full text-sm transition-colors"
-                  >
-                    Sign Out
-                  </button>
-                </div>
-              ) : (
-                <Link 
-                  href="/login" 
-                  className="ml-4 bg-[#f3c066] hover:bg-[#e2af50] text-[#1a3049] font-medium py-1 px-4 rounded-full transition-colors"
+          <Link href="/" className="group flex items-center gap-3" aria-label="Prague Spartans Cricket Club, home">
+            <Image
+              src="/crest.png"
+              alt=""
+              width={36}
+              height={44}
+              priority
+              className="h-11 w-9 object-contain transition-transform duration-500 ease-[var(--ease-out-expo)] group-hover:-rotate-3 group-hover:scale-105"
+            />
+            <span className="font-display text-[18px] font-semibold uppercase leading-none tracking-[0.06em] sm:text-[20px]">
+              Prague Spartans
+            </span>
+          </Link>
+
+          <nav aria-label="Main" className="hidden items-center gap-1 lg:flex">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                aria-current={isActive(link.href) ? 'page' : undefined}
+                className={`group relative px-3 py-2 text-[15px] font-medium transition-colors duration-200 ${
+                  isActive(link.href) ? 'text-cream' : 'text-muted hover:text-cream'
+                }`}
+              >
+                {link.label}
+                <span
+                  className={`absolute inset-x-3 -bottom-0.5 h-[2px] origin-left bg-gold transition-transform duration-500 ease-[var(--ease-out-expo)] ${
+                    isActive(link.href) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+                  }`}
+                />
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-2">
+            {!loading && user && (
+              <div className="hidden items-center gap-1 lg:flex">
+                {isAdmin && (
+                  <Link href="/admin" className="px-3 py-2 text-[15px] font-medium text-muted transition-colors hover:text-cream">
+                    Admin
+                  </Link>
+                )}
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="px-3 py-2 text-[15px] font-medium text-muted transition-colors hover:text-cream"
                 >
-                  Sign In
-                </Link>
-              )}
-            </>
-          )}
-        </nav>
-      </div>
-      {/* Mobile Drawer */}
-      {drawerOpen && (
-        <>
-          {/* Backdrop */}
-          <div
-           className="fixed inset-0 z-[200] bg-opacity-40 backdrop-blur-sm transition-opacity duration-200"
-            onClick={() => setDrawerOpen(false)}
-            aria-label="Close menu"
-          />
-          {/* Drawer panel */}
-          <aside
-            className="fixed top-0 right-0 h-full w-72 max-w-[90vw] bg-[#1a3049] shadow-lg z-[201] flex flex-col p-6 animate-slide-in"
-            style={{ minWidth: '240px' }}
-            tabIndex={-1}
-            role="dialog"
-            aria-modal="true"
-          >
+                  Sign out
+                </button>
+              </div>
+            )}
+            <Link href="/contact" className="btn btn-gold hidden sm:inline-flex">
+              Join the club
+            </Link>
             <button
-              className="self-end mb-6 p-2 rounded hover:bg-[#f3c066]/20 focus:outline-none focus:ring-2 focus:ring-[#f3c066]"
-              aria-label="Close menu"
-              onClick={() => setDrawerOpen(false)}
+              type="button"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-cream transition-colors hover:bg-cream/10 lg:hidden"
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
+              onClick={() => setMenuOpen((open) => !open)}
             >
-              <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              {menuOpen ? <Close size={24} /> : <Menu size={24} />}
             </button>
-            <nav className="flex flex-col gap-y-4">
-              {navLinks.map(link => (
+          </div>
+        </div>
+      </header>
+
+      {/* Full-screen mobile and tablet menu */}
+      <div
+        id="mobile-menu"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu"
+        aria-hidden={!menuOpen}
+        inert={!menuOpen}
+        className={`fixed inset-x-0 bottom-0 top-[64px] z-[90] overflow-y-auto bg-ink transition-[opacity,visibility] duration-500 ease-[var(--ease-out-expo)] lg:hidden ${
+          menuOpen ? 'visible opacity-100' : 'invisible opacity-0'
+        }`}
+      >
+        <nav aria-label="Mobile" className="container-x flex min-h-full flex-col pb-10 pt-6">
+          <ul className="flex flex-col">
+            {[...navLinks, { href: '/contact', label: 'Contact' }].map((link, i) => (
+              <li
+                key={link.href}
+                className={`border-b border-cream/10 transition-[opacity,transform] duration-700 ease-[var(--ease-out-expo)] ${
+                  menuOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+                }`}
+                style={{ transitionDelay: menuOpen ? `${80 + i * 45}ms` : '0ms' }}
+              >
                 <Link
-                  key={link.href}
                   href={link.href}
-                  className="text-lg font-medium hover:text-[#f3c066] transition-colors"
-                  onClick={() => setDrawerOpen(false)}
+                  aria-current={isActive(link.href) ? 'page' : undefined}
+                  onClick={() => setMenuOpen(false)}
+                  className={`flex items-center justify-between py-4 font-display text-[34px] font-semibold uppercase leading-none sm:text-[44px] ${
+                    isActive(link.href) ? 'text-gold' : 'text-cream'
+                  }`}
                 >
                   {link.label}
+                  <ArrowRight size={26} className="text-dim" />
                 </Link>
-              ))}
-              {!loading && (
+              </li>
+            ))}
+          </ul>
+
+          <div
+            className={`mt-8 flex flex-col gap-3 transition-[opacity,transform] duration-700 ease-[var(--ease-out-expo)] sm:flex-row ${
+              menuOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+            }`}
+            style={{ transitionDelay: menuOpen ? '420ms' : '0ms' }}
+          >
+            <Link href="/contact" onClick={() => setMenuOpen(false)} className="btn btn-gold btn-lg">
+              Join the club
+              <ArrowRight size={18} className="btn-arrow" />
+            </Link>
+            {!loading &&
+              (user ? (
                 <>
-                  {user ? (
-                    <div className="flex flex-col gap-y-2 mt-4">
-                      {isAdmin && (
-                        <Link 
-                          href="/admin" 
-                          className="hover:text-[#f3c066] transition-colors font-medium flex items-center"
-                          onClick={() => setDrawerOpen(false)}
-                        >
-                          {user?.user_metadata?.avatar_url && (
-                            <Image
-                              src={user.user_metadata.avatar_url}
-                              alt={user.user_metadata.full_name || 'User'}
-                              width={30}
-                              height={30}
-                              className="rounded-full mr-2"
-                            />
-                          )}
-                          <span>Admin Dashboard</span>
-                        </Link>
-                      )}
-                      <button
-                        onClick={() => { setDrawerOpen(false); handleSignOut(); }}
-                        className="cursor-pointer bg-transparent hover:bg-[#f3c066]/20 text-[#f3c066] font-medium py-1 px-3 border border-[#f3c066] rounded-full text-sm transition-colors mt-2"
-                      >
-                        Sign Out
-                      </button>
-                    </div>
-                  ) : (
-                    <Link 
-                      href="/login" 
-                      className="bg-[#f3c066] hover:bg-[#e2af50] text-[#1a3049] font-medium py-1 px-4 rounded-full transition-colors mt-4"
-                      onClick={() => setDrawerOpen(false)}
-                    >
-                      Sign In
+                  {isAdmin && (
+                    <Link href="/admin" onClick={() => setMenuOpen(false)} className="btn btn-outline btn-lg">
+                      Admin dashboard
                     </Link>
                   )}
+                  <button type="button" onClick={handleSignOut} className="btn btn-outline btn-lg">
+                    Sign out
+                  </button>
                 </>
-              )}
-            </nav>
-          </aside>
-          <style jsx global>{`
-            @keyframes slide-in {
-              from { transform: translateX(100%); }
-              to { transform: translateX(0); }
-            }
-            .animate-slide-in {
-              animation: slide-in 0.25s cubic-bezier(0.4,0,0.2,1);
-            }
-          `}</style>
-        </>
-      )}
-    </header>
+              ) : (
+                <Link href="/login" onClick={() => setMenuOpen(false)} className="btn btn-outline btn-lg">
+                  Member sign in
+                </Link>
+              ))}
+          </div>
+
+          <div className="mt-auto flex items-center gap-3 pt-10 text-muted">
+            <a href="https://www.facebook.com/praguespartans" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="flex h-11 w-11 items-center justify-center rounded-full border border-cream/20 transition-colors hover:border-gold hover:text-gold">
+              <Facebook size={18} />
+            </a>
+            <a href="https://www.instagram.com/praguespartanscc_/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="flex h-11 w-11 items-center justify-center rounded-full border border-cream/20 transition-colors hover:border-gold hover:text-gold">
+              <Instagram size={18} />
+            </a>
+            <a href="mailto:praguespartanscc@gmail.com" className="ml-2 text-[15px] hover:text-cream">
+              praguespartanscc@gmail.com
+            </a>
+          </div>
+        </nav>
+      </div>
+    </>
   );
 };
 
-export default Header; 
+export default Header;

@@ -132,18 +132,19 @@ export default function ApplicationsPage() {
         (filterStatus === 'pending' && !app.status));
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f4eee2] text-gray-900 [color-scheme:light]">
       <Toaster position="top-center" />
-      <div className="bg-white shadow-md">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <h1 className="text-2xl font-bold text-black">Team Applications</h1>
+      <div className="border-b border-cream/10 bg-ink text-cream [color-scheme:dark]">
+        <div className="container-x py-8">
+          <p className="eyebrow mb-2">Admin</p>
+          <h1 className="font-display text-4xl font-semibold uppercase">Team applications</h1>
         </div>
       </div>
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {isLoading ? (
           <div className="flex justify-center items-center h-60">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1a3049]"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0e0e0e]"></div>
           </div>
         ) : error ? (
           <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6">
@@ -158,7 +159,7 @@ export default function ApplicationsPage() {
                   onClick={() => setFilterStatus('all')}
                   className={`px-4 py-2 text-sm font-medium rounded-l-md ${
                     filterStatus === 'all'
-                      ? 'bg-[#1a3049] text-white'
+                      ? 'bg-[#0e0e0e] text-white'
                       : 'bg-white text-gray-700 hover:bg-gray-50'
                   } border border-gray-300`}
                 >
@@ -168,7 +169,7 @@ export default function ApplicationsPage() {
                   onClick={() => setFilterStatus('pending')}
                   className={`px-4 py-2 text-sm font-medium ${
                     filterStatus === 'pending'
-                      ? 'bg-[#1a3049] text-white'
+                      ? 'bg-[#0e0e0e] text-white'
                       : 'bg-white text-gray-700 hover:bg-gray-50'
                   } border-t border-b border-gray-300`}
                 >
@@ -178,7 +179,7 @@ export default function ApplicationsPage() {
                   onClick={() => setFilterStatus('accepted')}
                   className={`px-4 py-2 text-sm font-medium ${
                     filterStatus === 'accepted'
-                      ? 'bg-[#1a3049] text-white'
+                      ? 'bg-[#0e0e0e] text-white'
                       : 'bg-white text-gray-700 hover:bg-gray-50'
                   } border-t border-b border-gray-300`}
                 >
@@ -188,7 +189,7 @@ export default function ApplicationsPage() {
                   onClick={() => setFilterStatus('rejected')}
                   className={`px-4 py-2 text-sm font-medium rounded-r-md ${
                     filterStatus === 'rejected'
-                      ? 'bg-[#1a3049] text-white'
+                      ? 'bg-[#0e0e0e] text-white'
                       : 'bg-white text-gray-700 hover:bg-gray-50'
                   } border border-gray-300`}
                 >

@@ -1,24 +1,35 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Viewport } from "next";
+import { Inter, Oswald } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { SupabaseProviderWrapper } from "@/components/ClientProviders";
 import { Analytics } from "@vercel/analytics/next";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const oswald = Oswald({
+  variable: "--font-oswald",
+  subsets: ["latin", "latin-ext"],
+  weight: ["500", "600", "700"],
+  display: "swap",
 });
+
+export const viewport: Viewport = {
+  themeColor: "#0e0e0e",
+  colorScheme: "dark",
+  width: "device-width",
+  initialScale: 1,
+};
 
 export const metadata: Metadata = {
   title: {
-    template: 'Prague Spartans Cricket Club',
+    template: '%s | Prague Spartans Cricket Club',
     default: 'Prague Spartans Cricket Club'
   },
   description: "Official website of the Prague Spartans Cricket Club - Join us for matches, practices, and cricket events in Prague, Czech Republic",
@@ -44,10 +55,10 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/images/prague-spartans-logo.png',
-        width: 800,
-        height: 600,
-        alt: 'Prague Spartans Cricket Club Logo',
+        url: '/spartan_team.PNG',
+        width: 1369,
+        height: 751,
+        alt: 'The Prague Spartans Cricket Club squad',
       }
     ],
   },
@@ -55,7 +66,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Prague Spartans Cricket Club',
     description: 'Official website of the Prague Spartans Cricket Club',
-    images: ['/images/prague-spartans-logo.png'],
+    images: ['/spartan_team.PNG'],
     creator: '@praguespartans',
   },
   robots: {
@@ -76,14 +87,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
-      >
+    <html lang="en" className={`${inter.variable} ${oswald.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Lets CSS know scripts run, so scroll-reveal content is only hidden when it can be revealed. */}
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
+      </head>
+      <body className="flex min-h-screen flex-col bg-ink text-cream antialiased">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[300] focus:rounded focus:bg-gold focus:px-4 focus:py-3 focus:font-semibold focus:text-ink"
+        >
+          Skip to content
+        </a>
         <SupabaseProviderWrapper>
           <Header />
-          <main className="flex-grow bg-white min-h-screen">
-          {children}
+          <main id="main" className="flex-grow">
+            {children}
           </main>
           <Footer />
         </SupabaseProviderWrapper>

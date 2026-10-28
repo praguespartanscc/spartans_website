@@ -240,7 +240,7 @@ export default function CommitteeManagement() {
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3049] text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e0e0e] text-sm"
                 placeholder="Enter name"
               />
             </div>
@@ -253,7 +253,7 @@ export default function CommitteeManagement() {
                 id="position"
                 value={position}
                 onChange={(e) => setPosition(e.target.value as Position)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3049] text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0e0e0e] text-sm"
               >
                 {positions.map((pos) => (
                   <option key={pos} value={pos}>
@@ -270,7 +270,7 @@ export default function CommitteeManagement() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="cursor-pointer px-3 sm:px-4 py-2 bg-[#1a3049] text-white rounded-md hover:bg-[#152538] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1a3049] disabled:opacity-50 text-xs sm:text-sm w-full sm:w-auto"
+              className="cursor-pointer px-3 sm:px-4 py-2 bg-[#0e0e0e] text-white rounded-md hover:bg-[#000000] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0e0e0e] disabled:opacity-50 text-xs sm:text-sm w-full sm:w-auto"
             >
               {isSubmitting 
                 ? (isEditing ? 'Updating...' : 'Adding...') 
@@ -295,7 +295,7 @@ export default function CommitteeManagement() {
         <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Committee Members</h3>
         {loading ? (
           <div className="text-center py-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1a3049] mx-auto"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#0e0e0e] mx-auto"></div>
           </div>
         ) : committeeMembers.length === 0 ? (
           <div className="text-center py-4 text-gray-500 text-sm">No committee members found</div>

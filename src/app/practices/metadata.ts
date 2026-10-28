@@ -12,7 +12,7 @@ const metadata: Metadata = {
     url: 'https://praguespartanscc.com/practices',
     images: [
       {
-        url: '/images/practice-session.jpg',
+        url: '/home_carousel.jpeg',
         width: 1200,
         height: 630,
         alt: 'Prague Spartans Cricket Club Practice Session',

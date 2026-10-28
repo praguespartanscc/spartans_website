@@ -168,7 +168,7 @@ export default function PracticesManagement() {
   if (isAdmin === null) {
     return (
       <div className="flex justify-center items-center h-40">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1a3049]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#0e0e0e]"></div>
       </div>
     );
   }
@@ -186,7 +186,7 @@ export default function PracticesManagement() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-40">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1a3049]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#0e0e0e]"></div>
       </div>
     );
   }
@@ -202,7 +202,7 @@ export default function PracticesManagement() {
       
       {/* Add/Edit Practice Form */}
       <form onSubmit={editPracticeId ? handleUpdatePractice : handleAddPractice} className="bg-gray-50 p-4 sm:p-6 rounded-lg">
-        <h3 className="text-base sm:text-lg font-semibold text-[#1a3049] mb-3 sm:mb-4">{editPracticeId ? 'Edit Practice' : 'Add New Practice'}</h3>
+        <h3 className="text-base sm:text-lg font-semibold text-[#0e0e0e] mb-3 sm:mb-4">{editPracticeId ? 'Edit Practice' : 'Add New Practice'}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <div>
             <label htmlFor="date" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Date</label>
@@ -211,7 +211,7 @@ export default function PracticesManagement() {
               id="date"
               value={newPractice.date}
               onChange={(e) => setNewPractice({ ...newPractice, date: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
               required
             />
           </div>
@@ -222,7 +222,7 @@ export default function PracticesManagement() {
               id="time"
               value={newPractice.time}
               onChange={(e) => setNewPractice({ ...newPractice, time: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
               required
             />
           </div>
@@ -233,7 +233,7 @@ export default function PracticesManagement() {
               id="venue"
               value={newPractice.venue}
               onChange={(e) => setNewPractice({ ...newPractice, venue: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
               required
             />
           </div>
@@ -244,7 +244,7 @@ export default function PracticesManagement() {
               id="first_team"
               value={newPractice.first_team}
               onChange={(e) => setNewPractice({ ...newPractice, first_team: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
               required
             />
           </div>
@@ -255,7 +255,7 @@ export default function PracticesManagement() {
               id="second_team"
               value={newPractice.second_team}
               onChange={(e) => setNewPractice({ ...newPractice, second_team: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
               required
             />
           </div>
@@ -265,7 +265,7 @@ export default function PracticesManagement() {
               id="type"
               value={newPractice.type}
               onChange={(e) => setNewPractice({ ...newPractice, type: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
             >
               <option value="regular">Regular Practice</option>
               <option value="batting">Batting Practice</option>
@@ -280,7 +280,7 @@ export default function PracticesManagement() {
               value={newPractice.notes}
               onChange={(e) => setNewPractice({ ...newPractice, notes: e.target.value })}
               rows={3}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
               placeholder="Add any additional notes or requirements for the practice..."
             />
           </div>
@@ -288,7 +288,7 @@ export default function PracticesManagement() {
         <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-end">
           <button
             type="submit"
-            className="bg-[#1a3049] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-[#1a3049]/90 transition-colors cursor-pointer text-xs sm:text-sm w-full sm:w-auto"
+            className="bg-[#0e0e0e] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-[#0e0e0e]/90 transition-colors cursor-pointer text-xs sm:text-sm w-full sm:w-auto"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
@@ -319,7 +319,7 @@ export default function PracticesManagement() {
         <div className="bg-white shadow-md rounded-lg overflow-hidden">
           {isSubmitting && (
             <div className="flex justify-center items-center py-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1a3049]"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#0e0e0e]"></div>
             </div>
           )}
           

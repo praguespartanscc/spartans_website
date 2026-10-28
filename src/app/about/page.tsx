@@ -1,5 +1,10 @@
 import { Metadata } from "next";
 import Image from 'next/image';
+import PageHero from '@/components/ui/PageHero';
+import Reveal from '@/components/ui/Reveal';
+import Ticker from '@/components/ui/Ticker';
+import JoinCta from '@/components/JoinCta';
+import { Bolt, Glass, Users } from '@/components/ui/Icons';
 
 export const metadata: Metadata = {
   title: 'About Us',
@@ -22,128 +27,109 @@ export const metadata: Metadata = {
   }
 };
 
+const offers = [
+  {
+    icon: Users,
+    title: 'Inclusive community',
+    text: 'A welcoming club for players of every skill level, background and age.',
+  },
+  {
+    icon: Bolt,
+    title: 'Regular training',
+    text: 'Weekly practice sessions focused on improving your game and enjoying it.',
+  },
+  {
+    icon: Glass,
+    title: 'Social events',
+    text: 'Team dinners, awards nights and get-togethers that build friendships beyond the field.',
+  },
+];
+
 export default function AboutPage() {
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="bg-[#1a3049] text-white py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">About Prague Spartans Cricket Club</h1>
-          <p className="text-xl max-w-3xl mx-auto opacity-90">
-            A community united by the love of cricket
-          </p>
-        </div>
-      </section>
+    <>
+      <PageHero
+        eyebrow="About the club"
+        title={
+          <>
+            United by <span className="text-gold">cricket</span>
+          </>
+        }
+        intro="A community of friends, teammates and rivals who love the game, playing in the heart of Prague since 2019."
+        image="/home_carousel1.jpeg"
+      />
 
-      {/* Main Content */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
-            <div>
-              <h2 className="text-3xl font-bold text-[#1a3049] mb-6">Our Story</h2>
-              <p className="text-gray-700 mb-6">
-                Founded in 2019, the Prague Spartans Cricket Club was born from a simple idea: to bring people together through 
-                the love of cricket. What began as a small group of friends sharing a passion for the sport has grown into a 
-                vibrant and diverse community.
-              </p>
-              <p className="text-gray-700">
-                At our core, we are a social club—welcoming players of all backgrounds and skill levels. Whether you&apos;re a 
-                seasoned cricketer or picking up the bat for the first time, the Prague Spartans offer a supportive and inclusive 
-                environment to enjoy the game.
-              </p>
-            </div>
-            <div className="relative h-80 md:h-96 overflow-hidden rounded-lg shadow-xl">
-              <Image 
-                src="/story1.jpeg" 
-                alt="Prague Spartans Cricket Club team" 
-                fill
-                className="object-cover"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
-            <div className="order-2 lg:order-1 relative h-80 md:h-96 overflow-hidden rounded-lg shadow-xl">
-              <Image 
-               src="/story2.jpeg"
-                alt="Cricket match action" 
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div className="order-1 lg:order-2">
-              <h2 className="text-3xl font-bold text-[#1a3049] mb-6">Our Mission</h2>
-              <p className="text-gray-700 mb-6">
-                Our mission is to promote camaraderie, sportsmanship, and a deep appreciation for cricket while having fun 
-                both on and off the field.
-              </p>
-              <p className="text-gray-700">
-                We strive to create a community where players can develop their skills, forge lasting friendships, and 
-                share their passion for cricket. Through regular practice sessions, matches, and social events, we aim to 
-                foster a sense of belonging and team spirit.
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-[#f3f4f6] rounded-lg p-8 mb-16">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-[#1a3049] mb-4">What We Offer</h2>
-              <p className="text-gray-700 max-w-3xl mx-auto">
-                Join us and enjoy these benefits as a member of Prague Spartans Cricket Club
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <div className="bg-[#f3c066] w-12 h-12 rounded-full flex items-center justify-center mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#1a3049]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-[#1a3049] mb-2">Inclusive Community</h3>
-                <p className="text-gray-700">
-                  Welcoming environment for players of all skill levels, backgrounds, and ages.
-                </p>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <div className="bg-[#f3c066] w-12 h-12 rounded-full flex items-center justify-center mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#1a3049]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-[#1a3049] mb-2">Regular Training</h3>
-                <p className="text-gray-700">
-                  Weekly practice sessions focused on improving skills and enjoying the game.
-                </p>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <div className="bg-[#f3c066] w-12 h-12 rounded-full flex items-center justify-center mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#1a3049]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-[#1a3049] mb-2">Social Events</h3>
-                <p className="text-gray-700">
-                  Regular gatherings, team dinners, and events to build friendships beyond the field.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="text-center">
-            <h2 className="text-3xl font-bold text-[#1a3049] mb-6">Join Us Today</h2>
-            <p className="text-gray-700 mb-8 max-w-3xl mx-auto">
-              Join us, and be part of a team where friendship and the spirit of the game come first. Whether you&apos;re looking to 
-              play competitively or just enjoy the sport in a friendly environment, there&apos;s a place for you with the Prague Spartans.
+      <section className="py-20 sm:py-28">
+        <div className="container-x grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          <Reveal>
+            <p className="eyebrow mb-3">01 · Our story</p>
+            <h2 className="h-section">Born from a simple idea</h2>
+            <p className="mt-6 text-[17px] leading-relaxed text-sand">
+              Founded in 2019, the Prague Spartans Cricket Club was born from a simple idea: to bring people together through the
+              love of cricket. What began as a small group of friends sharing a passion for the sport has grown into a vibrant and
+              diverse community.
             </p>
-            <a 
-              href="/contact" 
-              className="inline-block bg-[#1a3049] text-white py-3 px-8 rounded-full font-bold hover:bg-[#2a4059] transition-colors"
-            >
-              Get In Touch
-            </a>
+            <p className="mt-4 text-[17px] leading-relaxed text-muted">
+              At our core, we are a social club, welcoming players of all backgrounds and skill levels. Whether you&apos;re a
+              seasoned cricketer or picking up the bat for the first time, the Prague Spartans offer a supportive and inclusive
+              environment to enjoy the game.
+            </p>
+          </Reveal>
+          <Reveal delay={120} className="zoom-frame relative aspect-[4/3] overflow-hidden rounded-lg">
+            <Image src="/story1.jpeg" alt="Prague Spartans members together in Prague" fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover object-[center_60%]" />
+          </Reveal>
+        </div>
+      </section>
+
+      <Ticker />
+
+      <section className="bg-ink-2 py-20 sm:py-28">
+        <div className="container-x grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          <Reveal delay={120} className="zoom-frame relative order-2 aspect-[4/3] overflow-hidden rounded-lg lg:order-1">
+            <Image src="/home_carouse2.jpeg" alt="Prague Spartans award trophies" fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+          </Reveal>
+          <Reveal className="order-1 lg:order-2">
+            <p className="eyebrow mb-3">02 · Our mission</p>
+            <h2 className="h-section">Spirit of the game first</h2>
+            <p className="mt-6 text-[17px] leading-relaxed text-sand">
+              Our mission is to promote camaraderie, sportsmanship, and a deep appreciation for cricket while having fun both on
+              and off the field.
+            </p>
+            <p className="mt-4 text-[17px] leading-relaxed text-muted">
+              We strive to create a community where players can develop their skills, forge lasting friendships, and share their
+              passion for cricket. Through regular practice sessions, matches, and social events, we foster a sense of belonging
+              and team spirit.
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      <section className="py-20 sm:py-28">
+        <div className="container-x">
+          <Reveal className="mb-12 max-w-2xl">
+            <p className="eyebrow mb-3">03 · What we offer</p>
+            <h2 className="h-section">Why players join</h2>
+          </Reveal>
+          <div className="grid gap-4 md:grid-cols-3">
+            {offers.map((offer, i) => (
+              <Reveal key={offer.title} delay={i * 90}>
+                <div className="card card-hover h-full p-7">
+                  <span className="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-gold text-ink">
+                    <offer.icon size={22} />
+                  </span>
+                  <h3 className="font-display text-2xl font-semibold uppercase">{offer.title}</h3>
+                  <p className="mt-3 leading-relaxed text-muted">{offer.text}</p>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
-    </div>
+
+      <JoinCta
+        title="Join us today"
+        text="Be part of a team where friendship and the spirit of the game come first. Whether you want competitive cricket or a friendly game, there's a place for you."
+      />
+    </>
   );
-} 
+}

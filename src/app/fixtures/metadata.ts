@@ -12,7 +12,7 @@ const metadata: Metadata = {
     url: 'https://praguespartanscc.com/fixtures',
     images: [
       {
-        url: '/images/match-action.jpg',
+        url: '/spartan_team.PNG',
         width: 1200,
         height: 630,
         alt: 'Prague Spartans Cricket Club Match',

@@ -1,78 +1,48 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import toast, { Toaster } from 'react-hot-toast';
+import { Check, Facebook, Instagram, Mail } from '@/components/ui/Icons';
+
+const EMPTY_FORM = {
+  name: '',
+  email: '',
+  age: '',
+  location: '',
+  specification: 'batsman',
+  experience: '',
+};
+
+const perks = ['All skill levels welcome', 'Regular training and nets', 'League, tournament and friendly cricket', 'Social events all year'];
 
 export default function ContactPage() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    age: '',
-    location: '',
-    specification: 'batsman', // Default value
-    experience: ''
-  });
-  
+  const [formData, setFormData] = useState(EMPTY_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Show loading toast
-    const loadingToast = toast.loading('Submitting your application...');
-
+    const loadingToast = toast.loading('Sending your application...');
     try {
-      // Handle case when Supabase is not configured (development/preview)
       if (!isSupabaseConfigured) {
-        console.log('Form submission (Supabase not configured):', formData);
-        
-        // Simulate delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        toast.success('Thank you for your interest! Your application has been received (demo mode).');
-        
-        setFormData({
-          name: '',
-          email: '',
-          age: '',
-          location: '',
-          specification: 'batsman',
-          experience: ''
-        });
-        
-        toast.dismiss(loadingToast);
-        return;
+        // Development/preview without a database: simulate success.
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } else {
+        const { error } = await supabase.from('team_applications').insert([formData]);
+        if (error) throw error;
       }
-
-      // Submit to Supabase
-      const { error } = await supabase
-        .from('team_applications')
-        .insert([formData]);
-
-      if (error) throw error;
-
-      // Reset form on success
-      setFormData({
-        name: '',
-        email: '',
-        age: '',
-        location: '',
-        specification: 'batsman',
-        experience: ''
-      });
-      
-      toast.success('Thank you for your interest! Your application has been received.');
+      setFormData(EMPTY_FORM);
+      setSubmitted(true);
+      toast.success('Application received. Welcome to the Spartans!');
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error('Something went wrong. Please try again later.');
@@ -83,147 +53,133 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="py-10 sm:py-16 bg-gray-50 min-h-screen overflow-x-hidden">
-      <Toaster position="top-center" />
-      <div className="container mx-auto px-2 sm:px-4">
-        <div className="max-w-full sm:max-w-3xl mx-auto">
-          <div className="text-center mb-8 sm:mb-12">
-            <h1 className="text-2xl sm:text-4xl font-bold text-[#1a3049] mb-3">Join Our Team</h1>
-            <p className="text-gray-600 mx-auto text-base sm:text-lg">
-              Interested in playing cricket with Prague Spartans? Fill out the form below and we&apos;ll get back to you.
+    <>
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: { background: '#1b1a18', color: '#f4eee2', border: '1px solid rgba(244,238,226,0.15)' },
+          success: { iconTheme: { primary: '#e3b54a', secondary: '#0e0e0e' } },
+        }}
+      />
+
+      <section className="relative isolate overflow-hidden">
+        <Image src="/spartan_team.PNG" alt="" fill priority sizes="100vw" className="kenburns -z-20 object-cover object-[center_30%]" />
+        <div className="absolute inset-0 -z-10 bg-ink/85" />
+
+        <div className="container-x grid gap-12 py-16 sm:py-24 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
+          <div className="lg:sticky lg:top-28 lg:self-start">
+            <p className="eyebrow rise mb-4" style={{ ['--d' as string]: '60ms' }}>
+              Join the club
             </p>
+            <h1 className="display rise text-[clamp(48px,8vw,96px)]" style={{ ['--d' as string]: '140ms' }}>
+              Your place <span className="text-gold">in the XI</span>
+            </h1>
+            <p className="rise mt-6 max-w-lg text-lg leading-relaxed text-sand" style={{ ['--d' as string]: '240ms' }}>
+              Interested in playing cricket with the Prague Spartans? Tell us a little about yourself and we&apos;ll be in touch.
+            </p>
+            <ul className="rise mt-8 flex flex-col gap-3" style={{ ['--d' as string]: '320ms' }}>
+              {perks.map((perk) => (
+                <li key={perk} className="flex items-center gap-3 text-[16px]">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold">
+                    <Check size={16} />
+                  </span>
+                  {perk}
+                </li>
+              ))}
+            </ul>
+            <div className="rise mt-10 flex flex-wrap items-center gap-3 text-muted" style={{ ['--d' as string]: '400ms' }}>
+              <a href="mailto:praguespartanscc@gmail.com" className="inline-flex items-center gap-2 text-gold hover:text-gold-hi">
+                <Mail size={18} />
+                praguespartanscc@gmail.com
+              </a>
+              <a href="https://www.facebook.com/praguespartans" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="ml-2 flex h-11 w-11 items-center justify-center rounded-full border border-cream/20 transition-colors hover:border-gold hover:text-gold">
+                <Facebook size={18} />
+              </a>
+              <a href="https://www.instagram.com/praguespartanscc_/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="flex h-11 w-11 items-center justify-center rounded-full border border-cream/20 transition-colors hover:border-gold hover:text-gold">
+                <Instagram size={18} />
+              </a>
+            </div>
           </div>
 
-          <div className="bg-white shadow-md rounded-lg p-4 sm:p-8">
-            <form onSubmit={handleSubmit}>
-              <div className="mb-6">
-                <label htmlFor="name" className="block text-gray-700 font-medium mb-2">
-                  Full Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3049]"
-                  required
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              <div className="mb-6">
-                <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
-                  Email Address <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3049]"
-                  required
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              <div className="mb-6">
-                <label htmlFor="age" className="block text-gray-700 font-medium mb-2">
-                  Age <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  id="age"
-                  name="age"
-                  value={formData.age}
-                  onChange={handleChange}
-                  min="10"
-                  max="80"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3049]"
-                  required
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              <div className="mb-6">
-                <label htmlFor="location" className="block text-gray-700 font-medium mb-2">
-                  Location <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="location"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleChange}
-                  placeholder="City, Country"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3049]"
-                  required
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              <div className="mb-6">
-                <label htmlFor="specification" className="block text-gray-700 font-medium mb-2">
-                  Player Specification <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="specification"
-                  name="specification"
-                  value={formData.specification}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3049]"
-                  required
-                  disabled={isSubmitting}
-                >
-                  <option value="batsman">Batsman</option>
-                  <option value="bowler">Bowler</option>
-                  <option value="allrounder">All-rounder</option>
-                  <option value="wicketkeeper">Wicket Keeper</option>
-                  <option value="wicketkeeper_batsman">Wicket Keeper / Batsman</option>
-                </select>
-              </div>
-
-              <div className="mb-6">
-                <label htmlFor="experience" className="block text-gray-700 font-medium mb-2">
-                  Cricket Experience <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  id="experience"
-                  name="experience"
-                  value={formData.experience}
-                  onChange={handleChange}
-                  rows={4}
-                  placeholder="Tell us about your cricket experience..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a3049]"
-                  required
-                  disabled={isSubmitting}
-                ></textarea>
-              </div>
-
-              <div className="text-center sm:text-right">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-[#1a3049] cursor-pointer hover:bg-[#2a4059] text-white font-bold py-3 px-6 sm:px-8 rounded-full shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
-                >
-                  {isSubmitting ? (
-                    <span className="flex items-center justify-center sm:justify-start">
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Submitting...
-                    </span>
-                  ) : (
-                    'Submit Application'
-                  )}
+          <div className="rise card bg-panel/95 p-6 backdrop-blur sm:p-10" style={{ ['--d' as string]: '260ms' }}>
+            {submitted ? (
+              <div className="page-enter flex flex-col items-start gap-4 py-8">
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold text-ink">
+                  <Check size={28} />
+                </span>
+                <h2 className="font-display text-4xl font-semibold uppercase">Application received</h2>
+                <p className="text-lg text-muted">
+                  Thanks for reaching out. Someone from the committee will contact you soon about your first session.
+                </p>
+                <button type="button" onClick={() => setSubmitted(false)} className="btn btn-outline mt-2">
+                  Send another application
                 </button>
               </div>
-            </form>
+            ) : (
+              <form onSubmit={handleSubmit} className="grid gap-5 sm:grid-cols-2">
+                <h2 className="font-display text-3xl font-semibold uppercase sm:col-span-2">Player application</h2>
+                <div className="sm:col-span-2">
+                  <label htmlFor="name" className="field-label">
+                    Full name <span className="text-gold">*</span>
+                  </label>
+                  <input type="text" id="name" name="name" autoComplete="name" value={formData.name} onChange={handleChange} className="field" required disabled={isSubmitting} />
+                </div>
+                <div className="sm:col-span-2">
+                  <label htmlFor="email" className="field-label">
+                    Email address <span className="text-gold">*</span>
+                  </label>
+                  <input type="email" id="email" name="email" autoComplete="email" value={formData.email} onChange={handleChange} className="field" required disabled={isSubmitting} />
+                </div>
+                <div>
+                  <label htmlFor="age" className="field-label">
+                    Age <span className="text-gold">*</span>
+                  </label>
+                  <input type="number" inputMode="numeric" id="age" name="age" value={formData.age} onChange={handleChange} min="10" max="80" className="field" required disabled={isSubmitting} />
+                </div>
+                <div>
+                  <label htmlFor="location" className="field-label">
+                    Location <span className="text-gold">*</span>
+                  </label>
+                  <input type="text" id="location" name="location" autoComplete="address-level2" value={formData.location} onChange={handleChange} placeholder="City, Country" className="field" required disabled={isSubmitting} />
+                </div>
+                <div className="sm:col-span-2">
+                  <label htmlFor="specification" className="field-label">
+                    What do you play? <span className="text-gold">*</span>
+                  </label>
+                  <select id="specification" name="specification" value={formData.specification} onChange={handleChange} className="field" required disabled={isSubmitting}>
+                    <option value="batsman">Batsman</option>
+                    <option value="bowler">Bowler</option>
+                    <option value="allrounder">All-rounder</option>
+                    <option value="wicketkeeper">Wicket Keeper</option>
+                    <option value="wicketkeeper_batsman">Wicket Keeper / Batsman</option>
+                  </select>
+                </div>
+                <div className="sm:col-span-2">
+                  <label htmlFor="experience" className="field-label">
+                    Cricket experience <span className="text-gold">*</span>
+                  </label>
+                  <textarea id="experience" name="experience" value={formData.experience} onChange={handleChange} rows={4} placeholder="Where have you played, and for how long?" className="field resize-y" required disabled={isSubmitting} />
+                </div>
+                <div className="sm:col-span-2">
+                  <button type="submit" disabled={isSubmitting} className="btn btn-gold btn-lg w-full sm:w-auto">
+                    {isSubmitting ? (
+                      <>
+                        <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        Sending...
+                      </>
+                    ) : (
+                      'Submit application'
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </>
   );
-} 
+}

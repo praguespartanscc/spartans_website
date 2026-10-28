@@ -12,7 +12,7 @@ const metadata: Metadata = {
     url: 'https://praguespartanscc.com/players',
     images: [
       {
-        url: '/images/team-photo.jpg',
+        url: '/home_carousel1.jpeg',
         width: 1200,
         height: 630,
         alt: 'Prague Spartans Cricket Club Team Players',

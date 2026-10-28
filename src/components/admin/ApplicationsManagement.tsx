@@ -266,7 +266,7 @@ export default function ApplicationsManagement() {
         <div className="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
           <button 
             onClick={forceSessionRefresh}
-            className="text-xs sm:text-sm bg-[#1a3049] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-[#2a4059] transition-colors cursor-pointer flex items-center self-start"
+            className="text-xs sm:text-sm bg-[#0e0e0e] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-[#262420] transition-colors cursor-pointer flex items-center self-start"
           >
             <svg className="h-3 w-3 sm:h-4 sm:w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -309,7 +309,7 @@ export default function ApplicationsManagement() {
             onClick={() => setFilterStatus('all')}
             className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-medium rounded-l-md ${
               filterStatus === 'all'
-                ? 'bg-[#1a3049] text-white'
+                ? 'bg-[#0e0e0e] text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             } border border-gray-300 cursor-pointer flex-shrink-0`}
           >
@@ -319,7 +319,7 @@ export default function ApplicationsManagement() {
             onClick={() => setFilterStatus('pending')}
             className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-medium ${
               filterStatus === 'pending'
-                ? 'bg-[#1a3049] text-white'
+                ? 'bg-[#0e0e0e] text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             } border-t border-b border-gray-300 cursor-pointer flex-shrink-0`}
           >
@@ -329,7 +329,7 @@ export default function ApplicationsManagement() {
             onClick={() => setFilterStatus('accepted')}
             className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-medium ${
               filterStatus === 'accepted'
-                ? 'bg-[#1a3049] text-white'
+                ? 'bg-[#0e0e0e] text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             } border-t border-b border-gray-300 cursor-pointer flex-shrink-0`}
           >
@@ -339,7 +339,7 @@ export default function ApplicationsManagement() {
             onClick={() => setFilterStatus('rejected')}
             className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-medium rounded-r-md ${
               filterStatus === 'rejected'
-                ? 'bg-[#1a3049] text-white'
+                ? 'bg-[#0e0e0e] text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             } border border-gray-300 cursor-pointer flex-shrink-0`}
           >
@@ -350,7 +350,7 @@ export default function ApplicationsManagement() {
 
       {isLoading ? (
         <div className="flex justify-center items-center h-60">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1a3049]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0e0e0e]"></div>
         </div>
       ) : error && typeof error === 'string' && (error.includes('session') || error.includes('expired') || error.includes('Authentication')) ? (
         <div className="bg-red-50 p-6 rounded-lg text-center">
@@ -364,7 +364,7 @@ export default function ApplicationsManagement() {
           <div className="flex justify-center space-x-3">
             <button
               onClick={() => window.location.reload()}
-              className="inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-[#1a3049] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1a3049]"
+              className="inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-[#0e0e0e] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0e0e0e]"
             >
               <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -373,7 +373,7 @@ export default function ApplicationsManagement() {
             </button>
             <button
               onClick={handleLoginRedirect}
-              className="inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#1a3049] hover:bg-[#1a3049]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1a3049]"
+              className="inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#0e0e0e] hover:bg-[#0e0e0e]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0e0e0e]"
             >
               Log in again
             </button>
@@ -425,7 +425,7 @@ export default function ApplicationsManagement() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button 
                         onClick={() => viewApplicationDetails(application)}
-                        className="font-medium text-[#1a3049] hover:underline cursor-pointer"
+                        className="font-medium text-[#0e0e0e] hover:underline cursor-pointer"
                       >
                         {application.name}
                       </button>
@@ -506,7 +506,7 @@ export default function ApplicationsManagement() {
                   <div className="flex justify-between items-start mb-3">
                     <button 
                       onClick={() => viewApplicationDetails(application)}
-                      className="font-medium text-[#1a3049] hover:underline cursor-pointer text-lg"
+                      className="font-medium text-[#0e0e0e] hover:underline cursor-pointer text-lg"
                     >
                       {application.name}
                     </button>
@@ -640,7 +640,7 @@ export default function ApplicationsManagement() {
               </div>
               
               <div className="mb-4 sm:mb-6">
-                <div className="text-xs sm:text-sm font-medium text-[#1a3049] mb-2 uppercase tracking-wider">Player Experience Summary</div>
+                <div className="text-xs sm:text-sm font-medium text-[#0e0e0e] mb-2 uppercase tracking-wider">Player Experience Summary</div>
                 <div className="text-gray-900 bg-gray-50 p-3 sm:p-4 rounded-md border border-gray-200 whitespace-pre-wrap shadow-inner">
                   <p className="italic text-gray-600 mb-2">&quot;</p>
                   <p className="leading-relaxed text-sm sm:text-base text-gray-800">

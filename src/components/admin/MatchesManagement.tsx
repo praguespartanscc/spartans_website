@@ -215,7 +215,7 @@ export default function MatchesManagement() {
   if (isAdmin === null) {
     return (
       <div className="flex justify-center items-center h-40">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1a3049]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#0e0e0e]"></div>
       </div>
     );
   }
@@ -233,7 +233,7 @@ export default function MatchesManagement() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-40">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1a3049]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#0e0e0e]"></div>
       </div>
     );
   }
@@ -249,7 +249,7 @@ export default function MatchesManagement() {
       
       {/* Add/Edit Match Form */}
       <form onSubmit={editMatchId ? handleUpdateMatch : handleAddMatch} className="bg-gray-50 p-4 sm:p-6 rounded-lg">
-        <h3 className="text-base sm:text-lg font-semibold text-[#1a3049] mb-3 sm:mb-4">{editMatchId ? 'Edit Match' : 'Add New Match'}</h3>
+        <h3 className="text-base sm:text-lg font-semibold text-[#0e0e0e] mb-3 sm:mb-4">{editMatchId ? 'Edit Match' : 'Add New Match'}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <div>
             <label htmlFor="team1" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Team 1</label>
@@ -258,7 +258,7 @@ export default function MatchesManagement() {
               id="team1"
               value={newMatch.team1}
               onChange={(e) => setNewMatch({ ...newMatch, team1: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
               required
             />
           </div>
@@ -269,7 +269,7 @@ export default function MatchesManagement() {
               id="team2"
               value={newMatch.team2}
               onChange={(e) => setNewMatch({ ...newMatch, team2: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
               required
             />
           </div>
@@ -280,7 +280,7 @@ export default function MatchesManagement() {
               id="date"
               value={newMatch.date}
               onChange={(e) => setNewMatch({ ...newMatch, date: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
               required
             />
           </div>
@@ -291,7 +291,7 @@ export default function MatchesManagement() {
               id="time"
               value={newMatch.time}
               onChange={(e) => setNewMatch({ ...newMatch, time: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
               required
             />
           </div>
@@ -302,7 +302,7 @@ export default function MatchesManagement() {
               id="venue"
               value={newMatch.venue}
               onChange={(e) => setNewMatch({ ...newMatch, venue: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
               required
             />
           </div>
@@ -312,7 +312,7 @@ export default function MatchesManagement() {
               id="type"
               value={newMatch.type}
               onChange={(e) => setNewMatch({ ...newMatch, type: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
             >
               <option value="friendly">Friendly</option>
               <option value="league">League</option>
@@ -325,7 +325,7 @@ export default function MatchesManagement() {
               id="result"
               value={newMatch.result}
               onChange={(e) => setNewMatch({ ...newMatch, result: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
             >
               <option value="will be played">Will be played</option>
               <option value="win">Win</option>
@@ -339,7 +339,7 @@ export default function MatchesManagement() {
               id="division"
               value={newMatch.division}
               onChange={(e) => setNewMatch({ ...newMatch, division: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
             >
               <option value="division1">Division 1</option>
               <option value="division2">Division 2</option>
@@ -353,7 +353,7 @@ export default function MatchesManagement() {
               id="url"
               value={newMatch.url}
               onChange={(e) => setNewMatch({ ...newMatch, url: e.target.value })}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1a3049] focus:ring-[#1a3049] text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e] text-sm"
               placeholder="https://example.com"
             />
           </div>
@@ -361,7 +361,7 @@ export default function MatchesManagement() {
         <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-end">
           <button
             type="submit"
-            className="bg-[#1a3049] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-[#1a3049]/90 transition-colors cursor-pointer text-xs sm:text-sm w-full sm:w-auto"
+            className="bg-[#0e0e0e] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-[#0e0e0e]/90 transition-colors cursor-pointer text-xs sm:text-sm w-full sm:w-auto"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
@@ -392,7 +392,7 @@ export default function MatchesManagement() {
         <div className="bg-white shadow-md rounded-lg overflow-hidden">
           {isSubmitting && (
             <div className="flex justify-center items-center py-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1a3049]"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#0e0e0e]"></div>
             </div>
           )}
           

@@ -18,10 +18,10 @@ export const useSupabase = (): SupabaseClient => {
 };
 
 // Create a provider for the Supabase client
-export default function SupabaseProvider({ 
-  children 
-}: { 
-  children: ReactNode 
+export default function SupabaseProvider({
+  children
+}: {
+  children: ReactNode
 }) {
   const [client, setClient] = useState<SupabaseClient | undefined>(undefined);
   const router = useRouter();
@@ -32,30 +32,25 @@ export default function SupabaseProvider({
     setClient(supabaseClient);
 
     // Set up auth state listener
-    if (supabaseClient) {
-      const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(() => {
-        // Refresh the current route when auth state changes
+    const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((event) => {
+      // Refresh only when the user actually signs in or out. Refreshing on the
+      // INITIAL_SESSION event fired on every load re-rendered each page twice and
+      // sent not-found pages into a reload loop.
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
         router.refresh();
-      });
+      }
+    });
 
-      return () => {
-        subscription.unsubscribe();
-      };
-    }
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [router]);
 
-  // Don't render children until the client is ready
-  if (!client) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1a3049]"></div>
-      </div>
-    );
-  }
-
+  // Render the page straight away (server-rendered HTML, no blank spinner);
+  // the client becomes available to context consumers once mounted.
   return (
     <SupabaseContext.Provider value={client}>
       {children}
     </SupabaseContext.Provider>
   );
-} 
+}
