@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
       // Gallery photos served from Google Drive
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
       { protocol: "https", hostname: "drive.google.com" },
+      // YouTube video thumbnails
+      { protocol: "https", hostname: "i.ytimg.com" },
+      { protocol: "https", hostname: "*.ytimg.com" },
     ],
   },
 };
