@@ -998,3 +998,12 @@ create trigger notify_application
   for each row execute function private.notify_application();
 
 commit;
+
+-- ---------------------------------------------------------------------------
+-- 10_gallery_setting.sql
+-- ---------------------------------------------------------------------------
+
+-- Prague Spartans: Google Drive folder for the photo gallery (editable in Admin → Settings).
+insert into public.site_settings (key, value)
+values ('gallery_folder', 'https://drive.google.com/drive/folders/1Kg_5pM2cjpcnjsYaaFXwHxKUOqbitC0h')
+on conflict (key) do nothing;

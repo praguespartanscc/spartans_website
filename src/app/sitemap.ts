@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { getMatches, getPlayers } from '@/lib/data';
 import { SITE_URL, SQUADS } from '@/lib/club';
+import { allAlbums, getGallery } from '@/lib/drive';
 
 export const revalidate = 3600;
 
@@ -15,7 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority,
   });
 
-  const [players, matches] = await Promise.all([getPlayers(), getMatches()]);
+  const [players, matches, gallery] = await Promise.all([getPlayers(), getMatches(), getGallery()]);
 
   return [
     page('', 'daily', 1),
@@ -26,6 +27,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     page('/contact', 'monthly', 0.8),
     page('/committee', 'monthly', 0.6),
     page('/sponsors', 'monthly', 0.6),
+    page('/live', 'daily', 0.6),
+    page('/gallery', 'weekly', 0.7),
+    ...allAlbums(gallery.sections).map((a) => page(`/gallery/${a.path.join('/')}`, 'monthly', 0.5)),
     ...SQUADS.map((s) => page(`/squads/${s.slug}`, 'weekly', 0.8)),
     ...players.map((p) => ({
       ...page(`/players/${p.slug}`, 'monthly', 0.6),

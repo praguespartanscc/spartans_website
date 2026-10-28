@@ -15,6 +15,7 @@ const navLinks = [
   { href: '/practices', label: 'Practices' },
   { href: '/about', label: 'About' },
   { href: '/committee', label: 'Committee' },
+  { href: '/gallery', label: 'Gallery' },
   { href: '/live', label: 'Live' },
 ];
 
@@ -171,13 +172,13 @@ const Header = () => {
             </span>
           </Link>
 
-          <nav aria-label="Main" className="hidden items-center gap-1 lg:flex">
+          <nav aria-label="Main" className="hidden items-center gap-0 lg:flex xl:gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 aria-current={isActive(link.href) ? 'page' : undefined}
-                className={`group relative px-3 py-2 font-display text-[19px] font-bold uppercase tracking-[0.06em] transition-colors duration-200 ${
+                className={`group relative px-2 py-2 font-display text-[17px] font-bold uppercase tracking-[0.04em] transition-colors xl:px-3 xl:text-[19px] xl:tracking-[0.06em] duration-200 ${
                   isActive(link.href) ? 'text-cream' : 'text-muted hover:text-cream'
                 }`}
               >
@@ -186,7 +187,7 @@ const Header = () => {
                   <span aria-label="(live now)" className="live-dot ml-1.5 inline-block h-2 w-2 -translate-y-0.5 rounded-full bg-crimson-hi" />
                 )}
                 <span
-                  className={`absolute inset-x-3 -bottom-0.5 h-[3px] origin-left bg-gold transition-transform duration-500 ease-[var(--ease-out-expo)] ${
+                  className={`absolute inset-x-2 -bottom-0.5 h-[3px] origin-left xl:inset-x-3 bg-gold transition-transform duration-500 ease-[var(--ease-out-expo)] ${
                     isActive(link.href) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
                   }`}
                 />

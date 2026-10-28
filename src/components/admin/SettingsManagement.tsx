@@ -9,6 +9,7 @@ const FIELDS = [
   { key: 'cricheroes_mobilizers', label: 'Mobilizers on CricHeroes', hint: '' },
   { key: 'cricheroes_strikers', label: 'Strikers on CricHeroes', hint: '' },
   { key: 'youtube_channel', label: 'YouTube channel', hint: 'Channel link or @handle. Used for the live player and Spartans TV.' },
+  { key: 'gallery_folder', label: 'Photo gallery folder (Google Drive)', hint: 'Link to the main Drive folder, shared as "Anyone with the link can view". Sub-folders become gallery sections and albums.' },
   { key: 'club_email', label: 'Club email', hint: '' },
   { key: 'instagram_url', label: 'Instagram', hint: '' },
   { key: 'facebook_url', label: 'Facebook', hint: '' },

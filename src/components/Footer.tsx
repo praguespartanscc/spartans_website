@@ -18,6 +18,8 @@ const columns = [
       { href: '/players', label: 'Team' },
       { href: '/fixtures', label: 'Fixtures & results' },
       { href: '/practices', label: 'Practices' },
+      { href: '/live', label: 'Spartans TV' },
+      { href: '/gallery', label: 'Photo gallery' },
     ],
   },
 ];

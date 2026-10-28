@@ -13,6 +13,8 @@ import StorySection from "@/components/StorySection";
 import CommitteeSection from "@/components/CommitteeSection";
 import SponsorsSection from "@/components/SponsorsSection";
 import JoinCta from "@/components/JoinCta";
+import GallerySection from "@/components/GallerySection";
+import { latestPhotos } from "@/lib/drive";
 
 export const revalidate = 60;
 
@@ -33,12 +35,13 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   const today = pragueToday();
-  const [matches, practices, committee, sponsors, live] = await Promise.all([
+  const [matches, practices, committee, sponsors, live, gallery] = await Promise.all([
     getMatches(),
     getPractices(),
     getCommittee(),
     getSponsors(),
     getLiveStatus(),
+    latestPhotos(8),
   ]);
 
   const upcoming = matches.filter((m) => m.result === 'will be played' && m.date >= today);
@@ -56,6 +59,7 @@ export default async function Home() {
       <QuoteBand />
       <PracticeSection practices={practices.filter((p) => p.date >= today).slice(0, 3)} />
       <StorySection />
+      <GallerySection photos={gallery.map(({ photo, album }) => ({ photo, href: `/gallery/${album.path.join('/')}` }))} />
       <CommitteeSection members={committee} />
       <SponsorsSection sponsors={sponsors} />
       <JoinCta />
