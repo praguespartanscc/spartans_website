@@ -179,20 +179,27 @@ const Header = () => {
           </nav>
 
           <div className="flex items-center gap-2">
-            {!loading && user && (
-              <div className="hidden items-center gap-1 lg:flex">
-                {isAdmin && (
-                  <Link href="/admin" className="px-3 py-2 text-[15px] font-medium text-muted transition-colors hover:text-cream">
-                    Admin
+            {!loading && (
+              <div className="hidden items-center gap-1 font-display text-[16px] font-bold uppercase tracking-[0.06em] lg:flex">
+                {user ? (
+                  <>
+                    <Link href="/dashboard" className="px-3 py-2 text-muted transition-colors hover:text-cream">
+                      My dashboard
+                    </Link>
+                    {isAdmin && (
+                      <Link href="/admin" className="px-3 py-2 text-muted transition-colors hover:text-cream">
+                        Admin
+                      </Link>
+                    )}
+                    <button type="button" onClick={handleSignOut} className="px-3 py-2 uppercase text-muted transition-colors hover:text-cream">
+                      Sign out
+                    </button>
+                  </>
+                ) : (
+                  <Link href="/login" className="px-3 py-2 text-muted transition-colors hover:text-cream">
+                    Sign in
                   </Link>
                 )}
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  className="px-3 py-2 text-[15px] font-medium text-muted transition-colors hover:text-cream"
-                >
-                  Sign out
-                </button>
               </div>
             )}
             <Link href="/contact" className="btn btn-gold hidden sm:inline-flex">
@@ -269,6 +276,9 @@ const Header = () => {
             {!loading &&
               (user ? (
                 <>
+                  <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="btn btn-outline btn-lg">
+                    My dashboard
+                  </Link>
                   {isAdmin && (
                     <Link href="/admin" onClick={() => setMenuOpen(false)} className="btn btn-outline btn-lg">
                       Admin dashboard

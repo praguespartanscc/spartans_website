@@ -46,7 +46,10 @@ export default function NotAdminPage() {
             )}{' '}
             If you think it should, contact a committee member.
           </p>
-          <Link href="/" className="btn btn-gold w-full">
+          <Link href="/dashboard" className="btn btn-gold w-full">
+            Go to my member dashboard
+          </Link>
+          <Link href="/" className="btn btn-outline w-full">
             Back to the home page
           </Link>
         </div>

@@ -4,11 +4,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { signUpWithEmail } from '@/services/authService';
 import AuthShell, { SuccessNote } from '@/components/AuthShell';
+import { CRICHEROES_HELP, isCricHeroesProfile } from '@/lib/auth';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [cricheroes, setCricheroes] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -16,9 +18,13 @@ export default function SignUp() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (!isCricHeroesProfile(cricheroes)) {
+      setError('Please paste your CricHeroes player profile link. It looks like https://cricheroes.com/player-profile/12345/your-name');
+      return;
+    }
     setIsLoading(true);
     try {
-      const { error } = await signUpWithEmail(email, password, fullName);
+      const { error } = await signUpWithEmail(email, password, fullName, cricheroes);
       if (error) {
         if (error.message === 'Email not confirmed') {
           setSuccess(true); // Show success message even though email needs confirmation
@@ -68,6 +74,26 @@ export default function SignUp() {
               Email address
             </label>
             <input id="email" name="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="field" />
+          </div>
+          <div>
+            <label htmlFor="cricheroes" className="field-label">
+              CricHeroes profile link
+            </label>
+            <input
+              id="cricheroes"
+              name="cricheroes"
+              type="url"
+              inputMode="url"
+              required
+              placeholder="https://cricheroes.com/player-profile/…"
+              aria-describedby="cricheroes-hint"
+              value={cricheroes}
+              onChange={(e) => setCricheroes(e.target.value)}
+              className="field"
+            />
+            <p id="cricheroes-hint" className="mt-2 text-[14px] text-faint">
+              {CRICHEROES_HELP} No account yet? Create one free in the CricHeroes app first.
+            </p>
           </div>
           <div>
             <label htmlFor="password" className="field-label">

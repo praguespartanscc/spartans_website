@@ -19,13 +19,26 @@ begin
        id uuid primary key references auth.users(id) on delete cascade,
        full_name text,
        email text,
+       cricheroes_url text,
        status text not null default ''pending'' check (status in (''pending'', ''approved'', ''rejected'')),
        player_id %s unique references public.players(id) on delete set null,
        created_at timestamptz not null default now()
      )', player_id_type);
 end $$;
 
+-- For databases where profiles was created by an earlier version of this script.
+alter table public.profiles add column if not exists cricheroes_url text;
+
 alter table public.profiles enable row level security;
+
+-- A CricHeroes player profile link, e.g. https://cricheroes.com/player-profile/123/name
+create or replace function public.is_cricheroes_profile(url text)
+returns boolean
+language sql
+immutable
+as $$
+  select coalesce(url ~* '^https?://([a-z0-9-]+\.)*cricheroes\.(com|in)/player-profile/[0-9]+', false)
+$$;
 
 -- New sign-ups get a pending profile automatically.
 create or replace function public.handle_new_user()
@@ -35,8 +48,14 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, email, full_name)
-  values (new.id, new.email, nullif(new.raw_user_meta_data ->> 'full_name', ''))
+  insert into public.profiles (id, email, full_name, cricheroes_url)
+  values (
+    new.id,
+    new.email,
+    nullif(new.raw_user_meta_data ->> 'full_name', ''),
+    case when public.is_cricheroes_profile(new.raw_user_meta_data ->> 'cricheroes_url')
+         then new.raw_user_meta_data ->> 'cricheroes_url' end
+  )
   on conflict (id) do nothing;
   return new;
 end $$;
@@ -47,8 +66,10 @@ create trigger on_auth_user_created
   for each row execute function public.handle_new_user();
 
 -- Existing accounts: admins start approved, everyone else pending.
-insert into public.profiles (id, email, full_name, status)
+insert into public.profiles (id, email, full_name, cricheroes_url, status)
 select id, email, nullif(raw_user_meta_data ->> 'full_name', ''),
+       case when public.is_cricheroes_profile(raw_user_meta_data ->> 'cricheroes_url')
+            then raw_user_meta_data ->> 'cricheroes_url' end,
        case when raw_app_meta_data ->> 'isAdmin' = 'true' then 'approved' else 'pending' end
 from auth.users
 on conflict (id) do nothing;
@@ -88,6 +109,69 @@ as $$
 $$;
 
 alter table public.players add column if not exists updated_at timestamptz;
+
+-- Members set or correct their own CricHeroes link (required before approval).
+create or replace function public.update_my_cricheroes(p_url text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_cricheroes_profile(trim(p_url)) then
+    raise exception 'Please paste your CricHeroes player profile link (https://cricheroes.com/player-profile/...)';
+  end if;
+  update public.profiles set cricheroes_url = trim(p_url) where id = auth.uid();
+  -- Keep the linked player's public profile in step.
+  update public.players pl
+  set cricheroes_url = trim(p_url)
+  from public.profiles p
+  where p.id = auth.uid() and pl.id = p.player_id;
+end $$;
+
+revoke all on function public.update_my_cricheroes(text) from public, anon;
+grant execute on function public.update_my_cricheroes(text) to authenticated;
+
+-- Members can only be approved once they have given a CricHeroes link.
+create or replace function public.check_profile_approval()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.status = 'approved' and (old.status is distinct from 'approved') and new.cricheroes_url is null
+     and coalesce((select raw_app_meta_data ->> 'isAdmin' from auth.users where id = new.id), 'false') <> 'true' then
+    raise exception 'This member has not added their CricHeroes profile yet';
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists profiles_require_cricheroes on public.profiles;
+create trigger profiles_require_cricheroes
+  before update on public.profiles
+  for each row execute function public.check_profile_approval();
+
+-- When an admin links a member to a player, give the player the member's CricHeroes link if it has none.
+create or replace function public.copy_cricheroes_to_player()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.player_id is not null and new.cricheroes_url is not null then
+    update public.players
+    set cricheroes_url = new.cricheroes_url
+    where id = new.player_id and (cricheroes_url is null or cricheroes_url = '');
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists profiles_copy_cricheroes on public.profiles;
+create trigger profiles_copy_cricheroes
+  after insert or update of player_id, cricheroes_url on public.profiles
+  for each row execute function public.copy_cricheroes_to_player();
 
 -- Members edit only the safe fields of the player profile linked to them.
 create or replace function public.update_my_player_profile(

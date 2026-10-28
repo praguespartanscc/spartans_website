@@ -122,7 +122,7 @@ export async function signInWithEmail(email: string, password: string) {
   }
 }
 
-export async function signUpWithEmail(email: string, password: string, fullName: string) {
+export async function signUpWithEmail(email: string, password: string, fullName: string, cricheroesUrl: string) {
   try {
     const supabase = getSupabaseClient();
     const { data, error } = await supabase.auth.signUp({
@@ -131,6 +131,7 @@ export async function signUpWithEmail(email: string, password: string, fullName:
       options: {
         data: {
           full_name: fullName,
+          cricheroes_url: cricheroesUrl.trim(),
         },
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
       },

@@ -92,3 +92,39 @@ export type TeamApplication = {
   status: 'pending' | 'accepted' | 'rejected' | null;
   created_at: string;
 };
+
+// Member accounts (supabase/migrations/002_members.sql)
+export type Profile = {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  cricheroes_url: string | null;
+  status: 'pending' | 'approved' | 'rejected';
+  player_id: string | null;
+  created_at: string;
+};
+
+export type Availability = {
+  id: number;
+  match_id: number;
+  user_id: string;
+  status: 'yes' | 'no' | 'maybe';
+  note: string | null;
+};
+
+export type PracticeRsvp = {
+  id: number;
+  practice_id: number;
+  user_id: string;
+  status: 'yes' | 'no';
+};
+
+export type Notice = {
+  id: number;
+  title: string;
+  body: string;
+  pinned: boolean;
+  created_at: string;
+};
+
+export type DirectoryEntry = { id: string; full_name: string; player_id: string | null };

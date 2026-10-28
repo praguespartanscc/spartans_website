@@ -35,6 +35,24 @@ export async function removeClubPhoto(supabase: SupabaseClient, url?: string | n
   if (file) await supabase.storage.from(file.bucket).remove([file.path]);
 }
 
+// Uploads an image (shrunk to JPEG, or kept as-is for logos) and returns its public URL.
+export async function uploadImage(
+  supabase: SupabaseClient,
+  file: File,
+  { bucket = 'club-photos', folder, kind = 'photo' }: { bucket?: string; folder: string; kind?: 'photo' | 'logo' },
+): Promise<string> {
+  if (!file.type.startsWith('image/')) throw new Error('Please choose an image file');
+  const keep = kind === 'logo' && /png|svg|webp/.test(file.type);
+  const blob = keep ? file : await shrink(file);
+  const ext = keep ? (file.type.includes('svg') ? 'svg' : file.type.includes('webp') ? 'webp' : 'png') : 'jpg';
+  const path = `${folder}/${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage
+    .from(bucket)
+    .upload(path, blob, { contentType: keep ? file.type : 'image/jpeg', cacheControl: '31536000' });
+  if (error) throw error;
+  return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+}
+
 type Props = {
   supabase: SupabaseClient;
   folder: string; // e.g. "players" or "committee"
@@ -51,22 +69,9 @@ export default function PhotoUpload({ supabase, folder, value, onChange, label =
   const [busy, setBusy] = useState(false);
 
   async function upload(file: File) {
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please choose an image file');
-      return;
-    }
     setBusy(true);
     try {
-      const keep = kind === 'logo' && /png|svg|webp/.test(file.type);
-      const blob = keep ? file : await shrink(file);
-      const ext = keep ? (file.type.includes('svg') ? 'svg' : file.type.includes('webp') ? 'webp' : 'png') : 'jpg';
-      const path = `${folder}/${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage
-        .from(bucket)
-        .upload(path, blob, { contentType: keep ? file.type : 'image/jpeg', cacheControl: '31536000' });
-      if (error) throw error;
-      const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-      onChange(data.publicUrl);
+      onChange(await uploadImage(supabase, file, { bucket, folder, kind }));
     } catch (err) {
       toast.error(`Upload failed: ${err instanceof Error ? err.message : 'unknown error'}`);
     } finally {

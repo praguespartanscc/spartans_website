@@ -1,9 +1,12 @@
 import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { homeFor } from '@/lib/auth';
 
 // Routes that need a signed-in admin
 const adminRoutes = ['/admin'];
+// Routes that need any signed-in account (the page itself handles pending approval)
+const memberRoutes = ['/dashboard'];
 // Routes only for signed-out visitors
 const authRoutes = ['/login'];
 
@@ -32,13 +35,17 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  if (matches(pathname, memberRoutes) && !user) {
+    return NextResponse.redirect(new URL(`/login?redirect=${encodeURIComponent(pathname)}`, req.url));
+  }
+
   if (matches(pathname, authRoutes) && user) {
-    return NextResponse.redirect(new URL('/admin', req.url));
+    return NextResponse.redirect(new URL(homeFor(user), req.url));
   }
 
   return res;
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/login', '/auth/callback'],
+  matcher: ['/admin/:path*', '/dashboard/:path*', '/login', '/auth/callback'],
 };
