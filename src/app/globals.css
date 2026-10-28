@@ -1,28 +1,36 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------
-   Prague Spartans design system ("Matchday Night")
-   Colours come from the club crest: black, gold, kit red.
+   Prague Spartans design system, following Brand Manual v1.1.
+   Primary: Spartan Gold, Warrior Red, Deep Black, Pure White.
+   Token names are kept from the previous theme so components
+   didn't need renaming: ink = black, cream = white, crimson = red.
 ---------------------------------------------------------------- */
 
 @theme inline {
-  --color-ink: #0e0e0e;
-  --color-ink-2: #151413;
-  --color-panel: #1b1a18;
-  --color-panel-2: #23211e;
-  --color-cream: #f4eee2;
-  --color-sand: #e4ddcf;
-  --color-muted: #c9c2b4;
-  --color-faint: #a9a293;
-  --color-dim: #8e887c;
-  --color-gold: #e3b54a;
-  --color-gold-hi: #f0c95e;
-  --color-gold-lo: #c99a32;
-  --color-crimson: #b3241f;
-  --color-crimson-hi: #cc2e28;
+  --color-ink: #000000; /* Deep Black */
+  --color-ink-2: #0a0a0a;
+  --color-panel: #111111;
+  --color-panel-2: #1a1a1a;
+  --color-cream: #ffffff; /* Pure White */
+  --color-sand: #e6e6e6;
+  --color-muted: #bdbdbd;
+  --color-faint: #959595;
+  --color-dim: #808080;
+  --color-gold: #cc9901; /* Spartan Gold */
+  --color-gold-hi: #daa520; /* Deep Gold */
+  --color-gold-lo: #a67c01;
+  --color-crimson: #7c0a01; /* Warrior Red */
+  --color-crimson-hi: #96140a;
+  --color-brown: #3d0c01; /* Dark Brown */
+  --color-charcoal: #333333;
 
-  --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: var(--font-oswald), "Arial Narrow", Impact, sans-serif;
+  /* Body: Open Sans. Secondary (H2/H3, buttons, labels): condensed oblique caps,
+     web stand-in for Abolition Oblique. Display (H1): varsity caps, web stand-in
+     for Varsity Team / College. */
+  --font-sans: var(--font-open-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-barlow-condensed), "Arial Narrow", Impact, sans-serif;
+  --font-varsity: var(--font-graduate), "Rockwell", Georgia, serif;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
@@ -30,7 +38,7 @@
 
 :root {
   color-scheme: dark;
-  --header-h: 72px;
+  --header-h: 64px;
 }
 
 html {
@@ -57,14 +65,20 @@ body {
 :focus-visible {
   outline: 2px solid var(--color-gold);
   outline-offset: 3px;
-  border-radius: 4px;
+}
+
+/* Graduate ships one weight; never let the browser fake a bold. */
+.font-varsity,
+.display,
+.h-section {
+  font-synthesis: none;
 }
 
 /* Thin, on-brand scrollbars on desktop */
 @media (pointer: fine) {
   * {
     scrollbar-width: thin;
-    scrollbar-color: #3a3631 transparent;
+    scrollbar-color: #333333 transparent;
   }
 }
 
@@ -78,27 +92,37 @@ body {
 
   .eyebrow {
     font-family: var(--font-display);
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 0.24em;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--color-gold);
   }
 
   .display {
-    font-family: var(--font-display);
-    font-weight: 600;
+    font-family: var(--font-varsity);
+    font-weight: 400;
     text-transform: uppercase;
     line-height: 0.95;
-    letter-spacing: 0.005em;
+    letter-spacing: 0.01em;
   }
 
   .h-section {
-    font-family: var(--font-display);
-    font-weight: 600;
+    font-family: var(--font-varsity);
+    font-weight: 400;
     text-transform: uppercase;
-    font-size: clamp(34px, 5vw, 56px);
+    font-size: clamp(34px, 5vw, 64px);
     line-height: 1;
+  }
+
+  /* Secondary headline: condensed, slanted, all caps */
+  .h-sub {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-style: italic;
+    text-transform: uppercase;
+    line-height: 1;
+    letter-spacing: 0.01em;
   }
 
   /* Buttons ----------------------------------------------------- */
@@ -110,10 +134,12 @@ body {
     gap: 10px;
     min-height: 48px;
     padding: 0 24px;
-    border-radius: 4px;
-    font-weight: 600;
-    font-size: 15px;
-    letter-spacing: 0.01em;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     white-space: nowrap;
     cursor: pointer;
     transition:
@@ -140,7 +166,7 @@ body {
   .btn-lg {
     min-height: 56px;
     padding: 0 30px;
-    font-size: 16px;
+    font-size: 20px;
   }
   .btn-gold {
     background: var(--color-gold);
@@ -148,10 +174,10 @@ body {
   }
   .btn-gold:hover {
     background: var(--color-gold-hi);
-    box-shadow: 0 10px 30px -10px rgb(227 181 74 / 0.55);
+    box-shadow: 0 10px 30px -10px rgb(204 153 1 / 0.55);
   }
   .btn-outline {
-    border: 1.5px solid rgb(244 238 226 / 0.85);
+    border: 2px solid var(--color-cream);
     color: var(--color-cream);
   }
   .btn-outline:hover {
@@ -163,7 +189,7 @@ body {
     color: var(--color-cream);
   }
   .btn-dark:hover {
-    background: #262420;
+    background: var(--color-charcoal);
   }
   .btn-ghost-dark {
     border: 2px solid var(--color-ink);
@@ -178,7 +204,12 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-weight: 600;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 800;
+    font-size: 19px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
     color: var(--color-gold);
     transition: color 0.2s ease;
   }
@@ -195,8 +226,7 @@ body {
   /* Surfaces ------------------------------------------------------ */
   .card {
     background: var(--color-panel);
-    border: 1px solid rgb(244 238 226 / 0.1);
-    border-radius: 8px;
+    border: 1px solid rgb(255 255 255 / 0.12);
   }
   .card-hover {
     transition:
@@ -207,7 +237,7 @@ body {
   @media (hover: hover) {
     .card-hover:hover {
       transform: translateY(-4px);
-      border-color: rgb(227 181 74 / 0.45);
+      border-color: var(--color-gold);
       background: var(--color-panel-2);
     }
   }
@@ -218,10 +248,11 @@ body {
     gap: 6px;
     min-height: 28px;
     padding: 0 12px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     white-space: nowrap;
   }
@@ -238,9 +269,8 @@ body {
     width: 100%;
     min-height: 50px;
     padding: 12px 16px;
-    border-radius: 6px;
     background: var(--color-ink-2);
-    border: 1px solid rgb(244 238 226 / 0.16);
+    border: 1px solid rgb(255 255 255 / 0.22);
     color: var(--color-cream);
     font-size: 16px; /* 16px keeps iOS from zooming on focus */
     transition:
@@ -252,25 +282,24 @@ body {
     color: var(--color-dim);
   }
   .field:hover {
-    border-color: rgb(244 238 226 / 0.3);
+    border-color: rgb(255 255 255 / 0.4);
   }
   .field:focus {
     outline: none;
     border-color: var(--color-gold);
-    box-shadow: 0 0 0 3px rgb(227 181 74 / 0.22);
-    background: #121110;
+    box-shadow: 0 0 0 3px rgb(204 153 1 / 0.25);
+    background: #0d0d0d;
   }
   select.field {
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23c9c2b4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23bdbdbd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 14px center;
     padding-right: 44px;
   }
   .alert-error {
-    border-radius: 6px;
-    border: 1px solid rgb(204 46 40 / 0.5);
-    background: rgb(179 36 31 / 0.14);
+    border: 1px solid rgb(204 46 40 / 0.6);
+    background: rgb(124 10 1 / 0.3);
     color: #ffb4ae;
     padding: 12px 16px;
     font-size: 14px;
@@ -397,13 +426,12 @@ body {
   position: relative;
   overflow: hidden;
   background: var(--color-panel);
-  border-radius: 6px;
 }
 .skeleton::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, rgb(244 238 226 / 0.06), transparent);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.06), transparent);
   animation: ps-shimmer 1.4s ease-in-out infinite;
 }
 

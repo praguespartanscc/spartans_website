@@ -29,7 +29,7 @@ function Leader({ player, label, primary }: { player: Player; label: string; pri
       <span className={`absolute inset-x-0 top-0 h-1 ${primary ? 'bg-gold' : 'bg-crimson'}`} />
       <div className="flex items-center gap-5">
         <span
-          className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-full font-display text-3xl font-semibold ${
+          className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-full font-display text-3xl font-extrabold ${
             primary ? 'bg-gold text-ink' : 'bg-crimson text-white'
           }`}
         >
@@ -37,7 +37,7 @@ function Leader({ player, label, primary }: { player: Player; label: string; pri
         </span>
         <div className="min-w-0">
           <p className="eyebrow mb-1">{label}</p>
-          <p className="font-display text-[28px] font-semibold uppercase leading-tight sm:text-[34px]">{player.name}</p>
+          <p className="font-display text-[28px] font-extrabold uppercase leading-tight sm:text-[34px]">{player.name}</p>
           <p className="text-muted">{titleCase(player.player_type)}</p>
         </div>
       </div>
@@ -109,7 +109,7 @@ export default function PlayersPage() {
                   type="button"
                   aria-pressed={active}
                   onClick={() => selectTeam(team)}
-                  className={`min-h-12 rounded-full px-6 font-display text-[17px] font-medium uppercase tracking-[0.06em] transition-[background-color,color,border-color,transform] duration-300 active:scale-95 ${
+                  className={`min-h-12 px-6 font-display text-[17px] font-medium uppercase tracking-[0.06em] transition-[background-color,color,border-color,transform] duration-300 active:scale-95 ${
                     active
                       ? 'bg-gold text-ink'
                       : 'border border-cream/25 text-cream hover:border-cream/60'
@@ -149,14 +149,14 @@ export default function PlayersPage() {
 
               {regularPlayers.length > 0 && (
                 <>
-                  <h2 className="mb-5 font-display text-2xl font-semibold uppercase">
+                  <h2 className="mb-5 font-display text-2xl font-extrabold uppercase">
                     {selectedTeam} players <span className="text-dim">· {regularPlayers.length}</span>
                   </h2>
                   <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {regularPlayers.map((player, i) => (
                       <Reveal as="li" key={player.id} delay={Math.min(i, 8) * 40}>
                         <div className="card card-hover flex items-center gap-4 p-4">
-                          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-panel-2 font-display text-lg font-semibold text-gold ring-1 ring-cream/10">
+                          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-panel-2 font-display text-lg font-extrabold text-gold ring-1 ring-cream/10">
                             {initials(player.name)}
                           </span>
                           <div className="min-w-0">

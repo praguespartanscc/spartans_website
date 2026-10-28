@@ -9,14 +9,15 @@ type JoinCtaProps = {
 
 // Gold "join us" band that closes most pages.
 export default function JoinCta({
-  title = 'Pick up a bat with us',
+  title = 'Join the Spartan family',
   text = 'All backgrounds, every skill level. Regular training, league and tournament cricket, and social events through the year.',
 }: JoinCtaProps) {
   return (
     <section className="bg-gold text-ink">
-      <Reveal className="container-x flex flex-wrap items-center justify-between gap-8 py-16 sm:py-20">
-        <div className="max-w-2xl">
-          <h2 className="display text-[clamp(40px,6vw,68px)] font-bold">{title}</h2>
+      <Reveal className="container-x flex flex-wrap items-end justify-between gap-8 py-16 sm:py-24">
+        <div className="max-w-3xl">
+          <p className="h-sub text-[20px] tracking-[0.1em]">Every level welcome</p>
+          <h2 className="display mt-3 text-[clamp(40px,7vw,92px)]">{title}</h2>
           <p className="mt-4 text-lg leading-relaxed">{text}</p>
         </div>
         <div className="flex flex-wrap gap-3">

@@ -4,14 +4,14 @@ import { ArrowRight } from '@/components/ui/Icons';
 
 export default function NotFound() {
   return (
-    <section className="relative isolate flex min-h-[calc(100svh-72px)] items-center overflow-hidden">
+    <section className="relative isolate flex min-h-[calc(100svh-64px)] items-center lg:min-h-[calc(100svh-152px)] overflow-hidden">
       <Image src="/home_carouse2.jpeg" alt="" fill priority sizes="100vw" className="kenburns -z-20 object-cover" />
       <div className="absolute inset-0 -z-10 bg-ink/85" />
       <div className="container-x py-20">
         <p className="eyebrow rise mb-4" style={{ ['--d' as string]: '60ms' }}>
           Error 404
         </p>
-        <h1 className="display rise text-[clamp(56px,11vw,140px)] font-bold" style={{ ['--d' as string]: '140ms' }}>
+        <h1 className="display rise text-[clamp(56px,11vw,140px)]" style={{ ['--d' as string]: '140ms' }}>
           Out of <span className="text-gold">bounds</span>
         </h1>
         <p className="rise mt-6 max-w-lg text-lg text-sand" style={{ ['--d' as string]: '240ms' }}>

@@ -1,27 +1,39 @@
 import type { Metadata } from "next";
 import type { Viewport } from "next";
-import { Inter, Oswald } from "next/font/google";
+import { Barlow_Condensed, Graduate, Open_Sans } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { SupabaseProviderWrapper } from "@/components/ClientProviders";
 import { Analytics } from "@vercel/analytics/next";
 
-const inter = Inter({
-  variable: "--font-inter",
+// Brand Manual v1.1 type system, using open-licence web equivalents:
+// Graduate for Varsity Team / College (display), Barlow Condensed italic
+// for Abolition Oblique (secondary), and Open Sans for body copy.
+const openSans = Open_Sans({
+  variable: "--font-open-sans",
   subsets: ["latin", "latin-ext"],
   display: "swap",
 });
 
-const oswald = Oswald({
-  variable: "--font-oswald",
+const graduate = Graduate({
+  variable: "--font-graduate",
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+});
+
+// Italic only: the secondary typeface is always oblique.
+const barlowCondensed = Barlow_Condensed({
+  variable: "--font-barlow-condensed",
   subsets: ["latin", "latin-ext"],
-  weight: ["500", "600", "700"],
+  weight: ["600", "700", "800"],
+  style: ["italic"],
   display: "swap",
 });
 
 export const viewport: Viewport = {
-  themeColor: "#0e0e0e",
+  themeColor: "#000000",
   colorScheme: "dark",
   width: "device-width",
   initialScale: 1,
@@ -87,7 +99,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${oswald.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${openSans.variable} ${graduate.variable} ${barlowCondensed.variable}`} suppressHydrationWarning>
       <head>
         {/* Lets CSS know scripts run, so scroll-reveal content is only hidden when it can be revealed. */}
         <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />

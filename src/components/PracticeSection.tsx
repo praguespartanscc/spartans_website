@@ -15,12 +15,12 @@ export function PracticeRow({ practice }: { practice: Practice }) {
   const d = dateParts(practice.date);
   return (
     <div className="card card-hover flex flex-wrap items-center gap-x-6 gap-y-3 p-5">
-      <div className="w-14 shrink-0 text-center font-display uppercase leading-none">
-        <div className="text-[30px] font-semibold">{d.day}</div>
-        <div className="mt-1 text-[11px] tracking-[0.16em] text-faint">{d.month}</div>
+      <div className="w-14 shrink-0 text-center uppercase leading-none">
+        <div className="font-varsity text-[30px] text-gold">{d.day}</div>
+        <div className="mt-1.5 font-display text-[12px] font-extrabold tracking-[0.16em] text-faint">{d.month}</div>
       </div>
       <div className="min-w-0 flex-1">
-        <p className="font-semibold">
+        <p className="h-sub text-[22px]">
           {practice.title || `${titleCase(practice.type) || 'Regular'} practice`}
         </p>
         <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[14px] text-muted">
@@ -74,7 +74,9 @@ const PracticeSection = () => {
           <Reveal>
             <p className="eyebrow mb-3">Train with us</p>
             <h2 id="practice-heading" className="h-section">
-              Practice sessions
+              Where champions
+              <br />
+              are built
             </h2>
             <p className="mt-4 max-w-lg text-[17px] leading-relaxed text-muted">
               Regular nets for every level, plus focused batting, bowling and fielding work. Just turn up, or drop us a line first.
@@ -110,10 +112,10 @@ const PracticeSection = () => {
           </Reveal>
         </div>
 
-        <Reveal delay={120} className="zoom-frame relative aspect-[4/5] overflow-hidden rounded-lg sm:aspect-[4/3] lg:aspect-[4/5]">
+        <Reveal delay={120} className="zoom-frame relative aspect-[4/5] overflow-hidden sm:aspect-[4/3] lg:aspect-[4/5]">
           <Image
-            src="/home_carousel.jpeg"
-            alt="Spartans players holding a trophy after an indoor tournament"
+            src="/story2.jpeg"
+            alt="Spartans players in whites with a trophy after an indoor tournament"
             fill
             sizes="(min-width: 1024px) 50vw, 100vw"
             className="object-cover"

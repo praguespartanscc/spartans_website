@@ -1,4 +1,4 @@
-const WORDS = ['Vanguards', 'Mobilizers', 'Strikers', 'Spirit of cricket', 'Prague since 2019'];
+const WORDS = ['Courage', 'Discipline', 'Unity', 'Respect', 'Excellence', 'Prague since 2019'];
 
 function Run() {
   return (
@@ -18,7 +18,7 @@ export default function Ticker() {
   return (
     <div
       aria-hidden="true"
-      className="ticker overflow-hidden border-y border-cream/10 bg-ink py-4 font-display text-lg uppercase tracking-[0.14em] text-dim sm:py-5 sm:text-2xl"
+      className="ticker overflow-hidden border-y border-cream/10 bg-ink py-4 font-display text-lg font-bold uppercase tracking-[0.14em] text-dim sm:py-5 sm:text-2xl"
     >
       <div className="ticker-track">
         <Run />

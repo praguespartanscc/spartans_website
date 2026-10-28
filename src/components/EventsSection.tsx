@@ -14,13 +14,13 @@ const EventsSection = () => {
   const shown = matches.slice(0, 4);
 
   return (
-    <section className="bg-ink-2 py-20 sm:py-28" aria-labelledby="fixtures-heading">
+    <section className="bg-brown py-20 sm:py-28" aria-labelledby="fixtures-heading">
       <div className="container-x">
         <SectionHeading
           id="fixtures-heading"
           eyebrow="On the calendar"
           title="Upcoming matches"
-          intro="Come and support the Spartans. Every fixture across our three squads."
+          intro="Today we fight. Today we rise. Come and support the Spartans across all three squads."
           action={
             <Link href="/fixtures" className="link-arrow">
               All fixtures & results <ArrowRight size={18} />
@@ -44,7 +44,7 @@ const EventsSection = () => {
             The new fixture list is on its way. Follow us on Instagram for the latest.
           </EmptyState>
         ) : (
-          <div className="border-t border-cream/12">
+          <div className="border-t border-cream/20">
             {shown.map((match, i) => (
               <Reveal key={match.id} delay={i * 70}>
                 <MatchRow match={match} />

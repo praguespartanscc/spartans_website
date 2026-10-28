@@ -57,8 +57,8 @@ export default function ContactPage() {
       <Toaster
         position="top-center"
         toastOptions={{
-          style: { background: '#1b1a18', color: '#f4eee2', border: '1px solid rgba(244,238,226,0.15)' },
-          success: { iconTheme: { primary: '#e3b54a', secondary: '#0e0e0e' } },
+          style: { background: '#111111', color: '#ffffff', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 0 },
+          success: { iconTheme: { primary: '#CC9901', secondary: '#000000' } },
         }}
       />
 
@@ -107,7 +107,7 @@ export default function ContactPage() {
                 <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold text-ink">
                   <Check size={28} />
                 </span>
-                <h2 className="font-display text-4xl font-semibold uppercase">Application received</h2>
+                <h2 className="font-display text-4xl font-extrabold uppercase">Application received</h2>
                 <p className="text-lg text-muted">
                   Thanks for reaching out. Someone from the committee will contact you soon about your first session.
                 </p>
@@ -117,7 +117,7 @@ export default function ContactPage() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="grid gap-5 sm:grid-cols-2">
-                <h2 className="font-display text-3xl font-semibold uppercase sm:col-span-2">Player application</h2>
+                <h2 className="font-display text-3xl font-extrabold uppercase sm:col-span-2">Player application</h2>
                 <div className="sm:col-span-2">
                   <label htmlFor="name" className="field-label">
                     Full name <span className="text-gold">*</span>

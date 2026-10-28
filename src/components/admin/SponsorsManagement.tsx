@@ -356,7 +356,7 @@ export default function SponsorsManagement() {
     // Still checking admin status
     return (
       <div className="flex justify-center items-center h-40">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#0e0e0e]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#000000]"></div>
       </div>
     );
   }
@@ -375,7 +375,7 @@ export default function SponsorsManagement() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-40">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#0e0e0e]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#000000]"></div>
       </div>
     );
   }
@@ -386,7 +386,7 @@ export default function SponsorsManagement() {
       
       {/* Add/Edit Sponsor Form */}
       <form onSubmit={handleAddSponsor} className="bg-gray-50 p-6 rounded-lg">
-        <h3 className="text-lg font-semibold text-[#0e0e0e] mb-4">
+        <h3 className="text-lg font-semibold text-[#000000] mb-4">
           {editSponsorId ? 'Edit Sponsor' : 'Add New Sponsor'}
         </h3>
         
@@ -398,7 +398,7 @@ export default function SponsorsManagement() {
               id="name"
               value={newSponsor.name}
               onChange={(e) => setNewSponsor({ ...newSponsor, name: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e]"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#000000] focus:ring-[#000000]"
               required
             />
           </div>
@@ -410,7 +410,7 @@ export default function SponsorsManagement() {
               id="website"
               value={newSponsor.website_url}
               onChange={(e) => setNewSponsor({ ...newSponsor, website_url: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e]"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#000000] focus:ring-[#000000]"
               required
             />
           </div>
@@ -422,7 +422,7 @@ export default function SponsorsManagement() {
               value={newSponsor.description}
               onChange={(e) => setNewSponsor({ ...newSponsor, description: e.target.value })}
               rows={3}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0e0e0e] focus:ring-[#0e0e0e]"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#000000] focus:ring-[#000000]"
               required
             />
           </div>
@@ -475,7 +475,7 @@ export default function SponsorsManagement() {
           )}
           <button
             type="submit"
-            className="bg-[#0e0e0e] text-white px-4 py-2 rounded-md hover:bg-[#0e0e0e]/90 transition-colors cursor-pointer"
+            className="bg-[#000000] text-white px-4 py-2 rounded-md hover:bg-[#000000]/90 transition-colors cursor-pointer"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
@@ -499,7 +499,7 @@ export default function SponsorsManagement() {
         <div className="bg-white shadow-md rounded-lg overflow-hidden">
           {isSubmitting && (
             <div className="flex justify-center items-center py-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#0e0e0e]"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#000000]"></div>
             </div>
           )}
           <div className="overflow-x-auto">

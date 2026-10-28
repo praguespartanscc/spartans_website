@@ -80,7 +80,7 @@ export default function CommitteeSection() {
             {sortByPosition(committeeMembers).map((member, i) => (
               <Reveal key={member.id} delay={i * 60}>
                 <div className="card card-hover flex items-center gap-4 p-5">
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold font-display text-lg font-semibold text-ink">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold font-display text-lg font-extrabold text-ink">
                     {initials(member.name)}
                   </span>
                   <div className="min-w-0">

@@ -20,11 +20,11 @@ export default function NextMatchBar() {
     <section aria-label="Next match" className="bg-crimson text-white">
       <div className="container-x flex flex-wrap items-center justify-between gap-x-10 gap-y-4 py-5 sm:py-6">
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-5 gap-y-1">
-          <span className="flex items-center gap-2 font-display text-[13px] font-semibold uppercase tracking-[0.2em]">
+          <span className="flex items-center gap-2 font-display text-[16px] font-extrabold uppercase tracking-[0.14em]">
             <span className="live-dot h-2 w-2 rounded-full bg-white" />
             Next match
           </span>
-          <span className="font-display text-[22px] font-semibold uppercase leading-tight sm:text-[28px]">
+          <span className="h-sub text-[26px] leading-tight sm:text-[36px]">
             {next.team1} vs {next.team2}
           </span>
         </div>

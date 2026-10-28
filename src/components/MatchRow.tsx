@@ -12,8 +12,8 @@ export function ResultChip({ result }: { result: string }) {
       return <span className="chip border border-cream/30 text-sand">Draw</span>;
     default:
       return (
-        <span className="chip bg-gold/15 text-gold-hi">
-          <span className="live-dot h-1.5 w-1.5 rounded-full bg-gold-hi" />
+        <span className="chip bg-gold text-ink">
+          <span className="live-dot h-1.5 w-1.5 rounded-full bg-ink" />
           Upcoming
         </span>
       );
@@ -27,14 +27,14 @@ export default function MatchRow({ match }: { match: Match }) {
 
   const content = (
     <div className="group grid grid-cols-[64px_1fr] items-center gap-x-5 gap-y-3 border-b border-cream/12 py-5 sm:grid-cols-[96px_1fr_auto] sm:gap-x-8 sm:py-6">
-      <div className="font-display uppercase leading-none">
-        <div className="text-[34px] font-semibold sm:text-[40px]">{d.day}</div>
-        <div className="mt-1 text-[12px] tracking-[0.16em] text-faint">
+      <div className="uppercase leading-none">
+        <div className={`font-varsity text-[34px] sm:text-[44px] ${match.result === 'will be played' ? 'text-gold-hi' : ''}`}>{d.day}</div>
+        <div className="mt-1.5 font-display text-[13px] font-extrabold tracking-[0.16em] text-faint">
           {d.month} · {d.weekday}
         </div>
       </div>
       <div className="min-w-0">
-        <div className="font-display text-[20px] font-semibold uppercase leading-tight sm:text-[26px]">
+        <div className="h-sub text-[22px] leading-tight sm:text-[30px]">
           {match.team1} <span className="text-dim">vs</span> {match.team2}
         </div>
         <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[14px] text-muted sm:text-[15px]">
@@ -65,7 +65,7 @@ export default function MatchRow({ match }: { match: Match }) {
         href={match.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="block rounded-sm transition-colors duration-300 hover:bg-cream/[0.03]"
+        className="block transition-colors duration-300 hover:bg-cream/[0.04]"
       >
         {content}
         <span className="sr-only">(match details open in a new tab)</span>

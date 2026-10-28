@@ -35,7 +35,7 @@ const SponsorsSection = () => {
       <div className="container-x">
         <Reveal className="mb-10 text-center">
           <p className="eyebrow mb-3">Partners</p>
-          <h2 id="sponsors-heading" className="font-display text-[clamp(30px,4vw,40px)] font-semibold uppercase">
+          <h2 id="sponsors-heading" className="font-display text-[clamp(30px,4vw,40px)] font-extrabold uppercase">
             Our sponsors
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-muted">The partners who keep the Spartans playing.</p>

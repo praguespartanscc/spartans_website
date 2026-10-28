@@ -13,7 +13,7 @@ type PageHeroProps = {
 // Shared top-of-page banner for every inner page, so each one opens the same way.
 export default function PageHero({ eyebrow, title, intro, image, imagePosition = 'center 35%', children }: PageHeroProps) {
   return (
-    <section className="relative isolate overflow-hidden border-b border-cream/10">
+    <section className="relative isolate overflow-hidden border-b border-cream/12">
       {image && (
         <>
           <Image
@@ -25,7 +25,7 @@ export default function PageHero({ eyebrow, title, intro, image, imagePosition =
             className="kenburns -z-20 object-cover"
             style={{ objectPosition: imagePosition }}
           />
-          <div className="absolute inset-0 -z-10 bg-ink/75" />
+          <div className="absolute inset-0 -z-10 bg-ink/80" />
         </>
       )}
       <div className="container-x pb-14 pt-20 sm:pb-20 sm:pt-28">

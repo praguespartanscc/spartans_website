@@ -75,7 +75,7 @@ export default function AboutPage() {
               environment to enjoy the game.
             </p>
           </Reveal>
-          <Reveal delay={120} className="zoom-frame relative aspect-[4/3] overflow-hidden rounded-lg">
+          <Reveal delay={120} className="zoom-frame relative aspect-[4/3] overflow-hidden">
             <Image src="/story1.jpeg" alt="Prague Spartans members together in Prague" fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover object-[center_60%]" />
           </Reveal>
         </div>
@@ -85,7 +85,7 @@ export default function AboutPage() {
 
       <section className="bg-ink-2 py-20 sm:py-28">
         <div className="container-x grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-          <Reveal delay={120} className="zoom-frame relative order-2 aspect-[4/3] overflow-hidden rounded-lg lg:order-1">
+          <Reveal delay={120} className="zoom-frame relative order-2 aspect-[4/3] overflow-hidden lg:order-1">
             <Image src="/home_carouse2.jpeg" alt="Prague Spartans award trophies" fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
           </Reveal>
           <Reveal className="order-1 lg:order-2">
@@ -117,7 +117,7 @@ export default function AboutPage() {
                   <span className="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-gold text-ink">
                     <offer.icon size={22} />
                   </span>
-                  <h3 className="font-display text-2xl font-semibold uppercase">{offer.title}</h3>
+                  <h3 className="font-display text-2xl font-extrabold uppercase">{offer.title}</h3>
                   <p className="mt-3 leading-relaxed text-muted">{offer.text}</p>
                 </div>
               </Reveal>

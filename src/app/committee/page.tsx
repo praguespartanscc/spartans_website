@@ -32,7 +32,7 @@ function MemberCard({ member, lead }: { member: CommitteeMember; lead?: boolean 
       <span className={`absolute inset-x-0 top-0 h-1 ${lead ? 'bg-gold' : 'bg-cream/15'}`} />
       <div className="flex items-center gap-4">
         <span
-          className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full font-display text-xl font-semibold ${
+          className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full font-display text-xl font-extrabold ${
             lead ? 'bg-gold text-ink' : 'bg-panel-2 text-gold ring-1 ring-cream/10'
           }`}
         >
@@ -40,7 +40,7 @@ function MemberCard({ member, lead }: { member: CommitteeMember; lead?: boolean 
         </span>
         <div className="min-w-0">
           <p className="eyebrow">{member.position}</p>
-          <p className="mt-1 font-display text-[24px] font-semibold uppercase leading-tight">{member.name}</p>
+          <p className="mt-1 font-display text-[24px] font-extrabold uppercase leading-tight">{member.name}</p>
         </div>
       </div>
       <p className="mt-4 text-[15px] leading-relaxed text-muted">

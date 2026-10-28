@@ -38,9 +38,14 @@ const HeroSection = () => {
   const goTo = useCallback((i: number) => setIndex(i), []);
 
   return (
+    <>
+    {/* On phones the header shows the name as text, so the full logo sits here on solid black (never over the photo). */}
+    <div className="flex justify-center border-b border-cream/12 bg-ink py-6 lg:hidden">
+      <Image src="/brand/spartans-logo.png" alt="Prague Spartans Cricket Club logo" width={99} height={120} priority className="h-[120px] w-auto" />
+    </div>
     <section
       aria-label="Welcome"
-      className="relative isolate flex min-h-[calc(100svh-72px)] items-end overflow-hidden"
+      className="relative isolate flex min-h-[78svh] items-end overflow-hidden lg:min-h-[calc(100svh-152px)]"
     >
       {slides.map((slide, i) => (
         <div
@@ -63,15 +68,16 @@ const HeroSection = () => {
           />
         </div>
       ))}
-      {/* Readability scrim: darker at the bottom where the copy sits */}
-      <div className="absolute inset-0 -z-10 bg-ink/45" />
-      <div className="absolute inset-x-0 bottom-0 -z-10 h-3/4 bg-gradient-to-t from-ink via-ink/70 to-transparent" />
+      {/* Brand rule: text over photos needs ~80% black behind it. */}
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-ink/40 via-ink/80 to-ink lg:hidden" />
+      <div className="absolute inset-0 -z-10 hidden bg-gradient-to-r from-ink/90 via-ink/80 to-ink/30 lg:block" />
+      <div className="absolute inset-x-0 bottom-0 -z-10 hidden h-1/3 bg-gradient-to-t from-ink to-transparent lg:block" />
 
       <div className="container-x pb-12 pt-32 sm:pb-16">
         <p className="eyebrow rise mb-4" style={{ ['--d' as string]: '100ms' }}>
           Est. 2019 · Prague, Czech Republic
         </p>
-        <h1 className="display text-[clamp(64px,14vw,196px)] font-bold leading-[0.84] tracking-[-0.01em]">
+        <h1 className="display text-[clamp(56px,11vw,160px)] leading-[0.92]">
           <span className="rise block" style={{ ['--d' as string]: '180ms' }}>
             Prague
           </span>
@@ -82,12 +88,15 @@ const HeroSection = () => {
 
         <div className="mt-8 flex flex-wrap items-end justify-between gap-x-12 gap-y-8">
           <div className="max-w-xl">
-            <p className="rise text-lg leading-relaxed text-sand sm:text-[21px]" style={{ ['--d' as string]: '400ms' }}>
-              Join us in bringing the spirit of cricket to the heart of Prague.
+            <p className="rise h-sub text-[clamp(26px,3.4vw,46px)]" style={{ ['--d' as string]: '380ms' }}>
+              Spartan discipline, Prague heart.
+            </p>
+            <p className="rise mt-4 text-lg leading-relaxed text-sand" style={{ ['--d' as string]: '440ms' }}>
+              Competing fearlessly while growing cricket in Prague. Three squads, one club, every level welcome.
             </p>
             <div className="rise mt-7 flex flex-wrap gap-3" style={{ ['--d' as string]: '500ms' }}>
               <Link href="/contact" className="btn btn-gold btn-lg">
-                Join our club
+                Join the Spartan family
                 <ArrowRight size={18} className="btn-arrow" />
               </Link>
               <Link href="/fixtures" className="btn btn-outline btn-lg">
@@ -96,11 +105,11 @@ const HeroSection = () => {
             </div>
           </div>
 
-          <dl className="rise flex gap-8 font-display uppercase sm:gap-12" style={{ ['--d' as string]: '620ms' }}>
-            {stats.map((stat) => (
-              <div key={stat.label} className="flex flex-col-reverse">
-                <dt className="mt-1.5 text-[12px] tracking-[0.18em] text-muted">{stat.label}</dt>
-                <dd className="text-[34px] font-semibold leading-none sm:text-[44px]">{stat.value}</dd>
+          <dl className="rise flex uppercase" style={{ ['--d' as string]: '620ms' }}>
+            {stats.map((stat, i) => (
+              <div key={stat.label} className={`flex flex-col-reverse border-cream/15 ${i ? 'border-l pl-6 sm:pl-8' : ''} ${i < stats.length - 1 ? 'pr-6 sm:pr-8' : ''}`}>
+                <dt className="mt-2 font-display text-[13px] font-extrabold tracking-[0.2em] text-muted">{stat.label}</dt>
+                <dd className="font-varsity text-[30px] leading-none sm:text-[44px]">{stat.value}</dd>
               </div>
             ))}
           </dl>
@@ -117,7 +126,7 @@ const HeroSection = () => {
               aria-current={i === index}
               className="group flex h-11 w-14 items-center sm:w-20"
             >
-              <span className="relative h-[3px] w-full overflow-hidden rounded-full bg-cream/25">
+              <span className="relative h-[3px] w-full overflow-hidden bg-cream/25">
                 {i === index && (
                   <span
                     key={`progress-${index}-${paused}`}
@@ -132,13 +141,14 @@ const HeroSection = () => {
           <button
             type="button"
             onClick={() => setPaused((p) => !p)}
-            className="ml-3 text-[13px] font-medium uppercase tracking-[0.14em] text-muted transition-colors hover:text-cream"
+            className="ml-3 font-display text-[15px] font-bold uppercase tracking-[0.14em] text-muted transition-colors hover:text-cream"
           >
             {paused ? 'Play' : 'Pause'}
           </button>
         </div>
       </div>
     </section>
+    </>
   );
 };
 

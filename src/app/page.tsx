@@ -1,7 +1,8 @@
 import { Metadata } from "next";
 import HeroSection from "@/components/HeroSection";
 import NextMatchBar from "@/components/NextMatchBar";
-import Ticker from "@/components/ui/Ticker";
+import ValuesBand from "@/components/ValuesBand";
+import QuoteBand from "@/components/QuoteBand";
 import SquadsSection from "@/components/SquadsSection";
 import EventsSection from "@/components/EventsSection";
 import PracticeSection from "@/components/PracticeSection";
@@ -38,9 +39,10 @@ export default function Home() {
     <>
       <HeroSection />
       <NextMatchBar />
-      <Ticker />
+      <ValuesBand />
       <SquadsSection />
       <EventsSection />
+      <QuoteBand />
       <PracticeSection />
       <StorySection />
       <CommitteeSection />

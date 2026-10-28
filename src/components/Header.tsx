@@ -51,14 +51,14 @@ const Header = () => {
     getUser();
   }, []);
 
-  // Solid, compact bar once the page scrolls. rAF-throttled and passive so it never blocks scrolling.
+  // Compact bar once the page scrolls. rAF-throttled and passive so it never blocks scrolling.
   useEffect(() => {
     let frame = 0;
     const onScroll = () => {
       if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
-        setScrolled(window.scrollY > 12);
+        setScrolled(window.scrollY > 24);
       });
     };
     onScroll();
@@ -103,31 +103,37 @@ const Header = () => {
 
   const isActive = (href: string) => (href === '/' ? pathname === '/' : pathname?.startsWith(href));
 
+  // Desktop opens with the full 120px club logo (the brand manual's minimum size).
+  // Once scrolled, the bar condenses and shows the name as text instead of shrinking the logo.
+  const showLogo = !scrolled && !menuOpen;
+
   return (
     <>
+      {/* Reserves the header's resting height so the fixed bar never overlaps content */}
+      <div aria-hidden="true" className="h-16 lg:h-[152px]" />
       <header
-        className={`sticky top-0 z-[100] border-b transition-[background-color,border-color,backdrop-filter] duration-500 ${
-          scrolled || menuOpen
-            ? 'border-cream/10 bg-ink/85 backdrop-blur-xl backdrop-saturate-150'
-            : 'border-transparent bg-ink'
+        className={`fixed inset-x-0 top-0 z-[100] border-b bg-ink transition-[height,border-color] duration-500 ease-[var(--ease-out-expo)] ${
+          scrolled || menuOpen ? 'h-16 border-cream/12' : 'h-16 border-cream/12 lg:h-[152px]'
         }`}
       >
-        <div
-          className={`container-x flex items-center justify-between gap-6 transition-[height] duration-500 ease-[var(--ease-out-expo)] ${
-            scrolled ? 'h-[64px]' : 'h-[72px]'
-          }`}
-        >
-          <Link href="/" className="group flex items-center gap-3" aria-label="Prague Spartans Cricket Club, home">
+        <div className="container-x relative flex h-full items-center justify-between gap-6">
+          <Link href="/" className="group relative flex h-full items-center" aria-label="Prague Spartans Cricket Club, home">
             <Image
-              src="/crest.png"
+              src="/brand/spartans-logo.png"
               alt=""
-              width={36}
-              height={44}
+              width={99}
+              height={120}
               priority
-              className="h-11 w-9 object-contain transition-transform duration-500 ease-[var(--ease-out-expo)] group-hover:-rotate-3 group-hover:scale-105"
+              className={`absolute left-0 top-1/2 hidden h-[120px] w-auto max-w-none -translate-y-1/2 transition-opacity duration-300 lg:block ${
+                showLogo ? 'opacity-100' : 'pointer-events-none opacity-0'
+              }`}
             />
-            <span className="font-display text-[18px] font-semibold uppercase leading-none tracking-[0.06em] sm:text-[20px]">
-              Prague Spartans
+            <span
+              className={`font-varsity text-[19px] uppercase leading-none tracking-[0.02em] transition-opacity duration-300 sm:text-[22px] ${
+                showLogo ? 'lg:opacity-0' : 'opacity-100'
+              }`}
+            >
+              Prague <span className="text-gold">Spartans</span>
             </span>
           </Link>
 
@@ -137,13 +143,13 @@ const Header = () => {
                 key={link.href}
                 href={link.href}
                 aria-current={isActive(link.href) ? 'page' : undefined}
-                className={`group relative px-3 py-2 text-[15px] font-medium transition-colors duration-200 ${
+                className={`group relative px-3 py-2 font-display text-[19px] font-bold uppercase tracking-[0.06em] transition-colors duration-200 ${
                   isActive(link.href) ? 'text-cream' : 'text-muted hover:text-cream'
                 }`}
               >
                 {link.label}
                 <span
-                  className={`absolute inset-x-3 -bottom-0.5 h-[2px] origin-left bg-gold transition-transform duration-500 ease-[var(--ease-out-expo)] ${
+                  className={`absolute inset-x-3 -bottom-0.5 h-[3px] origin-left bg-gold transition-transform duration-500 ease-[var(--ease-out-expo)] ${
                     isActive(link.href) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
                   }`}
                 />
@@ -173,13 +179,13 @@ const Header = () => {
             </Link>
             <button
               type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-full text-cream transition-colors hover:bg-cream/10 lg:hidden"
+              className="flex h-11 w-11 items-center justify-center text-cream transition-colors hover:text-gold lg:hidden"
               aria-label={menuOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
               onClick={() => setMenuOpen((open) => !open)}
             >
-              {menuOpen ? <Close size={24} /> : <Menu size={24} />}
+              {menuOpen ? <Close size={26} /> : <Menu size={26} />}
             </button>
           </div>
         </div>
@@ -211,7 +217,7 @@ const Header = () => {
                   href={link.href}
                   aria-current={isActive(link.href) ? 'page' : undefined}
                   onClick={() => setMenuOpen(false)}
-                  className={`flex items-center justify-between py-4 font-display text-[34px] font-semibold uppercase leading-none sm:text-[44px] ${
+                  className={`flex items-center justify-between py-4 font-varsity text-[34px] uppercase leading-none sm:text-[44px] ${
                     isActive(link.href) ? 'text-gold' : 'text-cream'
                   }`}
                 >
@@ -249,6 +255,10 @@ const Header = () => {
                   Member sign in
                 </Link>
               ))}
+          </div>
+
+          <div className="mt-10 flex justify-center">
+            <Image src="/brand/spartans-logo.png" alt="Prague Spartans Cricket Club" width={99} height={120} className="h-[120px] w-auto" />
           </div>
 
           <div className="mt-auto flex items-center gap-3 pt-10 text-muted">

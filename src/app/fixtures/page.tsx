@@ -104,7 +104,7 @@ export default function FixturesPage() {
                     type="button"
                     aria-pressed={active}
                     onClick={() => setResultFilter(filter.id)}
-                    className={`min-h-11 rounded-full px-5 text-[14px] font-semibold transition-[background-color,color,border-color,transform] duration-300 active:scale-95 ${
+                    className={`min-h-11 px-5 font-display text-[16px] font-bold uppercase tracking-[0.08em] transition-[background-color,color,border-color,transform] duration-300 active:scale-95 ${
                       active ? 'bg-gold text-ink' : 'border border-cream/25 text-cream hover:border-cream/60'
                     }`}
                   >

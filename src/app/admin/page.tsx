@@ -92,7 +92,7 @@ export default function AdminDashboard() {
     return (
       <div className="container-x flex min-h-[60vh] items-center justify-center py-16">
         <div className="card max-w-md p-8 text-center">
-          <h2 className="font-display text-3xl font-semibold uppercase">Authentication error</h2>
+          <h2 className="font-display text-3xl font-extrabold uppercase">Authentication error</h2>
           <p className="mt-3 text-muted">{authError}</p>
           <button type="button" onClick={() => router.push('/login?redirect=/admin')} className="btn btn-gold mt-6">
             Go to sign in
@@ -107,7 +107,7 @@ export default function AdminDashboard() {
       <div className="border-b border-cream/10">
         <div className="container-x pb-0 pt-10">
           <p className="eyebrow mb-2">Club admin</p>
-          <h1 className="font-display text-[clamp(36px,5vw,56px)] font-semibold uppercase leading-none">Dashboard</h1>
+          <h1 className="font-display text-[clamp(36px,5vw,56px)] font-extrabold uppercase leading-none">Dashboard</h1>
           <nav aria-label="Admin sections" className="-mb-px mt-8 flex gap-1 overflow-x-auto">
             {TABS.map((tab) => (
               <button
@@ -133,7 +133,7 @@ export default function AdminDashboard() {
 
       <main className="container-x py-8 sm:py-10">
         {/* Management tools keep a light, high-contrast panel for data entry. */}
-        <div key={activeTab} className="page-enter rounded-lg bg-[#f4eee2] p-3 text-gray-900 [color-scheme:light] sm:p-6">
+        <div key={activeTab} className="page-enter rounded-lg bg-[#F5F5F5] p-3 text-gray-900 [color-scheme:light] sm:p-6">
           {activeTab === 'team' && <TeamManagement />}
           {activeTab === 'matches' && <MatchesManagement />}
           {activeTab === 'practices' && <PracticesManagement />}

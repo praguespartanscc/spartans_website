@@ -23,14 +23,14 @@ const columns = [
 
 const Footer = () => {
   return (
-    <footer className="border-t border-cream/10 bg-[#0a0a0a]">
+    <footer className="border-t border-cream/12 bg-ink">
       <div className="container-x grid gap-12 py-16 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr] lg:gap-8">
-        <div className="flex items-start gap-4">
-          <Image src="/crest.png" alt="" width={56} height={68} className="h-[68px] w-14 object-contain" />
+        <div className="flex items-start gap-6">
+          <Image src="/brand/spartans-logo.png" alt="" width={99} height={120} className="h-[120px] w-auto" />
           <div>
-            <p className="font-display text-xl font-semibold uppercase tracking-[0.04em]">Prague Spartans Cricket Club</p>
+            <p className="font-varsity text-[22px] uppercase leading-tight">Prague Spartans Cricket Club</p>
             <p className="mt-2 max-w-xs text-[15px] leading-relaxed text-faint">
-              Bringing the joy of cricket to Prague since 2019.
+              Spartan discipline, Prague heart.
             </p>
           </div>
         </div>
@@ -66,7 +66,7 @@ const Footer = () => {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Prague Spartans on Facebook"
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-cream/20 text-cream transition-[color,border-color,transform] duration-300 hover:-translate-y-0.5 hover:border-gold hover:text-gold"
+              className="flex h-11 w-11 items-center justify-center border border-cream/20 text-cream transition-[color,border-color,transform] duration-300 hover:-translate-y-0.5 hover:border-gold hover:text-gold"
             >
               <Facebook size={18} />
             </a>
@@ -75,7 +75,7 @@ const Footer = () => {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Prague Spartans on Instagram"
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-cream/20 text-cream transition-[color,border-color,transform] duration-300 hover:-translate-y-0.5 hover:border-gold hover:text-gold"
+              className="flex h-11 w-11 items-center justify-center border border-cream/20 text-cream transition-[color,border-color,transform] duration-300 hover:-translate-y-0.5 hover:border-gold hover:text-gold"
             >
               <Instagram size={18} />
             </a>

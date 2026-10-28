@@ -1,12 +1,13 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import SectionHeading from '@/components/ui/SectionHeading';
 import Reveal from '@/components/ui/Reveal';
 import { ArrowRight } from '@/components/ui/Icons';
 
 export const SQUADS = [
-  { name: 'Vanguards', accent: 'bg-gold' },
-  { name: 'Mobilizers', accent: 'bg-crimson' },
-  { name: 'Strikers', accent: 'bg-cream' },
+  { name: 'Vanguards', logo: '/brand/vanguards.png' },
+  { name: 'Mobilizers', logo: '/brand/mobilizers.png' },
+  { name: 'Strikers', logo: '/brand/strikers.png' },
 ];
 
 export default function SquadsSection() {
@@ -18,9 +19,9 @@ export default function SquadsSection() {
           eyebrow="Our squads"
           title={
             <>
-              Three teams.
+              Three squads.
               <br />
-              One club.
+              <span className="text-gold">One club.</span>
             </>
           }
           action={
@@ -32,27 +33,19 @@ export default function SquadsSection() {
         <div className="grid gap-4 md:grid-cols-3">
           {SQUADS.map((squad, i) => (
             <Reveal key={squad.name} delay={i * 90}>
+              {/* Official squad logos always sit on solid black and are never altered (brand manual). */}
               <Link
                 href={`/players?team=${squad.name}`}
-                className="card card-hover group relative flex min-h-[220px] flex-col justify-between overflow-hidden p-7 sm:min-h-[260px]"
+                className="group flex h-full flex-col items-center border border-cream/12 bg-ink px-6 pb-8 pt-10 text-center transition-[transform,border-color] duration-500 ease-[var(--ease-out-expo)] hover:-translate-y-2 hover:border-gold"
               >
-                <span className={`absolute inset-x-0 top-0 h-1 ${squad.accent}`} />
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute -right-3 -top-8 font-display text-[150px] font-bold leading-none text-cream/[0.04] transition-transform duration-700 ease-[var(--ease-out-expo)] group-hover:-translate-x-2"
-                >
-                  0{i + 1}
+                <Image src={squad.logo} alt={`${squad.name} squad logo`} width={204} height={240} className="h-[180px] w-auto sm:h-[240px]" />
+                <span className="display mt-6 text-[34px] transition-colors duration-300 group-hover:text-gold sm:text-[40px]">
+                  {squad.name}
                 </span>
-                <span className="font-display text-[13px] uppercase tracking-[0.2em] text-faint">Squad 0{i + 1}</span>
-                <div>
-                  <span className="block font-display text-[44px] font-semibold uppercase leading-none sm:text-[52px]">
-                    {squad.name}
-                  </span>
-                  <span className="mt-4 inline-flex items-center gap-2 text-[15px] font-medium text-muted transition-colors group-hover:text-gold">
-                    View squad
-                    <ArrowRight size={16} className="transition-transform duration-500 ease-[var(--ease-out-expo)] group-hover:translate-x-1" />
-                  </span>
-                </div>
+                <span className="mt-4 inline-flex items-center gap-2 font-display text-[18px] font-extrabold uppercase tracking-[0.04em] text-muted transition-colors group-hover:text-gold">
+                  View squad
+                  <ArrowRight size={16} className="transition-transform duration-500 ease-[var(--ease-out-expo)] group-hover:translate-x-1" />
+                </span>
               </Link>
             </Reveal>
           ))}

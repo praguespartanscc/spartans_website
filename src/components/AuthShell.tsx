@@ -10,13 +10,12 @@ type AuthShellProps = {
 // Split layout for sign-in, sign-up and password pages: photo on large screens, form card always.
 export default function AuthShell({ title, subtitle, children }: AuthShellProps) {
   return (
-    <section className="grid min-h-[calc(100svh-72px)] lg:grid-cols-2">
+    <section className="grid min-h-[calc(100svh-64px)] lg:min-h-[calc(100svh-152px)] lg:grid-cols-2">
       <div className="relative hidden overflow-hidden lg:block">
         <Image src="/home_carousel1.jpeg" alt="" fill priority sizes="50vw" className="kenburns object-cover object-[center_35%]" />
-        <div className="absolute inset-0 bg-ink/55" />
+        <div className="absolute inset-0 bg-ink/80" />
         <div className="absolute inset-x-0 bottom-0 p-12">
-          <Image src="/crest.png" alt="" width={72} height={88} className="mb-6 h-[88px] w-[72px] object-contain" />
-          <p className="display max-w-md text-[56px] font-bold">
+          <p className="display max-w-md text-[56px]">
             Members <span className="text-gold">area</span>
           </p>
         </div>
@@ -48,7 +47,7 @@ export function SuccessNote({ title, children }: { title: string; children: Reac
           <path d="m5 12 5 5L20 7" />
         </svg>
       </span>
-      <h2 className="font-display text-2xl font-semibold uppercase">{title}</h2>
+      <h2 className="font-display text-2xl font-extrabold uppercase">{title}</h2>
       <div className="text-muted">{children}</div>
     </div>
   );
