@@ -2,6 +2,8 @@ import { Metadata } from "next";
 import { getCommittee, getMatches, getPractices, getSponsors, pragueToday } from "@/lib/data";
 import HeroSection from "@/components/HeroSection";
 import NextMatchBar from "@/components/NextMatchBar";
+import LiveBar from "@/components/LiveBar";
+import { getLiveStatus } from "@/lib/youtube";
 import ValuesBand from "@/components/ValuesBand";
 import QuoteBand from "@/components/QuoteBand";
 import SquadsSection from "@/components/SquadsSection";
@@ -31,7 +33,13 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   const today = pragueToday();
-  const [matches, practices, committee, sponsors] = await Promise.all([getMatches(), getPractices(), getCommittee(), getSponsors()]);
+  const [matches, practices, committee, sponsors, live] = await Promise.all([
+    getMatches(),
+    getPractices(),
+    getCommittee(),
+    getSponsors(),
+    getLiveStatus(),
+  ]);
 
   const upcoming = matches.filter((m) => m.result === 'will be played' && m.date >= today);
   const next = upcoming[0] ?? null;
@@ -39,6 +47,7 @@ export default async function Home() {
 
   return (
     <>
+      <LiveBar live={live.live} />
       <HeroSection />
       <NextMatchBar match={next} live={!!next && next.date === today && !!next.stream_url} />
       <ValuesBand />

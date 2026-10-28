@@ -15,6 +15,7 @@ const navLinks = [
   { href: '/practices', label: 'Practices' },
   { href: '/about', label: 'About' },
   { href: '/committee', label: 'Committee' },
+  { href: '/live', label: 'Live' },
 ];
 
 const Header = () => {
@@ -24,6 +25,7 @@ const Header = () => {
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isLive, setIsLive] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -66,6 +68,22 @@ const Header = () => {
     return () => {
       window.removeEventListener('scroll', onScroll);
       if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  // Red dot on "Live" while the club's YouTube channel is streaming (checked every two minutes).
+  useEffect(() => {
+    let cancelled = false;
+    const check = () =>
+      fetch('/api/live')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => !cancelled && setIsLive(!!d?.live))
+        .catch(() => {});
+    check();
+    const timer = window.setInterval(check, 120_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
     };
   }, []);
 
@@ -148,6 +166,9 @@ const Header = () => {
                 }`}
               >
                 {link.label}
+                {link.href === '/live' && isLive && (
+                  <span aria-label="(live now)" className="live-dot ml-1.5 inline-block h-2 w-2 -translate-y-0.5 rounded-full bg-crimson-hi" />
+                )}
                 <span
                   className={`absolute inset-x-3 -bottom-0.5 h-[3px] origin-left bg-gold transition-transform duration-500 ease-[var(--ease-out-expo)] ${
                     isActive(link.href) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
@@ -221,7 +242,14 @@ const Header = () => {
                     isActive(link.href) ? 'text-gold' : 'text-cream'
                   }`}
                 >
-                  {link.label}
+                  <span className="flex items-center gap-3">
+                    {link.label}
+                    {link.href === '/live' && isLive && (
+                      <span className="chip bg-crimson text-white">
+                        <span className="live-dot h-1.5 w-1.5 rounded-full bg-white" /> Live now
+                      </span>
+                    )}
+                  </span>
                   <ArrowRight size={26} className="text-dim" />
                 </Link>
               </li>

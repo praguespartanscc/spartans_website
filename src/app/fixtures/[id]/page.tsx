@@ -5,6 +5,8 @@ import { getMatch, getMatches, pragueToday } from '@/lib/data';
 import { CLUB_NAME, SITE_URL } from '@/lib/club';
 import { dateParts, formatDivision, formatTime, titleCase, youTubeId } from '@/lib/format';
 import MatchRow, { ResultChip } from '@/components/MatchRow';
+import YouTubeEmbed from '@/components/YouTubeEmbed';
+import { getLiveStatus } from '@/lib/youtube';
 import { ArrowRight, ArrowUpRight, Calendar, Clock, MapPin } from '@/components/ui/Icons';
 
 export const revalidate = 60;
@@ -70,8 +72,10 @@ export default async function MatchPage({ params }: Props) {
   const today = pragueToday();
   const d = dateParts(match.date);
   const upcoming = match.result === 'will be played' && match.date >= today;
-  const live = match.date === today && !!match.stream_url;
-  const videoId = youTubeId(match.stream_url);
+  // The match's own stream link wins; on match day, fall back to whatever the club channel has live.
+  const channelLive = match.date === today && !youTubeId(match.stream_url) ? (await getLiveStatus()).live : null;
+  const videoId = youTubeId(match.stream_url) ?? channelLive?.id ?? null;
+  const live = match.date === today && (!!match.stream_url || !!channelLive);
   const details = [titleCase(match.type), formatDivision(match.division)].filter(Boolean).join(' · ');
   const others = (await getMatches())
     .filter((m) => m.id !== match.id && m.result === 'will be played' && m.date >= today)
@@ -162,16 +166,7 @@ export default async function MatchPage({ params }: Props) {
         <section aria-label={live ? 'Live stream' : 'Match video'} className="py-12 sm:py-16">
           <div className="container-x">
             <h2 className="h-sub mb-5 text-[30px]">{live ? 'Watch live' : upcoming ? 'Live stream' : 'Match replay'}</h2>
-            <div className="relative aspect-video w-full overflow-hidden border border-cream/12 bg-panel">
-              <iframe
-                src={`https://www.youtube-nocookie.com/embed/${videoId}?rel=0`}
-                title={`${match.team1} vs ${match.team2} video`}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                loading="lazy"
-                className="absolute inset-0 h-full w-full"
-              />
-            </div>
+            <YouTubeEmbed id={videoId} title={`${match.team1} vs ${match.team2} video`} />
           </div>
         </section>
       )}
