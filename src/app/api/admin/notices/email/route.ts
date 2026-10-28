@@ -25,12 +25,17 @@ export async function POST(request: Request) {
   const to = Array.from(new Set((members ?? []).map((m) => m.email).filter(Boolean))) as string[];
   if (!to.length) return NextResponse.json({ sent: 0 });
 
-  await sendEmail({
-    to,
-    bcc: true,
-    subject: `Prague Spartans: ${notice.title}`,
-    text: `${notice.title}\n\n${notice.body}\n\nSee all notices: ${SITE_URL}/dashboard`,
-    html: `<h2>${escapeHtml(notice.title)}</h2><p style="white-space:pre-line">${escapeHtml(notice.body)}</p><p><a href="${SITE_URL}/dashboard">Open your member dashboard</a></p>`,
-  });
+  try {
+    await sendEmail({
+      to,
+      bcc: true,
+      subject: `Prague Spartans: ${notice.title}`,
+      text: `${notice.title}\n\n${notice.body}\n\nSee all notices: ${SITE_URL}/dashboard`,
+      html: `<h2>${escapeHtml(notice.title)}</h2><p style="white-space:pre-line">${escapeHtml(notice.body)}</p><p><a href="${SITE_URL}/dashboard">Open your member dashboard</a></p>`,
+    });
+  } catch (err) {
+    console.error('Notice email failed:', err instanceof Error ? err.message : err);
+    return NextResponse.json({ error: 'The email service refused the message. Check the Gmail app password in Vercel.' }, { status: 502 });
+  }
   return NextResponse.json({ sent: to.length });
 }
