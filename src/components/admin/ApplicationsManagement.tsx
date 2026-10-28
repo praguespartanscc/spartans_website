@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import toast, { Toaster } from 'react-hot-toast';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
 
 type TeamApplication = {
   id: number;
@@ -16,7 +17,12 @@ type TeamApplication = {
   created_at: string;
 };
 
+const clip = (text: string | null, max: number) => (text && text.length > max ? `${text.substring(0, max)}...` : text ?? '');
+
 export default function ApplicationsManagement() {
+  // Uses the signed-in admin's session (cookies), like the other admin pages, so the
+  // database lets them read join requests.
+  const supabase = useMemo(() => createClientComponentClient(), []);
   const [applications, setApplications] = useState<TeamApplication[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,12 +32,10 @@ export default function ApplicationsManagement() {
   const [showDetails, setShowDetails] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [applicationToDelete, setApplicationToDelete] = useState<number | null>(null);
+  const [offerPlayer, setOfferPlayer] = useState<TeamApplication | null>(null);
+  const [creatingPlayer, setCreatingPlayer] = useState(false);
 
-  useEffect(() => {
-    fetchApplications();
-  }, []);
-
-  async function fetchApplications() {
+  const fetchApplications = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -71,7 +75,11 @@ export default function ApplicationsManagement() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchApplications();
+  }, [fetchApplications]);
 
   async function handleUpdateStatus(id: number, status: 'accepted' | 'rejected') {
     setProcessingId(id);
@@ -99,20 +107,7 @@ export default function ApplicationsManagement() {
 
       // Accepting usually means they're joining a squad: offer to add them as a player straight away.
       const app = applications.find((x) => x.id === id);
-      if (status === 'accepted' && app && window.confirm(`Also add ${app.name} as a player? You can set their squad on the Players page.`)) {
-        const type = app.specification?.startsWith('wicketkeeper') ? 'wicketkeeper' : app.specification || 'batsman';
-        const { data: player, error: playerError } = await supabase
-          .from('players')
-          .insert([{ name: app.name, player_type: type, role: 'player', team: null, is_active: true }])
-          .select()
-          .single();
-        if (playerError) {
-          toast.error(`Player not created: ${playerError.message}`);
-        } else {
-          await supabase.from('player_private').upsert({ player_id: player.id, email: app.email, age: app.age ?? null });
-          toast.success(`${app.name} added to Players`);
-        }
-      }
+      if (status === 'accepted' && app) setOfferPlayer(app);
     } catch (error) {
       console.error(`Error updating application status:`, error);
       toast.error(`Failed to update application status`);
@@ -120,6 +115,24 @@ export default function ApplicationsManagement() {
       toast.dismiss(loadingToast);
       setProcessingId(null);
     }
+  }
+
+  async function addAsPlayer(app: TeamApplication) {
+    setCreatingPlayer(true);
+    const type = app.specification?.startsWith('wicketkeeper') ? 'wicketkeeper' : app.specification || 'batsman';
+    const { data: player, error: playerError } = await supabase
+      .from('players')
+      .insert([{ name: app.name, player_type: type, role: 'player', team: null, is_active: true }])
+      .select()
+      .single();
+    if (playerError) {
+      toast.error(`Player not created: ${playerError.message}`);
+    } else {
+      await supabase.from('player_private').upsert({ player_id: player.id, email: app.email, age: app.age ?? null });
+      toast.success(`${app.name} added to Players`);
+    }
+    setCreatingPlayer(false);
+    setOfferPlayer(null);
   }
 
   function confirmDeleteApplication(id: number) {
@@ -463,9 +476,7 @@ export default function ApplicationsManagement() {
                     </td>
                     <td className="px-6 py-4 whitespace-normal max-w-xs">
                       <div className="text-sm text-gray-600 truncate hover:text-clip hover:whitespace-normal">
-                        {application.experience.length > 60 
-                          ? `${application.experience.substring(0, 60)}...` 
-                          : application.experience}
+                        {clip(application.experience, 60)}
                         <span className="block text-xs text-blue-600 hover:underline cursor-pointer mt-1" 
                           onClick={() => viewApplicationDetails(application)}>
                           View details
@@ -546,9 +557,7 @@ export default function ApplicationsManagement() {
                   
                   <div className="mb-4">
                     <div className="text-sm text-gray-600 line-clamp-2">
-                      {application.experience.length > 100 
-                        ? `${application.experience.substring(0, 100)}...` 
-                        : application.experience}
+                      {clip(application.experience, 100)}
                     </div>
                     <button 
                       className="mt-1 text-xs text-blue-600 hover:underline cursor-pointer" 
@@ -747,6 +756,17 @@ export default function ApplicationsManagement() {
             </div>
           </div>
         </div>
+      )}
+      {offerPlayer && (
+        <ConfirmDialog
+          title={`Also add ${offerPlayer.name} as a player?`}
+          message="They'll appear on the Players page, where you can set their squad."
+          confirmLabel="Add as player"
+          cancelLabel="Not now"
+          busy={creatingPlayer}
+          onConfirm={() => addAsPlayer(offerPlayer)}
+          onCancel={() => setOfferPlayer(null)}
+        />
       )}
     </div>
   );

@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import toast, { Toaster } from 'react-hot-toast';
 import type { Notice } from '@/types/supabase';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
 
 const EMPTY = { title: '', body: '', pinned: false, email: false };
 const input = 'block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-black focus:ring-black';
@@ -15,6 +16,9 @@ export default function NoticesManagement() {
   const [form, setForm] = useState(EMPTY);
   const [editing, setEditing] = useState<Notice | null>(null);
   const [busy, setBusy] = useState(false);
+  const [toDelete, setToDelete] = useState<Notice | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
     const { data } = await supabase.from('notices').select('*').order('pinned', { ascending: false }).order('created_at', { ascending: false });
@@ -57,11 +61,29 @@ export default function NoticesManagement() {
     }
   }
 
-  async function remove(n: Notice) {
-    if (!window.confirm(`Delete "${n.title}"?`)) return;
-    const { error } = await supabase.from('notices').delete().eq('id', n.id);
-    if (error) toast.error(error.message);
-    else load();
+  async function remove() {
+    if (!toDelete) return;
+    setBusy(true);
+    const { error } = await supabase.from('notices').delete().eq('id', toDelete.id);
+    setBusy(false);
+    if (error) toast.error(`Not deleted: ${error.message}`);
+    else {
+      toast.success('Notice deleted');
+      if (editing?.id === toDelete.id) {
+        setEditing(null);
+        setForm(EMPTY);
+      }
+      load();
+    }
+    setToDelete(null);
+  }
+
+  function startEdit(n: Notice) {
+    setEditing(n);
+    setForm({ title: n.title, body: n.body, pinned: n.pinned, email: false });
+    // The form sits above the list: bring it into view so the change is obvious, then focus it.
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => titleRef.current?.focus({ preventScroll: true }), 300);
   }
 
   async function togglePin(n: Notice) {
@@ -73,12 +95,12 @@ export default function NoticesManagement() {
   return (
     <div className="space-y-6">
       <Toaster position="top-right" />
-      <form onSubmit={save} className="rounded-lg bg-white p-4 shadow sm:p-6">
-        <h3 className="mb-4 font-semibold text-gray-900">{editing ? 'Edit notice' : 'Post a notice to members'}</h3>
+      <form ref={formRef} onSubmit={save} className={`scroll-mt-24 rounded-lg bg-white p-4 shadow sm:p-6 ${editing ? 'ring-2 ring-yellow-400' : ''}`}>
+        <h3 className="mb-4 font-semibold text-gray-900">{editing ? `Editing: ${editing.title}` : 'Post a notice to members'}</h3>
         <div className="space-y-4">
           <div>
             <label htmlFor="n-title" className="mb-1 block text-sm font-medium text-gray-700">Title</label>
-            <input id="n-title" required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className={input} />
+            <input id="n-title" ref={titleRef} required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className={input} />
           </div>
           <div>
             <label htmlFor="n-body" className="mb-1 block text-sm font-medium text-gray-700">Message</label>
@@ -121,24 +143,31 @@ export default function NoticesManagement() {
                   <p className="mt-1 text-xs text-gray-400">{new Date(n.created_at).toLocaleString('en-GB')}</p>
                 </div>
                 <div className="flex gap-3 text-sm">
-                  <button onClick={() => togglePin(n)} className="text-gray-700 hover:text-black">{n.pinned ? 'Unpin' : 'Pin'}</button>
-                  <button
-                    onClick={() => {
-                      setEditing(n);
-                      setForm({ title: n.title, body: n.body, pinned: n.pinned, email: false });
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="text-blue-600 hover:text-blue-900"
-                  >
+                  <button type="button" onClick={() => togglePin(n)} className="text-gray-700 hover:text-black">{n.pinned ? 'Unpin' : 'Pin'}</button>
+                  <button type="button" onClick={() => startEdit(n)} className="text-blue-600 hover:text-blue-900">
                     Edit
                   </button>
-                  <button onClick={() => remove(n)} className="text-red-600 hover:text-red-900">Delete</button>
+                  <button type="button" onClick={() => setToDelete(n)} className="text-red-600 hover:text-red-900">
+                    Delete
+                  </button>
                 </div>
               </div>
             </li>
           ))}
           {notices.length === 0 && <li className="px-6 py-8 text-center text-gray-500">No notices yet.</li>}
         </ul>
+      )}
+
+      {toDelete && (
+        <ConfirmDialog
+          title={`Delete "${toDelete.title}"?`}
+          message="Members won't see it any more. Emails already sent stay in their inboxes."
+          confirmLabel="Delete notice"
+          danger
+          busy={busy}
+          onConfirm={remove}
+          onCancel={() => setToDelete(null)}
+        />
       )}
     </div>
   );

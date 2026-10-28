@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import toast, { Toaster } from 'react-hot-toast';
 import type { Player, Profile } from '@/types/supabase';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
 
 type Status = Profile['status'];
 type Tab = Status | 'admins';
@@ -36,6 +37,7 @@ export default function MembersManagement() {
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [myEmail, setMyEmail] = useState('');
   const [newAdmin, setNewAdmin] = useState('');
+  const [removingAdmin, setRemovingAdmin] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [missingSetup, setMissingSetup] = useState(false);
   const [approving, setApproving] = useState<Profile | null>(null);
@@ -116,7 +118,6 @@ export default function MembersManagement() {
   }
 
   async function setAdmin(email: string, makeAdmin: boolean) {
-    if (!makeAdmin && !window.confirm(`Remove admin rights from ${email}? They stay a member.`)) return;
     setBusy(true);
     const { error } = await supabase.rpc('set_admin', { target_email: email, make_admin: makeAdmin });
     setBusy(false);
@@ -124,6 +125,7 @@ export default function MembersManagement() {
     else {
       toast.success(makeAdmin ? `${email} is now an admin` : `${email} is no longer an admin`);
       setNewAdmin('');
+      setRemovingAdmin(null);
       load();
     }
   }
@@ -180,7 +182,7 @@ export default function MembersManagement() {
                     {a.full_name && <p className="text-sm text-gray-500">{a.email}</p>}
                   </div>
                   {!isMe && (
-                    <button onClick={() => setAdmin(a.email, false)} disabled={busy} className={`${btn} text-red-700 ring-1 ring-red-200 hover:bg-red-50 disabled:opacity-50`}>
+                    <button onClick={() => setRemovingAdmin(a.email)} disabled={busy} className={`${btn} text-red-700 ring-1 ring-red-200 hover:bg-red-50 disabled:opacity-50`}>
                       Remove admin
                     </button>
                   )}
@@ -270,6 +272,18 @@ export default function MembersManagement() {
             </li>
           ))}
         </ul>
+      )}
+
+      {removingAdmin && (
+        <ConfirmDialog
+          title={`Remove admin rights from ${removingAdmin}?`}
+          message="They stay a member and can still use their member dashboard."
+          confirmLabel="Remove admin"
+          danger
+          busy={busy}
+          onConfirm={() => setAdmin(removingAdmin, false)}
+          onCancel={() => setRemovingAdmin(null)}
+        />
       )}
 
       {approving && (
