@@ -2,50 +2,43 @@ import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Define routes that require authentication
-const protectedRoutes = ['/admin'];
-// Define routes that should be accessible only for non-authenticated users
+// Routes that need a signed-in admin
+const adminRoutes = ['/admin'];
+// Routes only for signed-out visitors
 const authRoutes = ['/login'];
 
+const matches = (pathname: string, routes: string[]) =>
+  routes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
+
 export async function middleware(req: NextRequest) {
-  // Create a Supabase client configured to use cookies
   const res = NextResponse.next();
   const supabase = createMiddlewareClient({ req, res });
-  
-  // Refresh session if expired
-  await supabase.auth.getSession();
-  
-  // Get the session again after potential refresh
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  const isProtectedRoute = protectedRoutes.some(route => 
-    req.nextUrl.pathname === route || req.nextUrl.pathname.startsWith(`${route}/`)
-  );
-  
-  const isAuthRoute = authRoutes.some(route => 
-    req.nextUrl.pathname === route || req.nextUrl.pathname.startsWith(`${route}/`)
-  );
-  
-  // Handle protected routes
-  if (isProtectedRoute && !session) {
-    const redirectUrl = new URL('/login', req.url);
-    return NextResponse.redirect(redirectUrl);
+
+  // getUser() checks the token with Supabase (and refreshes the session cookie),
+  // unlike getSession(), which trusts whatever is stored in the cookie.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { pathname } = req.nextUrl;
+
+  if (matches(pathname, adminRoutes)) {
+    if (!user) {
+      return NextResponse.redirect(new URL('/login?redirect=/admin', req.url));
+    }
+    // app_metadata can only be set server-side, so users cannot grant themselves admin.
+    if (user.app_metadata?.isAdmin !== true) {
+      return NextResponse.redirect(new URL('/not-admin', req.url));
+    }
   }
-  
-  // Handle auth routes (redirect to dashboard if already logged in)
-  if (isAuthRoute && session) {
-    const redirectUrl = new URL('/admin', req.url);
-    return NextResponse.redirect(redirectUrl);
+
+  if (matches(pathname, authRoutes) && user) {
+    return NextResponse.redirect(new URL('/admin', req.url));
   }
-  
+
   return res;
 }
 
-// Define which routes this middleware should run on
 export const config = {
-  matcher: [
-    '/admin/:path*',
-    '/login',
-    '/auth/callback',
-  ],
-}; 
+  matcher: ['/admin/:path*', '/login', '/auth/callback'],
+};

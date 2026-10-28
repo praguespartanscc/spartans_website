@@ -109,7 +109,7 @@ export function useAuth(): UseAuthReturn {
     }
   };
 
-  const isAdmin = user?.user_metadata?.isAdmin === true;
+  const isAdmin = user?.app_metadata?.isAdmin === true;
 
   return { user, session, loading, signIn, signOut, isAdmin };
 } 

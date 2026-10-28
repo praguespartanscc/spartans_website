@@ -43,7 +43,7 @@ export default function SponsorsManagement() {
     async function checkAdminAndFetch() {
       await supabase.auth.refreshSession();
       const { data: { user } } = await supabase.auth.getUser();
-      const admin = !!user?.user_metadata?.isAdmin;
+      const admin = !!user?.app_metadata?.isAdmin;
       setIsAdmin(admin);
       fetchSponsors();
     }
@@ -203,10 +203,7 @@ export default function SponsorsManagement() {
           logo_url: logoUrl ? 'Set' : 'Not set'
         });
         
-        // Instead of inserting directly through the client, consider using a server endpoint
-        // that has admin access via service role
-        
-        // Try client-side insert first
+        // Database policies only allow admins to write, so no server-side workaround is needed.
         const { data, error } = await supabase
           .from('sponsors')
           .insert([{
@@ -219,48 +216,6 @@ export default function SponsorsManagement() {
 
         if (error) {
           console.error('Insert error details:', error);
-          
-          // If it's an RLS error, try a workaround using a server endpoint
-          if (error.code === '42501' || error.message.includes('security policy')) {
-            try {
-              // You'd need to create this API endpoint to use the service role
-              const response = await fetch('/api/admin/sponsors', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  name: newSponsor.name,
-                  website_url: newSponsor.website_url,
-                  logo_url: logoUrl,
-                  description: newSponsor.description
-                }),
-              });
-              
-              if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `Server error: ${response.status}`);
-              }
-              
-              const result = await response.json();
-              console.log('Added sponsor via API:', result);
-              
-              // Refresh sponsors list
-              await fetchSponsors();
-              toast.success('Sponsor added successfully!');
-              resetForm();
-              return;
-            } catch (apiError) {
-              console.error('API error:', apiError);
-              if (apiError instanceof Error && apiError.message.includes('Server configuration error')) {
-                toast.error('Server configuration issue. Please contact the administrator to set up the SUPABASE_SERVICE_ROLE_KEY.');
-              } else {
-                toast.error('You do not have permission to add sponsors. Please contact an administrator.');
-              }
-              return;
-            }
-          }
-          
           throw error;
         }
         

@@ -55,7 +55,7 @@ export default function PracticesManagement() {
     async function checkAdminAndFetch() {
       await supabase.auth.refreshSession();
       const { data: { user } } = await supabase.auth.getUser();
-      const admin = !!user?.user_metadata?.isAdmin;
+      const admin = !!user?.app_metadata?.isAdmin;
       setIsAdmin(admin);
       fetchPractices();
     }

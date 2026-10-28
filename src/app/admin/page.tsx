@@ -57,7 +57,7 @@ export default function AdminDashboard() {
         }
 
         // Check if user is admin
-        const isUserAdmin = !!user.user_metadata?.isAdmin;
+        const isUserAdmin = !!user.app_metadata?.isAdmin;
         
         if (!isUserAdmin) {
           console.log('User is not an admin, redirecting to not-admin page');

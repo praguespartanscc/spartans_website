@@ -39,7 +39,7 @@ const Header = () => {
           return;
         }
         setUser(user);
-        setIsAdmin(user?.user_metadata?.isAdmin === true);
+        setIsAdmin(user?.app_metadata?.isAdmin === true);
       } catch (error) {
         console.error('Error in Header auth check:', error);
         setUser(null);

@@ -168,35 +168,9 @@ export async function updatePassword(newPassword: string) {
   }
 }
 
-export async function updateUserRole(userId: string, isAdmin: boolean) {
-  try {
-    const supabase = getSupabaseClient();
-    const { data, error } = await supabase.auth.admin.updateUserById(
-      userId,
-      { user_metadata: { isAdmin } }
-    );
-    
-    if (error) throw error;
-    return data;
-  } catch (error) {
-    console.error('Error updating user role:', error);
-    // If admin API fails, try the user update API
-    try {
-      const supabase = getSupabaseClient();
-      const { data, error } = await supabase.auth.updateUser({
-        data: { isAdmin }
-      });
-      
-      if (error) throw error;
-      return data;
-    } catch (fallbackError) {
-      console.error('Fallback error updating user role:', fallbackError);
-      throw fallbackError;
-    }
-  }
-}
-
+// Admin rights live in app_metadata, which only the server (service role or SQL)
+// can set. Never read them from user_metadata: users can edit that themselves.
 export async function isUserAdmin(user: User) {
   if (!user) return false;
-  return !!user.user_metadata?.isAdmin;
+  return !!user.app_metadata?.isAdmin;
 } 
