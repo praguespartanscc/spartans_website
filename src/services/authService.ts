@@ -133,7 +133,7 @@ export async function signUpWithEmail(email: string, password: string, fullName:
           full_name: fullName,
           cricheroes_url: cricheroesUrl.trim(),
         },
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 

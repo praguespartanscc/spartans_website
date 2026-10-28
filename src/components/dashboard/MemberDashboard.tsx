@@ -22,13 +22,23 @@ const TABS: { id: Tab; label: string }[] = [
 
 const todayInPrague = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Prague' }).format(new Date());
 
-function Shell({ title, eyebrow, children }: { title: React.ReactNode; eyebrow: string; children: React.ReactNode }) {
+function Shell({ title, eyebrow, isAdmin, children }: { title: React.ReactNode; eyebrow: string; isAdmin?: boolean; children: React.ReactNode }) {
   return (
     <section className="py-12 sm:py-16">
       <Toaster position="top-right" toastOptions={{ style: { background: '#111', color: '#fff', borderRadius: 0 } }} />
       <div className="container-x">
-        <p className="eyebrow">{eyebrow}</p>
-        <h1 className="display mt-3 text-[clamp(40px,6vw,72px)]">{title}</h1>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="eyebrow">{eyebrow}</p>
+            <h1 className="display mt-3 text-[clamp(40px,6vw,72px)]">{title}</h1>
+          </div>
+          {isAdmin && (
+            <Link href="/admin" className="btn btn-gold">
+              Admin dashboard
+              <ArrowRight size={18} className="btn-arrow" />
+            </Link>
+          )}
+        </div>
         <div className="mt-10">{children}</div>
       </div>
     </section>
@@ -113,11 +123,12 @@ export default function MemberDashboard() {
     );
   }
 
+  const isAdmin = user?.app_metadata?.isAdmin === true;
   const firstName = (profile?.full_name || user?.user_metadata?.full_name || 'Spartan').split(' ')[0];
 
   if (setupError || !profile) {
     return (
-      <Shell eyebrow="Member area" title="Almost ready">
+      <Shell eyebrow="Member area" title="Almost ready" isAdmin={isAdmin}>
         <div className="card max-w-2xl p-8 text-muted">
           Member accounts are being switched on. Please check back soon, or contact the committee if this persists.
         </div>
@@ -127,7 +138,7 @@ export default function MemberDashboard() {
 
   if (!profile.cricheroes_url) {
     return (
-      <Shell eyebrow="One more step" title={<>Add your CricHeroes</>}>
+      <Shell eyebrow="One more step" title={<>Add your CricHeroes</>} isAdmin={isAdmin}>
         <div className="card max-w-2xl p-6 sm:p-8">
           <p className="mb-6 text-sand">
             We use CricHeroes for scoring and stats, so every member needs their CricHeroes player profile on file. It also lets us show
@@ -141,7 +152,7 @@ export default function MemberDashboard() {
 
   if (profile.status !== 'approved') {
     return (
-      <Shell eyebrow="Member area" title={<>Hi {firstName}</>}>
+      <Shell eyebrow="Member area" title={<>Hi {firstName}</>} isAdmin={isAdmin}>
         <div className="card max-w-2xl p-6 sm:p-8">
           {profile.status === 'pending' ? (
             <>
@@ -175,7 +186,7 @@ export default function MemberDashboard() {
   }
 
   return (
-    <Shell eyebrow="Member dashboard" title={<>Hi {firstName}</>}>
+    <Shell eyebrow="Member dashboard" title={<>Hi {firstName}</>} isAdmin={isAdmin}>
       <nav aria-label="Dashboard sections" className="-mt-2 mb-8 flex gap-1 overflow-x-auto border-b border-cream/12">
         {TABS.map((t) => (
           <button
