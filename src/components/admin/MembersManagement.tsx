@@ -6,11 +6,15 @@ import toast, { Toaster } from 'react-hot-toast';
 import type { Player, Profile } from '@/types/supabase';
 
 type Status = Profile['status'];
+type Tab = Status | 'admins';
 const TABS: { id: Status; label: string }[] = [
   { id: 'pending', label: 'Waiting for approval' },
   { id: 'approved', label: 'Members' },
   { id: 'rejected', label: 'Rejected' },
 ];
+
+// From public.admin_list() (supabase/migrations/08_admin_roles.sql)
+type Admin = { email: string; user_id: string | null; full_name: string | null; signed_up: boolean };
 
 type LinkChoice = { mode: 'existing'; playerId: string } | { mode: 'new'; team: string; type: string } | { mode: 'none' };
 
@@ -28,7 +32,10 @@ export default function MembersManagement() {
   const supabase = useMemo(() => createClientComponentClient(), []);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
-  const [tab, setTab] = useState<Status>('pending');
+  const [tab, setTab] = useState<Tab>('pending');
+  const [admins, setAdmins] = useState<Admin[]>([]);
+  const [myEmail, setMyEmail] = useState('');
+  const [newAdmin, setNewAdmin] = useState('');
   const [loading, setLoading] = useState(true);
   const [missingSetup, setMissingSetup] = useState(false);
   const [approving, setApproving] = useState<Profile | null>(null);
@@ -36,13 +43,17 @@ export default function MembersManagement() {
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    const [{ data: p, error }, { data: pl }] = await Promise.all([
+    const [{ data: p, error }, { data: pl }, { data: a }, { data: me }] = await Promise.all([
       supabase.from('profiles').select('*').order('created_at', { ascending: false }),
       supabase.from('players').select('*').order('name'),
+      supabase.rpc('admin_list'),
+      supabase.auth.getUser(),
     ]);
     if (error) setMissingSetup(true);
     setProfiles((p ?? []) as Profile[]);
     setPlayers((pl ?? []) as Player[]);
+    setAdmins((a ?? []) as Admin[]);
+    setMyEmail(me.user?.email?.toLowerCase() ?? '');
     setLoading(false);
   }, [supabase]);
 
@@ -104,11 +115,26 @@ export default function MembersManagement() {
     }
   }
 
+  async function setAdmin(email: string, makeAdmin: boolean) {
+    if (!makeAdmin && !window.confirm(`Remove admin rights from ${email}? They stay a member.`)) return;
+    setBusy(true);
+    const { error } = await supabase.rpc('set_admin', { target_email: email, make_admin: makeAdmin });
+    setBusy(false);
+    if (error) toast.error(error.message);
+    else {
+      toast.success(makeAdmin ? `${email} is now an admin` : `${email} is no longer an admin`);
+      setNewAdmin('');
+      load();
+    }
+  }
+
   if (loading) return <div className="h-40 animate-pulse rounded bg-gray-200" />;
   if (missingSetup)
     return <p className="text-gray-700">Member accounts aren&apos;t switched on yet. Run <code>supabase/migrations/002_members.sql</code> in Supabase first.</p>;
 
   const list = profiles.filter((p) => p.status === tab);
+  const adminEmails = new Set(admins.map((a) => a.email.toLowerCase()));
+  const isAdminEmail = (email: string | null) => !!email && adminEmails.has(email.toLowerCase());
   const playerName = (id: string | null) => players.find((pl) => pl.id === id)?.name;
 
   return (
@@ -127,16 +153,69 @@ export default function MembersManagement() {
             </button>
           );
         })}
+        <button
+          onClick={() => setTab('admins')}
+          className={`${btn} ${tab === 'admins' ? 'bg-black text-white' : 'bg-white text-gray-700 ring-1 ring-gray-300 hover:bg-gray-100'}`}
+        >
+          Admins ({admins.length})
+        </button>
       </div>
 
-      {list.length === 0 ? (
+      {tab === 'admins' ? (
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">
+            Admins can manage everything on the website. Someone who hasn&apos;t signed up yet becomes an admin as soon as they sign up with that email and confirm it.
+          </p>
+          <ul className="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow">
+            {admins.map((a) => {
+              const isMe = a.email.toLowerCase() === myEmail;
+              return (
+                <li key={a.email} className="flex flex-wrap items-center gap-4 px-4 py-4 sm:px-6">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-gray-900">
+                      {a.full_name || a.email}
+                      {isMe && <span className="ml-2 rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600">You</span>}
+                      {!a.signed_up && <span className="ml-2 rounded bg-yellow-100 px-2 py-0.5 text-xs text-yellow-800">Not signed up yet</span>}
+                    </p>
+                    {a.full_name && <p className="text-sm text-gray-500">{a.email}</p>}
+                  </div>
+                  {!isMe && (
+                    <button onClick={() => setAdmin(a.email, false)} disabled={busy} className={`${btn} text-red-700 ring-1 ring-red-200 hover:bg-red-50 disabled:opacity-50`}>
+                      Remove admin
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (newAdmin.trim()) setAdmin(newAdmin.trim(), true);
+            }}
+            className="flex flex-wrap items-end gap-2 rounded-lg bg-white p-4 shadow sm:p-6"
+          >
+            <label className="min-w-[16rem] flex-1 text-sm text-gray-700">
+              Add an admin by email
+              <input type="email" required value={newAdmin} onChange={(e) => setNewAdmin(e.target.value)} placeholder="name@example.com" className={`${input} mt-1`} />
+            </label>
+            <button type="submit" disabled={busy} className={`${btn} bg-black text-white hover:bg-gray-800 disabled:opacity-50`}>
+              Make admin
+            </button>
+          </form>
+          <p className="text-sm text-gray-500">You can&apos;t remove your own admin rights, so the club always has at least one admin.</p>
+        </div>
+      ) : list.length === 0 ? (
         <p className="rounded-lg bg-white p-6 text-center text-gray-500">Nobody here.</p>
       ) : (
         <ul className="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow">
           {list.map((p) => (
             <li key={p.id} className="flex flex-wrap items-center gap-4 px-4 py-4 sm:px-6">
-              <div className="min-w-0 flex-1">
-                <p className="font-medium text-gray-900">{p.full_name || '(no name)'}</p>
+              <div className="min-w-[15rem] flex-1">
+                <p className="font-medium text-gray-900">
+                  {p.full_name || '(no name)'}
+                  {isAdminEmail(p.email) && <span className="ml-2 rounded bg-black px-2 py-0.5 text-xs text-white">Admin</span>}
+                </p>
                 <p className="text-sm text-gray-500">
                   {p.email} · joined {new Date(p.created_at).toLocaleDateString('en-GB')}
                 </p>
@@ -166,7 +245,12 @@ export default function MembersManagement() {
                   </div>
                 )}
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                {tab === 'approved' && p.email && !isAdminEmail(p.email) && (
+                  <button onClick={() => setAdmin(p.email!, true)} disabled={busy} className={`${btn} ring-1 ring-gray-300 hover:bg-gray-50 disabled:opacity-50`}>
+                    Make admin
+                  </button>
+                )}
                 {tab !== 'approved' && (
                   <button
                     onClick={() => openApprove(p)}
@@ -177,7 +261,7 @@ export default function MembersManagement() {
                     Approve
                   </button>
                 )}
-                {tab !== 'rejected' && (
+                {tab !== 'rejected' && p.email?.toLowerCase() !== myEmail && (
                   <button onClick={() => setStatus(p, 'rejected')} className={`${btn} text-red-700 ring-1 ring-red-200 hover:bg-red-50`}>
                     {tab === 'approved' ? 'Remove' : 'Reject'}
                   </button>
