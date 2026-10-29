@@ -6,7 +6,7 @@ import { homeFor } from '@/lib/auth';
 // Routes that need a signed-in admin
 const adminRoutes = ['/admin'];
 // Routes that need any signed-in account (the page itself handles pending approval)
-const memberRoutes = ['/dashboard'];
+const memberRoutes = ['/dashboard', '/score'];
 // Routes only for signed-out visitors
 const authRoutes = ['/login'];
 
@@ -47,5 +47,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/dashboard/:path*', '/login', '/auth/callback'],
+  matcher: ['/admin/:path*', '/dashboard/:path*', '/score/:path*', '/login', '/auth/callback'],
 };

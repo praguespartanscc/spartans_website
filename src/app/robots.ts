@@ -7,7 +7,7 @@ import { SITE_URL } from '@/lib/club';
 // these rules, so there are none.
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [{ userAgent: '*', allow: '/', disallow: ['/api/', '/auth/', '/admin', '/dashboard'] }],
+    rules: [{ userAgent: '*', allow: '/', disallow: ['/api/', '/auth/', '/admin', '/dashboard', '/score'] }],
     sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }

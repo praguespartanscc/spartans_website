@@ -187,6 +187,13 @@ export default function MemberDashboard() {
 
   return (
     <Shell eyebrow="Member dashboard" title={<>Hi {firstName}</>} isAdmin={isAdmin}>
+      <Link href="/score" className="card card-hover -mt-4 mb-8 flex items-center justify-between gap-4 p-4 sm:p-5">
+        <span>
+          <span className="h-sub block text-xl">Indoor scorer</span>
+          <span className="block text-sm text-muted">Score an indoor match ball by ball, with the day&apos;s house rules.</span>
+        </span>
+        <ArrowRight size={20} className="shrink-0 text-gold" />
+      </Link>
       <nav aria-label="Dashboard sections" className="-mt-2 mb-8 flex gap-1 overflow-x-auto border-b border-cream/12">
         {TABS.map((t) => (
           <button

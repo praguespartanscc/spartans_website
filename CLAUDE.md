@@ -141,6 +141,7 @@ All motion lives in globals.css. Animate **only `transform` and `opacity`** (GPU
 | `.tick` | a changed digit slides in (re-key the element to replay) |
 | `.lightbox-in/-out`, `.photo-in/-next/-prev` | gallery viewer open/close and direction-aware photo change |
 | `.btn-gold` sheen | light sweep across gold buttons on hover |
+| `.sheet-in`, `.scrim-in` | scorer bottom sheet slides up over a fading scrim |
 
 Motion components: `ui/CountUp` (numbers count up; the server renders the final value),
 `Countdown` (next-match timer), `ScrollExtras` (`ReadingProgress` gold bar for long pages,

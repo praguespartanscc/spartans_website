@@ -1,6 +1,7 @@
 import type { BallRecord, InningsState, MatchState, TeamIndex } from './engine.ts';
 import { oversText, target, teamTotal } from './engine.ts';
 import { DISMISSAL_LABEL } from './rules.ts';
+import type { MatchSummary } from './store.ts';
 
 // Short chip text for one delivery, as on a scorecard: "4", "2wd", "1nb", "2b", "W", "R".
 export function ballLabel(b: BallRecord): string {
@@ -70,4 +71,14 @@ export function dismissalText(state: MatchState, team: TeamIndex, id: string): s
   if (b.status === 'retired') return 'retired';
   if (b.status === 'yet') return 'did not bat';
   return b.howOut ? DISMISSAL_LABEL[b.howOut].toLowerCase() : 'out';
+}
+
+// Small copy of the score for match lists, so they do not have to replay every match.
+export function summaryOf(state: MatchState): MatchSummary {
+  return {
+    innings: state.innings
+      .filter((inn) => inn.index === 0 || inn.legalBalls > 0 || inn.complete)
+      .map((inn) => ({ team: state.teams[inn.batting].name, total: teamTotal(state, inn.batting), wickets: inn.wickets, overs: inningsOvers(state, inn) })),
+    result: resultText(state),
+  };
 }

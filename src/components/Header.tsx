@@ -295,6 +295,9 @@ const Header = () => {
                         <Link role="menuitem" href="/dashboard" className="px-4 py-2.5 text-cream hover:bg-cream/10">
                           {tr(lang, { en: 'My dashboard', cs: 'Můj přehled' })}
                         </Link>
+                        <Link role="menuitem" href="/score" className="px-4 py-2.5 text-cream hover:bg-cream/10">
+                          {tr(lang, { en: 'Indoor scorer', cs: 'Halové skórování' })}
+                        </Link>
                         {isAdmin && (
                           <Link role="menuitem" href="/admin" className="px-4 py-2.5 text-cream hover:bg-cream/10">
                             {tr(lang, { en: 'Admin dashboard', cs: 'Administrace' })}
@@ -407,6 +410,9 @@ const Header = () => {
                 <>
                   <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="btn btn-outline btn-lg">
                     {tr(lang, { en: 'My dashboard', cs: 'Můj přehled' })}
+                  </Link>
+                  <Link href="/score" onClick={() => setMenuOpen(false)} className="btn btn-outline btn-lg">
+                    {tr(lang, { en: 'Indoor scorer', cs: 'Halové skórování' })}
                   </Link>
                   {isAdmin && (
                     <Link href="/admin" onClick={() => setMenuOpen(false)} className="btn btn-outline btn-lg">

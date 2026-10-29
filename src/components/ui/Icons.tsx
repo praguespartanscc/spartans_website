@@ -121,3 +121,25 @@ export const Instagram = (p: IconProps) => (
     <circle cx="17.5" cy="6.5" r="0.6" fill="currentColor" />
   </Base>
 );
+
+export const ArrowLeft = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M19 12H5" />
+    <path d="m11 6-6 6 6 6" />
+  </Base>
+);
+
+export const Undo = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M9 14 4 9l5-5" />
+    <path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />
+  </Base>
+);
+
+export const Share = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M12 3v12" />
+    <path d="m7 8 5-5 5 5" />
+    <path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5" />
+  </Base>
+);
