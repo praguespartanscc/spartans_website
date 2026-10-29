@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { getCommittee, getHonours, getMatches, getNews, getPractices, getSponsors, pragueToday, type Honour } from '@/lib/data';
+import { getCommittee, getHonours, getLiveNow, getMatches, getNews, getPractices, getSponsors, pragueToday, type Honour } from '@/lib/data';
 import { getLiveStatus } from '@/lib/youtube';
 import { getSitePhotos } from '@/lib/drive';
 import { PHOTO_SLOT, sitePhoto, sitePhotosFor } from '@/lib/photos';
@@ -245,7 +245,7 @@ function t10Year(honours: Honour[]): number | null {
 
 export default async function HomeView({ lang }: { lang: Lang }) {
   const today = pragueToday();
-  const [matches, practices, committee, sponsors, live, photos, honours, news] = await Promise.all([
+  const [matches, practices, committee, sponsors, live, photos, honours, news, liveNow] = await Promise.all([
     getMatches(),
     getPractices(),
     getCommittee(),
@@ -254,6 +254,7 @@ export default async function HomeView({ lang }: { lang: Lang }) {
     getSitePhotos(),
     getHonours(),
     getNews(),
+    getLiveNow(),
   ]);
 
   const upcoming = matches.filter((m) => m.result === 'will be played' && m.date >= today);
@@ -263,7 +264,7 @@ export default async function HomeView({ lang }: { lang: Lang }) {
   return (
     <>
       <JsonLd data={homeGraph(lang)} />
-      <LiveBar live={live.live} lang={lang} />
+      <LiveBar live={live.live} now={liveNow} lang={lang} />
       <HeroSection lang={lang} photos={photos} t10Year={t10Year(honours)} />
       <NextMatchBar match={next} live={!!next && next.date === today && !!next.stream_url} lang={lang} />
       <ValuesBand lang={lang} />

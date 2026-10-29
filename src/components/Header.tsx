@@ -110,13 +110,13 @@ const Header = () => {
     };
   }, []);
 
-  // Red dot on "Live" while the club's YouTube channel is streaming (checked every two minutes).
+  // Red dot on "Live" while the club streams, scores an indoor match, or trains (checked every two minutes).
   useEffect(() => {
     let cancelled = false;
     const check = () =>
       fetch('/api/live')
         .then((r) => (r.ok ? r.json() : null))
-        .then((d) => !cancelled && setIsLive(!!d?.live))
+        .then((d) => !cancelled && setIsLive(!!(d?.live || d?.indoor?.length || d?.session)))
         .catch(() => {});
     check();
     const timer = window.setInterval(check, 120_000);

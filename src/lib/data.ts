@@ -2,7 +2,7 @@ import 'server-only';
 import { cache } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import type { Achievement, CommitteeMember, Match, NewsPost, Player, Practice, Sponsor } from '@/types/supabase';
-import { HONOURS, POSITION_ORDER, SQUADS } from '@/lib/club';
+import { HONOURS, POSITION_ORDER, SQUADS, TRAINING } from '@/lib/club';
 import { slugify } from '@/lib/format';
 
 // Server-side reads for the public pages. Pages render this into their HTML
@@ -190,3 +190,48 @@ export const getHonours = cache(async (): Promise<Honour[]> => {
     cs: a.team ? `${a.team}: ${a.title_cs || a.title}` : a.title_cs || a.title,
   }));
 });
+
+// ---------- What is on right now (Live page, header badge, home page bar) ----------
+
+export type LiveIndoor = { share_slug: string; team_a: string; team_b: string; summary: { innings: { team: string; total: number; wickets: number; overs: string }[]; result: string | null } | null };
+export type TodaySession = { title: string; venue: string | null; start: string; end: string; status: 'now' | 'later' | 'done'; weekly: boolean };
+export type LiveNow = { indoor: LiveIndoor[]; sessions: TodaySession[] };
+
+const toMinutes = (t: string) => {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + (m || 0);
+};
+const hhmm = (mins: number) => `${String(Math.floor(mins / 60) % 24).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
+
+// Minutes since midnight and the weekday in Prague, whatever time zone the server runs in.
+function pragueClock(): { minutes: number; weekday: string } {
+  const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Prague', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', weekday: 'long' }).formatToParts(new Date());
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? '';
+  return { minutes: Number(get('hour')) * 60 + Number(get('minute')), weekday: get('weekday') };
+}
+
+export async function getLiveNow(): Promise<LiveNow> {
+  const today = pragueToday();
+  const clock = pragueClock();
+  const status = (start: number, end: number): TodaySession['status'] => (clock.minutes < start ? 'later' : clock.minutes < end ? 'now' : 'done');
+
+  const [indoorRes, practices] = await Promise.all([db ? db.rpc('live_indoor_matches') : Promise.resolve(null), getPractices()]);
+  const indoor = indoorRes && !indoorRes.error && Array.isArray(indoorRes.data) ? (indoorRes.data as LiveIndoor[]) : [];
+
+  // Sessions in the practice calendar today. Without an end time a session lasts two hours.
+  const sessions: TodaySession[] = practices
+    .filter((p) => p.date === today && p.time)
+    .map((p) => {
+      const start = toMinutes(p.time!);
+      const end = p.end_time ? toMinutes(p.end_time) : start + 120;
+      return { title: p.title || 'Training', venue: p.venue, start: hhmm(start), end: hhmm(end), status: status(start, end), weekly: false };
+    });
+
+  // The regular weekly nets count too, unless the calendar already has something today.
+  const weekly = TRAINING.weekly;
+  const [ws, we] = weekly.time.split('–');
+  if (!sessions.length && clock.weekday === weekly.day.en && ws && we) {
+    sessions.push({ title: 'Weekly nets', venue: weekly.venue.name, start: ws, end: we, status: status(toMinutes(ws), toMinutes(we)), weekly: true });
+  }
+  return { indoor, sessions };
+}

@@ -19,6 +19,7 @@ export default function PracticeRow({ practice, past, lang = 'en' }: { practice:
           <span className="inline-flex items-center gap-1.5">
             <Clock size={15} className="text-faint" />
             {d.weekday} {formatTime(practice.time)}
+            {practice.end_time ? `–${formatTime(practice.end_time)}` : ''}
           </span>
           {practice.venue && (
             <span className="inline-flex items-center gap-1.5">

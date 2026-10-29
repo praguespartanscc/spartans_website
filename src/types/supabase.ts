@@ -56,6 +56,7 @@ export type Practice = {
   second_team?: string | null;
   title?: string | null;
   description?: string | null;
+  end_time?: string | null; // migration 15
   created_at?: string;
 };
 

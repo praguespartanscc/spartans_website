@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getLiveStatus, type Video } from '@/lib/youtube';
+import { getLiveNow } from '@/lib/data';
+import LiveNowCards from '@/components/LiveNowCards';
 import { SITE_URL } from '@/lib/club';
 import { LOCALE, localePath, tr, type Lang } from '@/lib/i18n';
 import { pageMeta } from '@/lib/seo';
@@ -86,8 +88,9 @@ function VideoCard({ video, lang }: { video: Video; lang: Lang }) {
 }
 
 export default async function LiveView({ lang }: { lang: Lang }) {
-  const status = await getLiveStatus();
+  const [status, now] = await Promise.all([getLiveStatus(), getLiveNow()]);
   const next = status.upcoming[0];
+  const happening = now.indoor.length > 0 || now.sessions.some((s) => s.status === 'now');
 
   return (
     <>
@@ -97,7 +100,7 @@ export default async function LiveView({ lang }: { lang: Lang }) {
       <section className="border-b border-cream/12">
         <div className="container-x py-12 sm:py-16">
           <p className="eyebrow rise">
-            {status.live ? tr(lang, { en: 'Live now', cs: 'Právě živě' }) : tr(lang, { en: 'Watch live', cs: 'Sledujte živě' })}
+            {status.live || happening ? tr(lang, { en: 'Live now', cs: 'Právě živě' }) : tr(lang, { en: 'Watch live', cs: 'Sledujte živě' })}
           </p>
           <h1 className="display mt-3 text-[clamp(48px,8vw,104px)]">
             <span className="mask-line"><span style={{ ['--d' as string]: '80ms' }}>
@@ -113,6 +116,13 @@ export default async function LiveView({ lang }: { lang: Lang }) {
               cs: 'Spartans TV je kanál kriketového klubu Prague Spartans na YouTube. Když se hraje, vysíláme zápasy živě právě tady. Záznamy a sestřihy najdete níže.',
             })}
           </p>
+
+          {(now.indoor.length > 0 || now.sessions.some((s) => s.status !== 'done')) && (
+            <div className="rise mt-10" style={{ ['--d' as string]: '140ms' }}>
+              <h2 className="eyebrow mb-4">{tr(lang, { en: 'Happening today', cs: 'Dnes se děje' })}</h2>
+              <LiveNowCards now={now} lang={lang} />
+            </div>
+          )}
 
           <div className="rise mt-10" style={{ ['--d' as string]: '160ms' }}>
             {status.live ? (

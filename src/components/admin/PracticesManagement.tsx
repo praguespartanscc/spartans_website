@@ -12,10 +12,17 @@ type Practice = {
   type: string;
   notes: string;
   title?: string | null;
+  end_time?: string | null;
   first_team: string;
   second_team: string;
   created_at: string;
 };
+
+// The end time is only sent when there is one, so saving keeps working before migration 15.
+function withEnd<T extends { end_time: string }>(row: T, previous?: string | null) {
+  const { end_time, ...rest } = row;
+  return end_time || previous ? { ...rest, end_time: end_time || null } : rest;
+}
 
 export default function PracticesManagement() {
   const [practices, setPractices] = useState<Practice[]>([]);
@@ -23,6 +30,7 @@ export default function PracticesManagement() {
   const [newPractice, setNewPractice] = useState({
     date: '',
     time: '',
+    end_time: '',
     venue: '',
     type: 'regular',
     title: '',
@@ -69,7 +77,7 @@ export default function PracticesManagement() {
     try {
       const { data, error } = await supabase
         .from('practices')
-        .insert([{ ...newPractice, title: newPractice.title || null }])
+        .insert([withEnd({ ...newPractice, title: newPractice.title || null })])
         .select();
 
       if (error) throw error;
@@ -78,6 +86,7 @@ export default function PracticesManagement() {
       setNewPractice({
         date: '',
         time: '',
+        end_time: '',
         venue: '',
         type: 'regular',
         title: '',
@@ -124,6 +133,7 @@ export default function PracticesManagement() {
     setNewPractice({
       date: practice.date,
       time: practice.time,
+      end_time: practice.end_time?.slice(0, 5) ?? '',
       venue: practice.venue,
       type: practice.type,
       title: practice.title ?? '',
@@ -140,22 +150,23 @@ export default function PracticesManagement() {
     try {
       const { data, error } = await supabase
         .from('practices')
-        .update({
+        .update(withEnd({
           date: newPractice.date,
           time: newPractice.time,
+          end_time: newPractice.end_time,
           venue: newPractice.venue,
           type: newPractice.type,
           title: newPractice.title || null,
           notes: newPractice.notes,
           first_team: newPractice.first_team,
           second_team: newPractice.second_team
-        })
+        }, practices.find((p) => p.id === editPracticeId)?.end_time))
         .eq('id', editPracticeId)
         .select();
       if (error) throw error;
       setPractices(practices.map(p => p.id === editPracticeId ? (data ? data[0] : p) : p));
       setEditPracticeId(null);
-      setNewPractice({ date: '', time: '', venue: '', type: 'regular', title: '', notes: '', first_team: '', second_team: '' });
+      setNewPractice({ date: '', time: '', end_time: '', venue: '', type: 'regular', title: '', notes: '', first_team: '', second_team: '' });
       toast.success('Practice updated successfully!');
     } catch (error) {
       console.error('Error updating practice:', error);
@@ -167,7 +178,7 @@ export default function PracticesManagement() {
 
   function handleCancelEdit() {
     setEditPracticeId(null);
-    setNewPractice({ date: '', time: '', venue: '', type: 'regular', title: '', notes: '', first_team: '', second_team: '' });
+    setNewPractice({ date: '', time: '', end_time: '', venue: '', type: 'regular', title: '', notes: '', first_team: '', second_team: '' });
   }
 
   if (isAdmin === null) {
@@ -238,6 +249,16 @@ export default function PracticesManagement() {
               onChange={(e) => setNewPractice({ ...newPractice, time: e.target.value })}
               className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#000000] focus:ring-[#000000] text-sm"
               required
+            />
+          </div>
+          <div>
+            <label htmlFor="end_time" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Ends (optional, 2 hours if empty)</label>
+            <input
+              type="time"
+              id="end_time"
+              value={newPractice.end_time}
+              onChange={(e) => setNewPractice({ ...newPractice, end_time: e.target.value })}
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#000000] focus:ring-[#000000] text-sm"
             />
           </div>
           <div>
