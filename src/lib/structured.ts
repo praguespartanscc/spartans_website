@@ -22,8 +22,8 @@ export const clubRef = { '@id': ORG_ID };
 
 export function clubDescription(lang: Lang) {
   return tr(lang, {
-    en: `${CLUB_NAME} is an amateur cricket club in Prague, Czech Republic (Czechia), founded in ${FOUNDED}. Its three squads (Vanguards, Mobilizers and Strikers) play in Divisions 1, 2 and 3 of the Czech Cricket Union leagues, plus ČMKS T10 and ECS Czechia. Home ground: ${GROUND.name}, Vinoř, Prague 9.`,
-    cs: `${CLUB_NAME} je amatérský kriketový klub v Praze, založený v roce ${FOUNDED}. Jeho tři týmy (Vanguards, Mobilizers a Strikers) hrají 1., 2. a 3. divizi soutěží Českomoravského kriketového svazu a klub hraje také ČMKS T10 a ECS Czechia. Domácí hřiště: ${GROUND.localName}, Vinoř, Praha 9.`,
+    en: `${CLUB_NAME} is a cricket club in Prague, Czech Republic (Czechia), founded in ${FOUNDED}. Its three squads (Vanguards, Mobilizers and Strikers) play in Divisions 1, 2 and 3 of the Czech Cricket Union leagues, plus ČMKS T10 and ECS Czechia. Home ground: ${GROUND.name}, Vinoř, Prague 9.`,
+    cs: `${CLUB_NAME} je kriketový klub v Praze, založený v roce ${FOUNDED}. Jeho tři týmy (Vanguards, Mobilizers a Strikers) hrají 1., 2. a 3. divizi soutěží Českomoravského kriketového svazu a klub hraje také ČMKS T10 a ECS Czechia. Domácí hřiště: ${GROUND.localName}, Vinoř, Praha 9.`,
   });
 }
 

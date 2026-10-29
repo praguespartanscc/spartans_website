@@ -254,8 +254,8 @@ export default async function JoinView({ lang }: { lang: Lang }) {
           ),
         })}
         intro={tr(lang, {
-          en: 'Prague Spartans Cricket Club is an amateur cricket club in Prague, Czech Republic, founded in 2019. We train on Thursdays in Žižkov, Prague 3, play home matches at Vinoř Cricket Ground and welcome new players of every level and nationality.',
-          cs: 'Prague Spartans Cricket Club je amatérský kriketový klub v Praze, založený v roce 2019. Trénujeme ve čtvrtek v Praze 3 na Žižkově, domácí zápasy hrajeme na kriketovém hřišti ve Vinoři a rádi přivítáme nové hráče všech úrovní i národností.',
+          en: 'Prague Spartans Cricket Club is a cricket club in Prague, Czech Republic, founded in 2019. We train on Thursdays in Žižkov, Prague 3, play home matches at Vinoř Cricket Ground and welcome new players of every level and nationality.',
+          cs: 'Prague Spartans Cricket Club je kriketový klub v Praze, založený v roce 2019. Trénujeme ve čtvrtek v Praze 3 na Žižkově, domácí zápasy hrajeme na kriketovém hřišti ve Vinoři a rádi přivítáme nové hráče všech úrovní i národností.',
         })}
         image={sitePhotoUrl(photos, PHOTO_SLOT.join)}
         imagePosition="center 30%"

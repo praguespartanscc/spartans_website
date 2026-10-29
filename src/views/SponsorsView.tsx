@@ -22,8 +22,8 @@ export function sponsorsMeta(lang: Lang): Metadata {
     path: '/sponsors',
     title: pageTitle(lang),
     description: tr(lang, {
-      en: 'The sponsors and partners who support Prague Spartans Cricket Club in Prague, and how your business can back amateur cricket in the Czech Republic.',
-      cs: 'Sponzoři a partneři, kteří podporují kriketový klub Prague Spartans v Praze, a jak může amatérský kriket v Česku podpořit i vaše firma.',
+      en: 'The sponsors and partners who support Prague Spartans Cricket Club in Prague, and how your business can back cricket in the Czech Republic.',
+      cs: 'Sponzoři a partneři, kteří podporují kriketový klub Prague Spartans v Praze, a jak může kriket v Česku podpořit i vaše firma.',
     }),
   });
 }

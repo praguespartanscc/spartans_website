@@ -140,8 +140,8 @@ const CLUBS: Club[] = [
     url: 'https://www.facebook.com/praguetigerscc/',
     linkLabel: 'Facebook',
     text: {
-      en: 'Amateur cricket club in Prague. Went into ECS Czechia 2026 as the defending Premier Division champions.',
-      cs: 'Amatérský kriketový klub v Praze. Do ECS Czechia 2026 vstupoval jako obhájce titulu v Premier Division.',
+      en: 'Cricket club in Prague. Went into ECS Czechia 2026 as the defending Premier Division champions.',
+      cs: 'Kriketový klub v Praze. Do ECS Czechia 2026 vstupoval jako obhájce titulu v Premier Division.',
     },
     cite: ['ecs'],
   },

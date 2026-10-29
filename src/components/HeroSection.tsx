@@ -136,8 +136,8 @@ const HeroSection = ({ lang = 'en', photos = [], t10Year = null }: { lang?: Lang
             </p>
             <p className="rise mt-4 text-lg leading-relaxed text-sand" style={{ ['--d' as string]: '440ms' }}>
               {tr(lang, {
-                en: 'Prague Spartans Cricket Club is an amateur cricket club in Prague, Czech Republic, founded in 2019. Our three squads (Vanguards, Mobilizers and Strikers) play Divisions 1, 2 and 3 of the Czech Cricket Union leagues, plus ČMKS T10 and ECS Czechia, with home games at Vinoř Cricket Ground. Every level is welcome.',
-                cs: 'Prague Spartans Cricket Club je amatérský kriketový klub v Praze, založený v roce 2019. Naše tři týmy (Vanguards, Mobilizers a Strikers) hrají 1., 2. a 3. divizi Českomoravského kriketového svazu a klub hraje také ČMKS T10 a ECS Czechia. Domácí zápasy hrajeme na kriketovém hřišti ve Vinoři. Vítáme hráče všech úrovní.',
+                en: 'Prague Spartans Cricket Club is a cricket club in Prague, Czech Republic, founded in 2019. Our three squads (Vanguards, Mobilizers and Strikers) play Divisions 1, 2 and 3 of the Czech Cricket Union leagues, plus ČMKS T10 and ECS Czechia, with home games at Vinoř Cricket Ground. Every level is welcome.',
+                cs: 'Prague Spartans Cricket Club je kriketový klub v Praze, založený v roce 2019. Naše tři týmy (Vanguards, Mobilizers a Strikers) hrají 1., 2. a 3. divizi Českomoravského kriketového svazu a klub hraje také ČMKS T10 a ECS Czechia. Domácí zápasy hrajeme na kriketovém hřišti ve Vinoři. Vítáme hráče všech úrovní.',
               })}
             </p>
             <div className="rise mt-7 flex flex-wrap gap-3" style={{ ['--d' as string]: '500ms' }}>
