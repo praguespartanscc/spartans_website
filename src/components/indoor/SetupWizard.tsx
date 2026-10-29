@@ -15,7 +15,7 @@ import RulesEditor from './RulesEditor';
 import { ArrowLeft, ArrowRight, Close } from '@/components/ui/Icons';
 
 const STEPS = ['Teams', 'Squads', 'Rules', 'Toss', 'Start'] as const;
-const OVERS = [5, 6, 10, 12, 15];
+const OVERS = [5, 6, 8, 10, 12, 15];
 const LAST_RULES = 'indoor:lastRules';
 
 const todayInPrague = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Prague' }).format(new Date());

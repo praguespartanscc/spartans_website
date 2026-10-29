@@ -318,7 +318,7 @@ test('chasing a negative total still gets to bat', () => {
 test('overs can be cut for a late side', () => {
   const st = new Log().event({ type: 'oversChange', data: { overs: 1 } } as IndoorEvent).over('b1').play(setup(rules()));
   assert.equal(inn0(st).complete, true);
-  assert.equal(inn1(st).oversLimit, 10);
+  assert.equal(inn1(st).oversLimit, 8);
 });
 
 test('a behaviour penalty changes the side total', () => {
@@ -415,4 +415,11 @@ test('quick game: every wall is 1 plus running, no retirement', () => {
 test('ball chips read like a scorecard', () => {
   const st = new Log().bowl('b1').run(0, 'farFull').extra('wide').extra('noBall', 1).extra('bye', 1).out().play(setup(rules()));
   assert.deepEqual(inn0(st).overs[0].balls.map(ballLabel), ['4', '2wd', '3nb', '1b', 'W -5']);
+});
+
+test('league preset defaults: 8 overs, far wall 4 on the full and 6 after a bounce', () => {
+  const league = PRESETS.find((p) => p.presetId === 'league')!;
+  assert.equal(league.match.oversPerInnings, 8);
+  assert.equal(league.zones.find((z) => z.id === 'farFull')?.runs, 4);
+  assert.equal(league.zones.find((z) => z.id === 'farBounce')?.runs, 6);
 });

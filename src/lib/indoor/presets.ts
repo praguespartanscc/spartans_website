@@ -37,7 +37,7 @@ export const LEAGUE_RULES: IndoorRules = {
   presetId: 'league',
   name: 'Indoor league (standard)',
   match: {
-    oversPerInnings: 10,
+    oversPerInnings: 8,
     ballsPerOver: 6,
     minPlayers: 5,
     maxOversPerBowler: 3,
