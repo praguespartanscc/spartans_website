@@ -128,6 +128,7 @@ create policy "Scorers change indoor events" on public.indoor_events
 create or replace function public.touch_indoor_event()
 returns trigger
 language plpgsql
+set search_path = public
 as $$
 begin
   if tg_op = 'UPDATE' and new.match_id is distinct from old.match_id then
