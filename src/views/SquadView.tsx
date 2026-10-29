@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getPlayers, getSquads } from '@/lib/data';
-import { COMPETITIONS, GROUND, PLAYER_GROUPS, PLAYER_GROUPS_CS, ROLE_LABEL, SITE_URL, SQUADS, TRAINING, squadBySlug } from '@/lib/club';
+import { COMPETITIONS, GROUND, PLAYER_GROUPS, PLAYER_GROUPS_CS, ROLE_LABEL, SEASON, SITE_URL, SQUADS, TRAINING, squadBySlug } from '@/lib/club';
 import Reveal from '@/components/ui/Reveal';
 import Avatar from '@/components/ui/Avatar';
 import PlayerCard from '@/components/PlayerCard';
@@ -41,8 +41,8 @@ export function squadMeta(lang: Lang, slug: string): Metadata {
       cs: `${squad.name}, kriketový tým ${division}`,
     }),
     description: tr(lang, {
-      en: `${squad.name} is the Prague Spartans Cricket Club squad playing ${division} of the Czech Cricket Union league in 2026. Squad list, captain, fixtures and player profiles.`,
-      cs: `${squad.name} je tým kriketového klubu Prague Spartans, který v sezóně 2026 hraje ${squad.division}. divizi soutěží Českomoravského kriketového svazu. Soupiska, kapitán, zápasy a profily hráčů.`,
+      en: `${squad.name} is the Prague Spartans Cricket Club squad playing ${division} of the Czech Cricket Union league in ${SEASON}. Squad list, captain, fixtures and player profiles.`,
+      cs: `${squad.name} je tým kriketového klubu Prague Spartans, který v sezóně ${SEASON} hraje ${squad.division}. divizi soutěží Českomoravského kriketového svazu. Soupiska, kapitán, zápasy a profily hráčů.`,
     }),
   });
 }

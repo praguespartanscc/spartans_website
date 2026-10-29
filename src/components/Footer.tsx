@@ -14,6 +14,8 @@ const columns = [
       { href: '/committee', label: { en: 'Committee', cs: 'Výbor' } },
       { href: '/sponsors', label: { en: 'Sponsors', cs: 'Sponzoři' } },
       { href: '/join', label: { en: 'Join the club', cs: 'Přidejte se' } },
+      { href: '/safeguarding', label: { en: 'Safeguarding', cs: 'Bezpečí dětí' } },
+      { href: '/privacy', label: { en: 'Privacy', cs: 'Ochrana údajů' } },
     ],
   },
   {

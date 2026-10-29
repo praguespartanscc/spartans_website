@@ -1,12 +1,15 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import { getSitePhotos } from '@/lib/drive';
+import { PHOTO_SLOT, sitePhoto } from '@/lib/photos';
+import SitePhoto from '@/components/ui/SitePhoto';
 import { ArrowRight } from '@/components/ui/Icons';
 import { localePath, tr, type Lang } from '@/lib/i18n';
 
-export default function NotFoundContent({ lang }: { lang: Lang }) {
+export default async function NotFoundContent({ lang }: { lang: Lang }) {
+  const photos = await getSitePhotos();
   return (
     <section className="relative isolate flex min-h-[calc(100svh-64px)] items-center overflow-hidden lg:min-h-[calc(100svh-152px)]">
-      <Image src="/home_carouse2.jpeg" alt="" fill priority sizes="100vw" className="kenburns -z-20 object-cover" />
+      <SitePhoto photo={sitePhoto(photos, PHOTO_SLOT.notFound)} sizes="100vw" decorative eager className="kenburns -z-20" />
       <div className="absolute inset-0 -z-10 bg-ink/85" />
       <div className="container-x py-20">
         <p className="eyebrow rise mb-4" style={{ ['--d' as string]: '60ms' }}>

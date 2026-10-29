@@ -6,10 +6,14 @@ import SectionHeading from '@/components/ui/SectionHeading';
 import { ArrowRight } from '@/components/ui/Icons';
 import { localePath, tr, type Lang } from '@/lib/i18n';
 
-// Strip of the newest gallery photos on the home page. Hidden until there are photos.
-// `href` is the English album path; it is localised here.
+const COLS: Record<number, string> = { 1: 'sm:grid-cols-1', 2: 'sm:grid-cols-2', 3: 'sm:grid-cols-3', 4: 'sm:grid-cols-4' };
+
+// Grid of the Drive "Thumbnails" photos on the home page. Hidden when there are none.
+// `href` is the English path. It is localised here.
 export default function GallerySection({ photos, lang = 'en' }: { photos: { photo: Photo; href: string }[]; lang?: Lang }) {
-  if (photos.length < 4) return null;
+  if (photos.length === 0) return null;
+  // With only a few photos, skip the big first tile and use fewer columns.
+  const few = photos.length < 5;
 
   return (
     <section className="py-20 sm:py-28" aria-labelledby="gallery-heading">
@@ -24,15 +28,15 @@ export default function GallerySection({ photos, lang = 'en' }: { photos: { phot
             </Link>
           }
         />
-        <Reveal className="stagger grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+        <Reveal className={`stagger grid grid-cols-2 gap-2 sm:gap-3 ${few ? COLS[Math.min(photos.length, 4)] : 'sm:grid-cols-4'}`}>
           {photos.slice(0, 8).map(({ photo, href }, i) => (
             <Link
               key={photo.id}
               href={localePath(lang, href)}
-              aria-label={tr(lang, { en: 'Open photo album', cs: 'Otevřít fotoalbum' })}
-              className={`group relative block overflow-hidden bg-panel-2 ${i === 0 ? 'col-span-2 row-span-2' : ''}`}
+              aria-label={tr(lang, { en: 'Open the photo gallery', cs: 'Otevřít fotogalerii' })}
+              className={`group relative block overflow-hidden bg-panel-2 ${i === 0 && !few ? 'col-span-2 row-span-2' : ''} ${photos.length === 1 ? 'col-span-2 sm:col-span-1' : ''}`}
             >
-              <span className="block aspect-square">
+              <span className={`block ${photos.length === 1 ? 'aspect-[16/9]' : 'aspect-square'}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element -- resized by Google's image CDN */}
                 <img
                   src={photoUrl(photo.id, i === 0 ? 1200 : 600)}

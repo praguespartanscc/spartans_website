@@ -1,3 +1,5 @@
+import { getSitePhotos } from '@/lib/drive';
+import { PHOTO_SLOT, sitePhotoUrl } from '@/lib/photos';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getPractices, pragueToday } from '@/lib/data';
@@ -39,6 +41,7 @@ function MapLink({ href, lang }: { href: string; lang: Lang }) {
 }
 
 export default async function PracticesView({ lang }: { lang: Lang }) {
+  const photos = await getSitePhotos();
   const today = pragueToday();
   const all = await getPractices();
   const upcoming = all.filter((p) => p.date >= today);
@@ -67,7 +70,7 @@ export default async function PracticesView({ lang }: { lang: Lang }) {
           en: 'Prague Spartans Cricket Club usually trains on Thursdays from 17:00 to 19:00 in the cricket nets at Tenisové centrum Olšanská in Žižkov, Prague 3, with indoor sessions through the winter. Beginners and experienced players are welcome.',
           cs: 'Prague Spartans Cricket Club obvykle trénuje ve čtvrtek od 17:00 do 19:00 v kriketových sítích v Tenisovém centru Olšanská v Praze 3 na Žižkově a v zimě v hale. Vítáme začátečníky i zkušené hráče.',
         })}
-        image="/home_carousel.jpeg"
+        image={sitePhotoUrl(photos, PHOTO_SLOT.practices)}
         imagePosition="center 40%"
       />
 

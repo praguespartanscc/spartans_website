@@ -1,4 +1,5 @@
-import Image from 'next/image';
+import type { Photo } from '@/lib/drive';
+import SitePhoto from '@/components/ui/SitePhoto';
 import Link from 'next/link';
 import type { Practice } from '@/types/supabase';
 import Reveal from '@/components/ui/Reveal';
@@ -7,7 +8,7 @@ import { ArrowRight } from '@/components/ui/Icons';
 import { TRAINING } from '@/lib/club';
 import { localePath, tr, type Lang } from '@/lib/i18n';
 
-const PracticeSection = ({ practices, lang = 'en' }: { practices: Practice[]; lang?: Lang }) => {
+const PracticeSection = ({ practices, photo = null, lang = 'en' }: { practices: Practice[]; photo?: Photo | null; lang?: Lang }) => {
   const weekly = TRAINING.weekly;
   return (
     <section className="py-20 sm:py-28" aria-labelledby="practice-heading">
@@ -81,18 +82,11 @@ const PracticeSection = ({ practices, lang = 'en' }: { practices: Practice[]; la
           </Reveal>
         </div>
 
-        <Reveal delay={120} className="zoom-frame relative aspect-[4/5] overflow-hidden sm:aspect-[4/3] lg:aspect-[4/5]">
-          <Image
-            src="/story2.jpeg"
-            alt={tr(lang, {
-              en: 'Spartans players in whites with a trophy after an indoor tournament',
-              cs: 'Hráči Spartans v bílém s trofejí po halovém turnaji',
-            })}
-            fill
-            sizes="(min-width: 1024px) 50vw, 100vw"
-            className="object-cover"
-          />
-        </Reveal>
+        {photo && (
+          <Reveal delay={120} className="zoom-frame relative aspect-[4/5] overflow-hidden sm:aspect-[4/3] lg:aspect-[4/5]">
+            <SitePhoto photo={photo} lang={lang} sizes="(min-width: 1024px) 50vw, 100vw" />
+          </Reveal>
+        )}
       </div>
     </section>
   );

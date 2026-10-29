@@ -6,6 +6,7 @@ import { CLUB_NAME, SITE_URL } from "@/lib/club";
 import { OG_IMAGE } from "@/lib/seo";
 import { SupabaseProviderWrapper } from "@/components/ClientProviders";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 // Brand Manual v1.1 type system, using open-licence web equivalents:
 // Graduate for Varsity Team / College (display), Barlow Condensed italic
@@ -88,6 +89,7 @@ export default function RootLayout({
         {/* Header, main and footer come from the English (site) and Czech (cs) layouts. */}
         <SupabaseProviderWrapper>{children}</SupabaseProviderWrapper>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

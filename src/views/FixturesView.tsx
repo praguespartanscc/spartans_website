@@ -1,3 +1,5 @@
+import { getSitePhotos } from '@/lib/drive';
+import { PHOTO_SLOT, sitePhotoUrl } from '@/lib/photos';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getMatches, pragueToday } from '@/lib/data';
@@ -10,6 +12,7 @@ import PageHero from '@/components/ui/PageHero';
 import FixturesBoard from '@/components/FixturesBoard';
 import JoinCta from '@/components/JoinCta';
 import JsonLd from '@/components/JsonLd';
+import OffSeason from '@/components/OffSeason';
 import Reveal from '@/components/ui/Reveal';
 import SectionHeading from '@/components/ui/SectionHeading';
 import { ArrowUpRight } from '@/components/ui/Icons';
@@ -32,6 +35,7 @@ export function fixturesMeta(lang: Lang): Metadata {
 }
 
 export default async function FixturesView({ lang }: { lang: Lang }) {
+  const photos = await getSitePhotos();
   const matches = await getMatches();
   const label = tr(lang, { en: 'Fixtures & results', cs: 'Zápasy a výsledky' });
 
@@ -79,12 +83,16 @@ export default async function FixturesView({ lang }: { lang: Lang }) {
             </>
           ),
         })}
-        image="/home_carousel1.jpeg"
+        image={sitePhotoUrl(photos, PHOTO_SLOT.fixtures)}
       />
 
       <section className="py-12 sm:py-16">
         <div className="container-x">
-          <FixturesBoard matches={matches} today={pragueToday()} squads={SQUADS.map((s) => s.name)} lang={lang} />
+          {matches.length === 0 ? (
+            <OffSeason lang={lang} />
+          ) : (
+            <FixturesBoard matches={matches} today={pragueToday()} squads={SQUADS.map((s) => s.name)} lang={lang} />
+          )}
         </div>
       </section>
 

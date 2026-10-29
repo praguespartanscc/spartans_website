@@ -1,3 +1,5 @@
+import { getSitePhotos } from '@/lib/drive';
+import { PHOTO_SLOT, sitePhotoUrl } from '@/lib/photos';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Image from 'next/image';
@@ -166,7 +168,8 @@ function questions(lang: Lang): { q: string; a: ReactNode }[] {
   });
 }
 
-export default function JoinView({ lang }: { lang: Lang }) {
+export default async function JoinView({ lang }: { lang: Lang }) {
+  const photos = await getSitePhotos();
   const L = (path: string) => localePath(lang, path);
 
   const steps = tr(lang, {
@@ -251,7 +254,7 @@ export default function JoinView({ lang }: { lang: Lang }) {
           en: 'Prague Spartans Cricket Club is an amateur cricket club in Prague, Czech Republic, founded in 2019. We train on Thursdays in Žižkov, Prague 3, play home matches at Vinoř Cricket Ground and welcome new players of every level and nationality.',
           cs: 'Prague Spartans Cricket Club je amatérský kriketový klub v Praze, založený v roce 2019. Trénujeme ve čtvrtek v Praze 3 na Žižkově, domácí zápasy hrajeme na kriketovém hřišti ve Vinoři a rádi přivítáme nové hráče všech úrovní i národností.',
         })}
-        image="/spartan_team.PNG"
+        image={sitePhotoUrl(photos, PHOTO_SLOT.join)}
         imagePosition="center 30%"
       >
         <div className="flex flex-wrap gap-3">
