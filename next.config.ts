@@ -11,6 +11,13 @@ const nextConfig: NextConfig = {
   // The join form moved to /join, the page people search for ("play cricket in Prague").
   async redirects() {
     return [
+      // One address for search engines: www forwards to the bare domain, keeping the path.
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.praguespartanscc.com" }],
+        destination: "https://praguespartanscc.com/:path*",
+        permanent: true,
+      },
       { source: "/contact", destination: "/join", permanent: true },
       { source: "/cs/contact", destination: "/cs/join", permanent: true },
     ];
