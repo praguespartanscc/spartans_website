@@ -1,11 +1,14 @@
-import Image from 'next/image';
+import type { Photo } from '@/lib/drive';
+import { photoCaption } from '@/lib/photos';
+import SitePhoto from '@/components/ui/SitePhoto';
 import Link from 'next/link';
 import Reveal from '@/components/ui/Reveal';
 import { ArrowRight } from '@/components/ui/Icons';
 import { FOUNDED } from '@/lib/club';
 import { localePath, tr, type Lang } from '@/lib/i18n';
 
-export default function StorySection({ lang = 'en' }: { lang?: Lang }) {
+// photos: up to two pictures from the Drive Thumbnails folder.
+export default function StorySection({ lang = 'en', photos = [] }: { lang?: Lang; photos?: Photo[] }) {
   return (
     <section className="border-t border-cream/12 py-20 sm:py-28" aria-labelledby="story-heading">
       <div className="container-x grid items-center gap-12 lg:grid-cols-[1fr_1.15fr] lg:gap-16">
@@ -58,42 +61,21 @@ export default function StorySection({ lang = 'en' }: { lang?: Lang }) {
           </div>
         </Reveal>
 
-        <div className="grid grid-cols-2 gap-4">
-          <Reveal delay={100} as="figure" className="col-span-2 m-0">
-            <Reveal delay={150} className="wipe zoom-frame relative aspect-[16/9]">
-              <Image
-                src="/home_carouse2.jpeg"
-                alt={tr(lang, {
-                  en: 'A row of silver Prague Spartans award trophies',
-                  cs: 'Řada stříbrných trofejí klubu Prague Spartans',
-                })}
-                fill
-                sizes="(min-width: 1024px) 55vw, 100vw"
-                className="object-cover"
-              />
-            </Reveal>
-            <figcaption className="mt-2 text-[14px] text-faint">
-              {tr(lang, { en: 'Season 2024 player awards', cs: 'Ocenění hráčů za sezónu 2024' })}
-            </figcaption>
-          </Reveal>
-          <Reveal delay={180} as="figure" className="col-span-2 m-0 sm:col-span-2">
-            <Reveal delay={260} className="wipe zoom-frame relative aspect-[16/9]">
-              <Image
-                src="/story1.jpeg"
-                alt={tr(lang, {
-                  en: 'Club members gathered outside a restaurant in Prague with their awards',
-                  cs: 'Členové klubu s oceněními před restaurací v Praze',
-                })}
-                fill
-                sizes="(min-width: 1024px) 55vw, 100vw"
-                className="object-cover object-[center_60%]"
-              />
-            </Reveal>
-            <figcaption className="mt-2 text-[14px] text-faint">
-              {tr(lang, { en: 'Awards night with the squad', cs: 'Večer vyhlášení klubových ocenění' })}
-            </figcaption>
-          </Reveal>
-        </div>
+        {photos.length > 0 && (
+          <div className="grid grid-cols-2 gap-4">
+            {photos.map((photo, i) => {
+              const caption = photoCaption(photo.name);
+              return (
+                <Reveal key={`${photo.id}-${i}`} delay={100 + i * 80} as="figure" className="col-span-2 m-0">
+                  <Reveal delay={150 + i * 110} className="wipe zoom-frame relative aspect-[16/9]">
+                    <SitePhoto photo={photo} lang={lang} sizes="(min-width: 1024px) 55vw, 100vw" />
+                  </Reveal>
+                  {caption && <figcaption className="mt-2 text-[14px] text-muted">{caption}</figcaption>}
+                </Reveal>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );

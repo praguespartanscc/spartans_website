@@ -1,3 +1,5 @@
+import { getSitePhotos } from '@/lib/drive';
+import { PHOTO_SLOT, sitePhotoUrl } from '@/lib/photos';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -55,6 +57,7 @@ export function playersMeta(lang: Lang): Metadata {
 }
 
 export default async function PlayersView({ lang }: { lang: Lang }) {
+  const photos = await getSitePhotos();
   const players = await getPlayers();
   const unassigned = players.filter((p) => !SQUADS.some((s) => s.name === p.team));
   const squadsLabel = tr(lang, { en: 'Squads', cs: 'Týmy' });
@@ -82,7 +85,7 @@ export default async function PlayersView({ lang }: { lang: Lang }) {
           en: `Prague Spartans Cricket Club fields three squads in the ${SEASON} Czech Cricket Union leagues: Vanguards in Division 1, Mobilizers in Division 2 and Strikers in Division 3. Tap a player for their profile, or open a squad for the full line-up.`,
           cs: `Kriketový klub Prague Spartans má v sezóně ${SEASON} v soutěžích Českomoravského kriketového svazu tři týmy: Vanguards hrají 1. divizi, Mobilizers 2. divizi a Strikers 3. divizi. Kliknutím na hráče zobrazíte jeho profil, celou soupisku najdete na stránce týmu.`,
         })}
-        image="/spartan_team.PNG"
+        image={sitePhotoUrl(photos, PHOTO_SLOT.players)}
       >
         <nav aria-label={tr(lang, { en: 'Jump to a squad', cs: 'Přejít na tým' })} className="flex flex-wrap gap-2">
           {SQUADS.map((squad) => (

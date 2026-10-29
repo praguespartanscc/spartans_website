@@ -3,7 +3,8 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { getCommittee, getMatches, getPractices, getSponsors, pragueToday } from '@/lib/data';
 import { getLiveStatus } from '@/lib/youtube';
-import { latestPhotos } from '@/lib/drive';
+import { getSitePhotos } from '@/lib/drive';
+import { PHOTO_SLOT, sitePhoto, sitePhotosFor } from '@/lib/photos';
 import {
   CLUB_EMAIL,
   FOUNDED,
@@ -237,13 +238,13 @@ function ClubFacts({ lang }: { lang: Lang }) {
 
 export default async function HomeView({ lang }: { lang: Lang }) {
   const today = pragueToday();
-  const [matches, practices, committee, sponsors, live, gallery] = await Promise.all([
+  const [matches, practices, committee, sponsors, live, photos] = await Promise.all([
     getMatches(),
     getPractices(),
     getCommittee(),
     getSponsors(),
     getLiveStatus(),
-    latestPhotos(8),
+    getSitePhotos(),
   ]);
 
   const upcoming = matches.filter((m) => m.result === 'will be played' && m.date >= today);
@@ -254,21 +255,18 @@ export default async function HomeView({ lang }: { lang: Lang }) {
     <>
       <JsonLd data={homeGraph(lang)} />
       <LiveBar live={live.live} lang={lang} />
-      <HeroSection lang={lang} />
+      <HeroSection lang={lang} photos={photos} />
       <NextMatchBar match={next} live={!!next && next.date === today && !!next.stream_url} lang={lang} />
       <ValuesBand lang={lang} />
       {lang === 'cs' && <CricketIntroCs />}
       <SquadsSection lang={lang} />
       <EventsSection upcoming={upcoming.slice(0, 4)} latest={latest} today={today} lang={lang} />
       <SponsorsSection sponsors={sponsors} lang={lang} />
-      <QuoteBand lang={lang} />
-      <PracticeSection practices={practices.filter((p) => p.date >= today).slice(0, 3)} lang={lang} />
-      <StorySection lang={lang} />
+      <QuoteBand lang={lang} photo={sitePhoto(photos, PHOTO_SLOT.quote)} />
+      <PracticeSection practices={practices.filter((p) => p.date >= today).slice(0, 3)} photo={sitePhoto(photos, PHOTO_SLOT.practice)} lang={lang} />
+      <StorySection lang={lang} photos={sitePhotosFor(photos, [PHOTO_SLOT.story, PHOTO_SLOT.story2])} />
       <ClubFacts lang={lang} />
-      <GallerySection
-        photos={gallery.map(({ photo, album }) => ({ photo, href: `/gallery/${album.path.join('/')}` }))}
-        lang={lang}
-      />
+      <GallerySection photos={photos.slice(0, 8).map((photo) => ({ photo, href: '/gallery' }))} lang={lang} />
       <CommitteeSection members={committee} lang={lang} />
       <JoinCta lang={lang} />
     </>

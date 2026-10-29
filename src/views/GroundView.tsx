@@ -1,3 +1,5 @@
+import { getSitePhotos } from '@/lib/drive';
+import { PHOTO_SLOT, sitePhotoUrl } from '@/lib/photos';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
@@ -101,7 +103,8 @@ function Block({ id, eyebrow, title, children }: { id: string; eyebrow: string; 
   );
 }
 
-export default function GroundView({ lang }: { lang: Lang }) {
+export default async function GroundView({ lang }: { lang: Lang }) {
+  const photos = await getSitePhotos();
   const address = `${GROUND.streetAddress}, ${GROUND.postalCode} ${GROUND.locality}`;
 
   return (
@@ -129,7 +132,7 @@ export default function GroundView({ lang }: { lang: Lang }) {
           en: `Prague Spartans Cricket Club plays its home matches at ${GROUND.name} (${GROUND.pitch}) on the north-eastern edge of Prague. Here is the address, how to get there and how to watch a match.`,
           cs: `Kriketový klub Prague Spartans hraje domácí zápasy na kriketovém hřišti ve Vinoři (${GROUND.pitch}) na severovýchodním okraji Prahy. Najdete tu adresu, cestu na hřiště a informace pro diváky.`,
         })}
-        image="/home_carousel.jpeg"
+        image={sitePhotoUrl(photos, PHOTO_SLOT.ground)}
       />
 
       {/* Address */}

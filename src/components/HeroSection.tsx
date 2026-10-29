@@ -1,8 +1,10 @@
 'use client';
 
 import Image from 'next/image';
+import type { Photo } from '@/lib/drive';
+import { photoCaption, photoSrcSet, photoUrl } from '@/lib/photos';
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight } from '@/components/ui/Icons';
 import CountUp from '@/components/ui/CountUp';
 import { FOUNDED, HONOURS } from '@/lib/club';
@@ -10,29 +12,22 @@ import { localePath, tr, type Lang } from '@/lib/i18n';
 
 const SLIDE_MS = 6500;
 
-const slides = [
-  {
-    src: '/spartan_team.PNG',
-    alt: {
-      en: 'Prague Spartans Cricket Club players in black and red kit',
-      cs: 'Hráči kriketového klubu Prague Spartans v černo-červených dresech',
-    },
-    position: 'center 30%',
-  },
-  {
-    src: '/home_carousel1.jpeg',
-    alt: { en: 'Spartans players lined up on the outfield', cs: 'Hráči Spartans seřazení na hřišti' },
-    position: 'center 35%',
-  },
-  {
-    src: '/home_carousel.jpeg',
-    alt: {
-      en: 'Spartans celebrating with a trophy after an indoor tournament',
-      cs: 'Hráči Spartans slaví s trofejí po halovém turnaji',
-    },
-    position: 'center 40%',
-  },
-];
+const MAX_SLIDES = 6;
+
+type Slide = { id: string; alt: { en: string; cs: string } };
+
+// Slides come from the Drive "Thumbnails" folder, in name order.
+function toSlides(photos: Photo[]): Slide[] {
+  return photos.slice(0, MAX_SLIDES).map((p) => {
+    const caption = photoCaption(p.name);
+    return {
+      id: p.id,
+      alt: caption
+        ? { en: `${caption}, Prague Spartans Cricket Club`, cs: `${caption}, kriketový klub Prague Spartans` }
+        : { en: 'Prague Spartans Cricket Club players', cs: 'Hráči kriketového klubu Prague Spartans' },
+    };
+  });
+}
 
 // Numeric stats count up on load (from `from`); text stats stay as they are.
 const stats: { value: string; count?: { to: number; from: number }; label: { en: string; cs: string } }[] = [
@@ -45,7 +40,8 @@ const stats: { value: string; count?: { to: number; from: number }; label: { en:
     .map((h) => ({ value: 'T10', label: { en: `${h.year} ČMKS winners`, cs: `Vítězové ČMKS ${h.year}` } })),
 ];
 
-const HeroSection = ({ lang = 'en' }: { lang?: Lang }) => {
+const HeroSection = ({ lang = 'en', photos = [] }: { lang?: Lang; photos?: Photo[] }) => {
+  const slides = useMemo(() => toSlides(photos), [photos]);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   // How many times each slide has been shown: re-keys its image so the slow zoom restarts,
@@ -62,10 +58,10 @@ const HeroSection = ({ lang = 'en' }: { lang?: Lang }) => {
   }, [index]);
 
   useEffect(() => {
-    if (paused) return;
+    if (paused || slides.length < 2) return;
     const timer = window.setTimeout(() => setIndex((i) => (i + 1) % slides.length), SLIDE_MS);
     return () => window.clearTimeout(timer);
-  }, [index, paused]);
+  }, [index, paused, slides.length]);
 
   // Respect users who ask the OS for less motion: no auto-advance.
   useEffect(() => {
@@ -87,21 +83,23 @@ const HeroSection = ({ lang = 'en' }: { lang?: Lang }) => {
     >
       {slides.map((slide, i) => (
         <div
-          key={slide.src}
+          key={slide.id}
           aria-hidden={i !== index}
           className={`absolute inset-0 -z-20 transition-opacity duration-[1400ms] ease-[var(--ease-out-quart)] ${
             i === index ? 'opacity-100' : 'opacity-0'
           }`}
         >
-          <Image
-            key={`${slide.src}-${shown[i]}`}
-            src={slide.src}
-            alt={slide.alt[lang]}
-            fill
-            priority={i === 0}
+          {/* eslint-disable-next-line @next/next/no-img-element -- resized by Google's image CDN */}
+          <img
+            key={`${slide.id}-${shown[i]}`}
+            src={photoUrl(slide.id, 1920)}
+            srcSet={photoSrcSet(slide.id, [800, 1200, 1600, 1920, 2560])}
             sizes="100vw"
-            className="kenburns object-cover"
-            style={{ objectPosition: slide.position }}
+            alt={slide.alt[lang]}
+            fetchPriority={i === 0 ? 'high' : 'auto'}
+            loading={i === 0 ? 'eager' : 'lazy'}
+            decoding="async"
+            className="kenburns absolute inset-0 h-full w-full object-cover object-[center_35%]"
           />
         </div>
       ))}
@@ -168,10 +166,11 @@ const HeroSection = ({ lang = 'en' }: { lang?: Lang }) => {
         </div>
 
         {/* Slide controls double as progress bars */}
+        {slides.length > 1 && (
         <div className="mt-10 flex items-center gap-2" role="group" aria-label={tr(lang, { en: 'Choose photo', cs: 'Vyberte fotku' })}>
           {slides.map((slide, i) => (
             <button
-              key={slide.src}
+              key={slide.id}
               type="button"
               onClick={() => goTo(i)}
               aria-label={tr(lang, { en: `Show photo ${i + 1} of ${slides.length}`, cs: `Zobrazit fotku ${i + 1} z ${slides.length}` })}
@@ -198,6 +197,7 @@ const HeroSection = ({ lang = 'en' }: { lang?: Lang }) => {
             {paused ? tr(lang, { en: 'Play', cs: 'Přehrát' }) : tr(lang, { en: 'Pause', cs: 'Pozastavit' })}
           </button>
         </div>
+        )}
       </div>
     </section>
     </>

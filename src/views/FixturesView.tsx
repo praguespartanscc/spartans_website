@@ -1,3 +1,5 @@
+import { getSitePhotos } from '@/lib/drive';
+import { PHOTO_SLOT, sitePhotoUrl } from '@/lib/photos';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getMatches, pragueToday } from '@/lib/data';
@@ -33,6 +35,7 @@ export function fixturesMeta(lang: Lang): Metadata {
 }
 
 export default async function FixturesView({ lang }: { lang: Lang }) {
+  const photos = await getSitePhotos();
   const matches = await getMatches();
   const label = tr(lang, { en: 'Fixtures & results', cs: 'Zápasy a výsledky' });
 
@@ -80,7 +83,7 @@ export default async function FixturesView({ lang }: { lang: Lang }) {
             </>
           ),
         })}
-        image="/home_carousel1.jpeg"
+        image={sitePhotoUrl(photos, PHOTO_SLOT.fixtures)}
       />
 
       <section className="py-12 sm:py-16">

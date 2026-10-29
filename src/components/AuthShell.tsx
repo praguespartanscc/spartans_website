@@ -1,4 +1,6 @@
-import Image from 'next/image';
+'use client';
+
+import { PHOTO_SLOT } from '@/lib/photos';
 import type { ReactNode } from 'react';
 
 type AuthShellProps = {
@@ -12,7 +14,13 @@ export default function AuthShell({ title, subtitle, children }: AuthShellProps)
   return (
     <section className="grid min-h-[calc(100svh-64px)] lg:min-h-[calc(100svh-152px)] lg:grid-cols-2">
       <div className="relative hidden overflow-hidden lg:block">
-        <Image src="/home_carousel1.jpeg" alt="" fill priority sizes="50vw" className="kenburns object-cover object-[center_35%]" />
+        {/* eslint-disable-next-line @next/next/no-img-element -- a photo from the Drive Thumbnails folder, see /api/site-photo */}
+        <img
+          src={`/api/site-photo/${PHOTO_SLOT.auth}?w=1600`}
+          alt=""
+          onError={(e) => (e.currentTarget.style.display = 'none')}
+          className="kenburns absolute inset-0 h-full w-full object-cover object-[center_35%]"
+        />
         <div className="absolute inset-0 bg-ink/80" />
         <div className="absolute inset-x-0 bottom-0 p-12">
           <p className="display max-w-md text-[56px]">

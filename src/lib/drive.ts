@@ -5,9 +5,10 @@ import { slugify } from '@/lib/format';
 
 // Photo gallery from a public Google Drive folder ("Anyone with the link can view").
 // Each sub-folder of the main folder is a section (Gallery, Events, Awards, …), and folders
-// inside those are albums. A folder named "Thumbnail" holds cover images: a picture named
-// like a section or album (e.g. "Events.jpg") becomes its cover. Drive is read at most
-// every 10 minutes; photos themselves are served by Google's image CDN.
+// inside those are albums. A folder named "Thumbnails" holds the photos the site itself shows
+// (home slideshow, page headers, home photo grid) in name order, and a picture named like a
+// section or album (e.g. "Events.jpg") is also its cover. Drive is read at most every
+// 10 minutes. Photos themselves are served by Google's image CDN.
 
 const API = 'https://www.googleapis.com/drive/v3/files';
 const FOLDER = 'application/vnd.google-apps.folder';
@@ -28,7 +29,7 @@ export type Album = {
   added: string;
 };
 
-export type Gallery = { configured: boolean; sections: Album[] };
+export type Gallery = { configured: boolean; sections: Album[]; thumbnails: Photo[] };
 
 type DriveFile = {
   id: string;
@@ -108,14 +109,17 @@ export const getGallery = cache(async (): Promise<Gallery> => {
   const settings = await getSettings();
   const rootId = folderIdFrom(settings.gallery_folder) ?? folderIdFrom(process.env.GALLERY_FOLDER_ID);
   const key = (process.env.GOOGLE_API_KEY || process.env.YOUTUBE_API_KEY || '').trim();
-  if (!rootId || !key) return { configured: false, sections: [] };
+  if (!rootId || !key) return { configured: false, sections: [], thumbnails: [] };
 
   try {
     const top = await listFolder(rootId, key);
     const covers = new Map<string, Photo>();
+    const thumbnails: Photo[] = [];
     for (const t of top.filter((f) => f.mimeType === FOLDER && isThumbnailFolder(f.name))) {
       for (const img of (await listFolder(t.id, key)).filter((f) => f.mimeType.startsWith('image/'))) {
-        covers.set(slugify(img.name.replace(/\.[a-z0-9]+$/i, '')), toPhoto(img));
+        const photo = toPhoto(img);
+        thumbnails.push(photo);
+        covers.set(slugify(photo.name), photo);
       }
     }
     const sections = await Promise.all(
@@ -126,10 +130,10 @@ export const getGallery = cache(async (): Promise<Gallery> => {
     if (loose.length) {
       sections.push({ id: rootId, name: 'More photos', slug: 'more-photos', path: ['more-photos'], cover: loose[0], photos: loose, albums: [], total: loose.length, added: '' });
     }
-    return { configured: true, sections: sections.filter((s) => s.total > 0) };
+    return { configured: true, sections: sections.filter((s) => s.total > 0), thumbnails };
   } catch (err) {
     console.error('Gallery: could not read Google Drive:', err instanceof Error ? err.message : err);
-    return { configured: true, sections: [] };
+    return { configured: true, sections: [], thumbnails: [] };
   }
 });
 
@@ -158,3 +162,6 @@ export async function latestPhotos(n: number): Promise<{ photo: Photo; album: Al
     .sort((a, b) => b.photo.added.localeCompare(a.photo.added))
     .slice(0, n);
 }
+
+// Photos the site shows outside the gallery: the Thumbnails folder, in name order.
+export const getSitePhotos = cache(async (): Promise<Photo[]> => (await getGallery()).thumbnails);

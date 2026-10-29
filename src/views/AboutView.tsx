@@ -1,6 +1,8 @@
+import { getSitePhotos } from '@/lib/drive';
+import { PHOTO_SLOT, sitePhoto, sitePhotoUrl } from '@/lib/photos';
+import SitePhoto from '@/components/ui/SitePhoto';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import PageHero from '@/components/ui/PageHero';
 import { ReadingProgress } from '@/components/ScrollExtras';
@@ -91,7 +93,8 @@ function FactCard({ id, eyebrow, title, children }: { id: string; eyebrow: strin
   );
 }
 
-export default function AboutView({ lang }: { lang: Lang }) {
+export default async function AboutView({ lang }: { lang: Lang }) {
+  const photos = await getSitePhotos();
   const weekly = TRAINING.weekly;
   const honours = HONOURS.filter((h) => h.year === 2026);
   const winterEn = TRAINING.winter.map((v) => v.name);
@@ -121,7 +124,7 @@ export default function AboutView({ lang }: { lang: Lang }) {
           en: `An amateur cricket club in Prague, Czech Republic, founded in ${FOUNDED}. Three squads, league and tournament cricket at Vinoř, and every level welcome.`,
           cs: `Amatérský kriketový klub v Praze, založený v roce ${FOUNDED}. Tři týmy, ligový a turnajový kriket ve Vinoři a místo pro hráče všech úrovní.`,
         })}
-        image="/home_carousel1.jpeg"
+        image={sitePhotoUrl(photos, PHOTO_SLOT.about)}
       />
 
       {/* Who we are */}
@@ -146,13 +149,7 @@ export default function AboutView({ lang }: { lang: Lang }) {
             </p>
           </Reveal>
           <Reveal delay={120} className="zoom-frame relative aspect-[4/3] overflow-hidden">
-            <Image
-              src="/story1.jpeg"
-              alt={tr(lang, { en: 'Prague Spartans members together in Prague', cs: 'Členové klubu Prague Spartans v Praze' })}
-              fill
-              sizes="(min-width: 1024px) 50vw, 100vw"
-              className="object-cover object-[center_60%]"
-            />
+            <SitePhoto photo={sitePhoto(photos, PHOTO_SLOT.aboutStory)} lang={lang} sizes="(min-width: 1024px) 50vw, 100vw" />
           </Reveal>
         </div>
       </section>
@@ -163,13 +160,7 @@ export default function AboutView({ lang }: { lang: Lang }) {
       <section className="bg-ink-2 py-20 sm:py-28" aria-labelledby="history-heading">
         <div className="container-x grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <Reveal delay={120} className="zoom-frame relative order-2 aspect-[4/3] overflow-hidden lg:order-1">
-            <Image
-              src="/home_carouse2.jpeg"
-              alt={tr(lang, { en: 'Prague Spartans award trophies', cs: 'Trofeje klubu Prague Spartans' })}
-              fill
-              sizes="(min-width: 1024px) 50vw, 100vw"
-              className="object-cover"
-            />
+            <SitePhoto photo={sitePhoto(photos, PHOTO_SLOT.aboutStory2)} lang={lang} sizes="(min-width: 1024px) 50vw, 100vw" />
           </Reveal>
           <Reveal className="order-1 lg:order-2">
             <p className="eyebrow mb-3">{tr(lang, { en: '02 · Our story', cs: '02 · Náš příběh' })}</p>
