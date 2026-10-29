@@ -22,7 +22,7 @@ import Sheet from './Sheet';
 import RulesEditor, { ConfirmButton, Stepper } from './RulesEditor';
 import { ArrowLeft, Share, Undo } from '@/components/ui/Icons';
 
-type SheetName = 'wicket' | 'bowler' | 'more' | 'settings' | 'ball' | 'rules' | 'penalty' | 'player' | 'overs' | 'next' | 'end' | 'handover' | null;
+type SheetName = 'wicket' | 'bowler' | 'more' | 'settings' | 'ball' | 'rules' | 'penalty' | 'player' | 'overs' | 'order' | 'swap' | 'end' | 'handover' | null;
 
 const EXTRAS: { id: ExtraKind; label: string }[] = [
   { id: 'wide', label: 'Wide' },
@@ -77,6 +77,7 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
   const [sheet, setSheet] = useState<SheetName>(null);
   const [picked, setPicked] = useState<BallRecord | null>(null);
   const [viewOver, setViewOver] = useState<number | null>(null); // null: the current over
+  const [swapEnd, setSwapEnd] = useState<End>('striker');
   const lastTap = useRef({ key: '', at: 0 });
 
   const overIndex = Math.floor(inn.legalBalls / bpo);
@@ -155,7 +156,7 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
     }
   };
 
-  const ball = (runs: number, wicket: WicketInput | null = null) => {
+  const ball = (runs: number, wicket: WicketInput | null = null, nextId: string | null = null) => {
     // A double tap on the same button is one ball. A different button always counts.
     const key = wicket ? `w-${wicket.kind}` : `r-${runs}`;
     const now = Date.now();
@@ -164,6 +165,12 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
     const input: BallInput = { zone, runs, extra, wicket, ...(dead ? { deadBall: true } : {}) };
     const v = scoreBall(ballRules, input, { finalOver, freeHit: inn.freeHit });
     const what = v.wicket ? 'Wicket' : `${v.teamRuns} ${v.teamRuns === 1 ? 'run' : 'runs'}`;
+    if (nextId && place.mode === 'append') {
+      // The scorer chose who comes in: recorded just before the wicket ball.
+      commit([{ type: 'nextBatter', data: { playerId: nextId } }, { type: 'ball', data: input }], `${what}. ${inn.batters[nextId]?.name ?? 'Next batter'} comes in`);
+      clearBall();
+      return;
+    }
     commit({ type: 'ball', data: input }, place.mode === 'replace' ? 'Ball changed' : `${what} recorded`);
   };
 
@@ -180,7 +187,11 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
   const strikerLine = inn.striker ? inn.batters[inn.striker] : null;
   const nonLine = inn.nonStriker ? inn.batters[inn.nonStriker] : null;
   const bowlerLine = inn.bowler ? inn.bowlers[inn.bowler] : null;
-  const queue = upcoming(inn.queue).map((pid) => inn.batters[pid]?.name).filter(Boolean);
+  const waitingList = upcoming(inn.queue)
+    .map((pid) => inn.batters[pid])
+    .filter(Boolean)
+    .map((b) => ({ id: b.id, name: b.name, back: b.visits > 0 }));
+  const queue = waitingList.map((b) => b.name);
   const chase = chaseText(state);
 
   return (
@@ -241,12 +252,12 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
           <section className="mx-4 mt-4 divide-y divide-cream/10 border border-cream/12 bg-panel" aria-label="Batters">
             {[strikerLine, nonLine].map((b, i) =>
               b ? (
+                <div key={b.id} className="flex items-center">
                 <button
-                  key={b.id}
                   type="button"
                   disabled={i === 0}
                   onClick={() => commit({ type: 'swapStrike', data: {} }, 'Strike changed')}
-                  className="flex min-h-12 w-full items-center gap-3 px-3 py-2 text-left disabled:cursor-default"
+                  className="flex min-h-12 min-w-0 flex-1 items-center gap-3 px-3 py-2 text-left disabled:cursor-default"
                   aria-label={i === 0 ? `${b.name} on strike` : `Put ${b.name} on strike`}
                 >
                   <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${i === 0 ? 'bg-gold' : 'bg-transparent ring-1 ring-cream/30'}`} />
@@ -261,6 +272,17 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
                   <span className="font-varsity text-xl">{b.runs}</span>
                   <span className="w-10 text-right text-sm text-muted">({b.balls})</span>
                 </button>
+                {b.visitBalls === 0 && waitingList.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => (setSwapEnd(i === 0 ? 'striker' : 'nonStriker'), setSheet('swap'))}
+                    className="min-h-12 shrink-0 px-3 font-display text-sm font-bold uppercase italic text-gold"
+                    aria-label={`Send in someone else instead of ${b.name}`}
+                  >
+                    Change
+                  </button>
+                )}
+                </div>
               ) : (
                 <p key={i} className="px-3 py-3 text-muted">
                   No batter
@@ -396,14 +418,17 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
           zone={zone}
           extra={extra}
           onClose={close}
-          onOut={(w) => {
+          waiting={place.mode === 'append' ? waitingList : []}
+          onOut={(w, nextId) => {
             close();
-            ball(0, w);
+            ball(0, w, nextId);
           }}
-          onRetire={(end, out) => {
+          onRetire={(end, out, nextId) => {
             const b = end === 'striker' ? strikerLine : nonLine;
             close();
-            commit({ type: 'retire', data: { who: end, out } }, `${b?.name ?? 'Batter'} ${out ? 'retired out' : 'retired'}`);
+            const msg = `${b?.name ?? 'Batter'} ${out ? 'retired out' : 'retired'}`;
+            if (nextId) commit([{ type: 'nextBatter', data: { playerId: nextId } }, { type: 'retire', data: { who: end, out } }], msg);
+            else commit({ type: 'retire', data: { who: end, out } }, msg);
           }}
         />
       )}
@@ -472,7 +497,7 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
             <MoreBtn onClick={() => setSheet('rules')}>Change rules</MoreBtn>
             <MoreBtn onClick={() => setSheet('penalty')}>Penalty runs</MoreBtn>
             <MoreBtn onClick={() => setSheet('player')}>Add a late player</MoreBtn>
-            <MoreBtn onClick={() => setSheet('next')}>Choose next batter</MoreBtn>
+            <MoreBtn onClick={() => setSheet('order')}>Batting order</MoreBtn>
             <MoreBtn onClick={() => setSheet('handover')}>Hand over scoring</MoreBtn>
             <MoreBtn onClick={() => setSheet('end')}>End innings</MoreBtn>
           </div>
@@ -520,15 +545,30 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
           </div>
         </Sheet>
       )}
-      {sheet === 'next' && (
-        <Sheet title="Next batter in" onClose={close}>
+      {sheet === 'order' && (
+        <OrderSheet
+          list={waitingList}
+          onClose={close}
+          onSave={(order) => (commit({ type: 'battingOrder', data: { order } }, 'Batting order changed'), close())}
+        />
+      )}
+      {sheet === 'swap' && (
+        <Sheet title="Who comes in instead?" onClose={close}>
+          <p className="mb-3 text-sand">
+            {(swapEnd === 'striker' ? strikerLine : nonLine)?.name} goes back to the front of the line.
+          </p>
           <div className="grid gap-2">
-            {upcoming(inn.queue).map((pid) => (
-              <button key={pid} type="button" className="min-h-12 border border-cream/22 px-3 text-left text-cream" onClick={() => (commit({ type: 'nextBatter', data: { playerId: pid } }, `${inn.batters[pid]?.name} is in next`), close())}>
-                {inn.batters[pid]?.name}
+            {waitingList.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                className="flex min-h-12 items-center justify-between border border-cream/22 px-3 text-left text-cream"
+                onClick={() => (commit({ type: 'replaceBatter', data: { who: swapEnd, playerId: p.id } }, `${p.name} comes in`), close())}
+              >
+                {p.name}
+                {p.back && <span className="text-sm text-muted">coming back</span>}
               </button>
             ))}
-            {upcoming(inn.queue).length === 0 && <p className="text-muted">Nobody is waiting.</p>}
           </div>
         </Sheet>
       )}
@@ -704,18 +744,29 @@ function WicketSheet({
   zone,
   extra,
   onClose,
-  onOut,
-  onRetire,
+  onOut: done,
+  onRetire: retireDone,
+  waiting,
 }: {
   rules: IndoorRules;
   inn: InningsState;
   zone: string | null;
   extra: ExtraKind | null;
   onClose: () => void;
-  onOut: (w: WicketInput) => void;
-  onRetire: (end: End, out: boolean) => void;
+  onOut: (w: WicketInput, nextId?: string | null) => void;
+  onRetire: (end: End, out: boolean, nextId?: string | null) => void;
+  waiting: { id: string; name: string; back: boolean }[];
 }) {
   const [kind, setKind] = useState<DismissalKind | null>(null);
+  // With more than one batter waiting, ask who comes in before recording.
+  const [pending, setPending] = useState<{ out: WicketInput } | { retire: End; asOut: boolean } | null>(null);
+  const onOut = (w: WicketInput) => (waiting.length > 1 ? setPending({ out: w }) : done(w, null));
+  const onRetire = (end: End, asOut: boolean) => (waiting.length > 1 ? setPending({ retire: end, asOut }) : retireDone(end, asOut, null));
+  const finish = (nextId: string) => {
+    if (!pending) return;
+    if ('out' in pending) done(pending.out, nextId);
+    else retireDone(pending.retire, pending.asOut, nextId);
+  };
   const kinds = rules.wickets.allowed.filter((k) => k !== 'retiredOut' && wicketStands(rules, { kind: k, who: 'striker', zone: null }, inn.freeHit, extra));
   const wallZones = rules.zones.filter((z) => z.enabled && z.catchOffIsOut && z.area !== 'keeperWall');
   const keeper = rules.zones.find((z) => z.enabled && z.area === 'keeperWall');
@@ -733,8 +784,23 @@ function WicketSheet({
   };
 
   return (
-    <Sheet title={kind ? DISMISSAL_LABEL[kind] : 'How out?'} onClose={onClose}>
-      {!kind && (
+    <Sheet title={pending ? 'Who comes in?' : kind ? DISMISSAL_LABEL[kind] : 'How out?'} onClose={onClose}>
+      {pending && (
+        <div className="grid gap-2">
+          {waiting.map((p, i) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => finish(p.id)}
+              className={`flex min-h-12 items-center justify-between px-3 text-left ${i === 0 ? 'bg-gold font-semibold text-ink' : 'border border-cream/22 text-cream'}`}
+            >
+              {p.name}
+              <span className={`text-sm ${i === 0 ? 'text-ink' : 'text-muted'}`}>{i === 0 ? 'next in the order' : p.back ? 'coming back' : ''}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {!pending && !kind && (
         <>
           {inn.freeHit && <p className="mb-3 text-gold">Free hit: only these dismissals count.</p>}
           {extra && <p className="mb-3 text-gold">Off a {extra === 'noBall' ? 'no ball' : extra === 'wide' ? 'wide' : extra === 'bye' ? 'bye' : 'leg bye'}.</p>}
@@ -767,7 +833,7 @@ function WicketSheet({
           </div>
         </>
       )}
-      {(kind === 'runOut' || kind === 'obstructing') && (
+      {!pending && (kind === 'runOut' || kind === 'obstructing') && (
         <div className="grid gap-2">
           {(['striker', 'nonStriker'] as End[]).map((who) => (
             <button key={who} type="button" onClick={() => onOut({ kind, who, zone: null })} className="btn btn-outline btn-lg">
@@ -776,7 +842,7 @@ function WicketSheet({
           ))}
         </div>
       )}
-      {kind === 'caughtOffWall' && (
+      {!pending && kind === 'caughtOffWall' && (
         <div className="grid gap-2">
           <p className="text-sand">Which wall did it come off?</p>
           {wallZones.map((z) => (
@@ -1086,6 +1152,47 @@ function HandoverSheet({ current, onClose, onPick }: { current: string | null; o
           </button>
         ))}
       </div>
+    </Sheet>
+  );
+}
+
+// Who is still to come, in any order the scorer likes. Batters who are out come back after
+// these, first out first back.
+function OrderSheet({ list, onClose, onSave }: { list: { id: string; name: string; back: boolean }[]; onClose: () => void; onSave: (order: string[]) => void }) {
+  const [order, setOrder] = useState(list);
+  const move = (i: number, d: -1 | 1) => {
+    const j = i + d;
+    if (j < 0 || j >= order.length) return;
+    const next = [...order];
+    [next[i], next[j]] = [next[j], next[i]];
+    setOrder(next);
+  };
+  return (
+    <Sheet title="Batting order" onClose={onClose}>
+      {order.length === 0 ? (
+        <p className="text-muted">Nobody is waiting to bat.</p>
+      ) : (
+        <ol className="divide-y divide-cream/10 border border-cream/12">
+          {order.map((p, i) => (
+            <li key={p.id} className="flex items-center gap-2 py-1 pl-3 pr-1">
+              <span className="w-6 font-varsity text-gold">{i + 1}</span>
+              <span className="flex-1 truncate text-cream">
+                {p.name}
+                {p.back && <span className="ml-2 text-sm text-muted">coming back</span>}
+              </span>
+              <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label={`Move ${p.name} up`} className="grid h-11 w-11 place-items-center text-muted disabled:opacity-30">
+                ↑
+              </button>
+              <button type="button" onClick={() => move(i, 1)} disabled={i === order.length - 1} aria-label={`Move ${p.name} down`} className="grid h-11 w-11 place-items-center text-muted disabled:opacity-30">
+                ↓
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
+      <button type="button" disabled={!order.length} className="btn btn-gold btn-lg mt-5 w-full" onClick={() => onSave(order.map((p) => p.id))}>
+        Save the order
+      </button>
     </Sheet>
   );
 }

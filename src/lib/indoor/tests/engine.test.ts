@@ -451,3 +451,38 @@ test('duplicate walls are dropped and halves replace the whole wall', () => {
   assert.equal(clean[0].area, 'farWall');
   assert.equal(clean[clean.length - 1].area, 'keeperWall');
 });
+
+// ---------- Choosing who bats ----------
+
+test('the scorer can pick who comes in after a wicket', () => {
+  const st = new Log().bowl('b1').event({ type: 'nextBatter', data: { playerId: 'a5' } } as IndoorEvent).out().play(setup(rules()));
+  assert.equal(inn0(st).striker, 'a5');
+  // The rest still follow the batting order.
+  assert.deepEqual(inn0(st).queue.fresh, ['a3', 'a4', 'a6']);
+});
+
+test('a batter who has not faced a ball can be swapped for another', () => {
+  const st = new Log().bowl('b1').out().event({ type: 'replaceBatter', data: { who: 'striker', playerId: 'a6' } } as IndoorEvent).play(setup(rules()));
+  const i = inn0(st);
+  assert.equal(i.striker, 'a6');
+  assert.equal(i.batters.a3.status, 'yet');
+  assert.deepEqual(i.queue.fresh, ['a3', 'a4', 'a5']);
+  // Once they have faced a ball, no swap.
+  const late = new Log().bowl('b1').out().ball().event({ type: 'replaceBatter', data: { who: 'striker', playerId: 'a6' } } as IndoorEvent).play(setup(rules()));
+  assert.equal(inn0(late).striker, 'a3');
+});
+
+test('the batting order can change during the match', () => {
+  const r = rules({ wickets: { shortSide: { enabled: false, maxPlayers: 5, everyNth: 4, penalty: 10 } } });
+  const st = new Log().bowl('b1').event({ type: 'battingOrder', data: { order: ['a6', 'a4'] } } as IndoorEvent).out().out().out().play(setup(r));
+  const i = inn0(st);
+  assert.deepEqual(i.battingOrder, ['a1', 'a2', 'a6', 'a4', 'a3']);
+});
+
+test('after everyone is out, the first out is the first back, whatever the order changes', () => {
+  const r = rules({ wickets: { shortSide: { enabled: false, maxPlayers: 5, everyNth: 4, penalty: 10 } } });
+  const st = new Log().bowl('b1').event({ type: 'nextBatter', data: { playerId: 'a4' } } as IndoorEvent).out().out().out().play(setup(r, 4));
+  // Out in this order: a1, a4, a3. a2 still in. Next back is a1.
+  assert.equal(inn0(st).striker, 'a1');
+  assert.deepEqual(inn0(st).queue.returning, ['a4', 'a3']);
+});

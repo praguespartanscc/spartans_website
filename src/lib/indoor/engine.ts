@@ -7,7 +7,7 @@ import { applyRulesPatch, cloneRules, isFinalOver } from './rules.ts';
 import type { BallInput, BallValue, End, WicketInput } from './scoring.ts';
 import { scoreBall } from './scoring.ts';
 import type { BattingQueue } from './queue.ts';
-import { addLatePlayer, callNext, depart, newQueue } from './queue.ts';
+import { addLatePlayer, callNext, depart, newQueue, sendBack, setOrder } from './queue.ts';
 
 export type TeamIndex = 0 | 1;
 export type Player = { id: string; name: string };
@@ -26,6 +26,8 @@ export type EventData =
   | { type: 'swapStrike'; data: Record<string, never> }
   | { type: 'retire'; data: { who: End; out: boolean } }
   | { type: 'nextBatter'; data: { playerId: string } }
+  | { type: 'replaceBatter'; data: { who: End; playerId: string } }
+  | { type: 'battingOrder'; data: { order: string[] } }
   | { type: 'penalty'; data: { team: TeamIndex; runs: number; note?: string } }
   | { type: 'rulesChange'; data: { patch: RulesPatch; note?: string } }
   | { type: 'oversChange'; data: { overs: number } }
@@ -45,6 +47,8 @@ export type BatterLine = {
   penaltyRuns: number;
   visits: number;
   visitRuns: number; // runs in the current or last visit, for retirement
+  visitBalls: number; // balls faced in the current or last visit
+  prevStatus: 'yet' | 'out' | 'retired'; // before this visit, so an unused visit can be undone
   status: 'yet' | 'batting' | 'out' | 'retired';
   howOut: DismissalKind | null;
   zoneHits: Record<string, number>;
@@ -176,7 +180,7 @@ function nameOf(state: MatchState, team: TeamIndex, id: string): string {
 }
 
 function batterLine(id: string, name: string): BatterLine {
-  return { id, name, runs: 0, scored: 0, balls: 0, outs: 0, penaltyRuns: 0, visits: 0, visitRuns: 0, status: 'yet', howOut: null, zoneHits: {}, boundaries: 0 };
+  return { id, name, runs: 0, scored: 0, balls: 0, outs: 0, penaltyRuns: 0, visits: 0, visitRuns: 0, visitBalls: 0, prevStatus: 'yet', status: 'yet', howOut: null, zoneHits: {}, boundaries: 0 };
 }
 
 function startInnings(state: MatchState, index: TeamIndex, batting: TeamIndex): InningsState {
@@ -220,9 +224,11 @@ function comeIn(inn: InningsState, id: string | null): string | null {
   if (!id) return null;
   const b = inn.batters[id];
   if (!b) return null;
+  b.prevStatus = b.status === 'batting' ? 'yet' : b.status;
   b.status = 'batting';
   b.visits += 1;
   b.visitRuns = 0;
+  b.visitBalls = 0;
   if (!inn.battingOrder.includes(id)) inn.battingOrder.push(id);
   return id;
 }
@@ -321,6 +327,31 @@ function apply(state: MatchState, ev: IndoorEvent): void {
     case 'nextBatter':
       if (inn.batters[ev.data.playerId]) inn.queue.chosen = ev.data.playerId;
       return;
+    case 'battingOrder':
+      setOrder(inn.queue, ev.data.order);
+      return;
+    case 'replaceBatter': {
+      // Swap a batter who has just come in (no ball faced yet) for someone else in the line.
+      const end = ev.data.who;
+      const current = end === 'striker' ? inn.striker : inn.nonStriker;
+      const next = ev.data.playerId;
+      const b = current ? inn.batters[current] : null;
+      const waiting = [...inn.queue.fresh, ...inn.queue.returning, ...inn.queue.retiredWaiting];
+      if (!b || b.visitBalls > 0 || !waiting.includes(next)) return void state.warnings.push(`Batter change ${ev.id} not possible`);
+      const wasFresh = b.prevStatus === 'yet';
+      b.status = b.prevStatus;
+      b.visits -= 1;
+      if (b.visits === 0) inn.battingOrder = inn.battingOrder.filter((x) => x !== b.id);
+      sendBack(inn.queue, b.id, wasFresh);
+      inn.queue.fresh = inn.queue.fresh.filter((x) => x !== next);
+      inn.queue.returning = inn.queue.returning.filter((x) => x !== next);
+      inn.queue.retiredWaiting = inn.queue.retiredWaiting.filter((x) => x !== next);
+      inn.queue.order = inn.queue.order.filter((x) => x !== next);
+      const id = comeIn(inn, next);
+      if (end === 'striker') inn.striker = id;
+      else inn.nonStriker = id;
+      return;
+    }
     case 'retire': {
       const id = ev.data.who === 'striker' ? inn.striker : inn.nonStriker;
       if (!id) return;
@@ -438,7 +469,10 @@ function ball(state: MatchState, inn: InningsState, eventId: string, input: Ball
   striker.scored += v.batterRuns;
   striker.runs += v.batterRuns;
   striker.visitRuns += v.batterRuns;
-  if (v.faced) striker.balls += 1;
+  if (v.faced) {
+    striker.balls += 1;
+    striker.visitBalls += 1;
+  }
   if (v.struckZone) {
     striker.zoneHits[v.struckZone.id] = (striker.zoneHits[v.struckZone.id] ?? 0) + 1;
     if (v.struckZone.boundary) striker.boundaries += 1;
