@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getMatches, pragueToday } from '@/lib/data';
-import { GOVERNING_BODY, GROUND, HONOURS, SQUADS } from '@/lib/club';
+import { COMPETITIONS, GOVERNING_BODY, GROUND, HONOURS, SQUADS } from '@/lib/club';
 import { formatDivision } from '@/lib/format';
 import { localePath, tr, type Lang } from '@/lib/i18n';
 import { pageMeta } from '@/lib/seo';
@@ -10,6 +10,9 @@ import PageHero from '@/components/ui/PageHero';
 import FixturesBoard from '@/components/FixturesBoard';
 import JoinCta from '@/components/JoinCta';
 import JsonLd from '@/components/JsonLd';
+import Reveal from '@/components/ui/Reveal';
+import SectionHeading from '@/components/ui/SectionHeading';
+import { ArrowUpRight } from '@/components/ui/Icons';
 
 // Shared by /fixtures (English) and /cs/fixtures (Czech).
 
@@ -82,6 +85,37 @@ export default async function FixturesView({ lang }: { lang: Lang }) {
       <section className="py-12 sm:py-16">
         <div className="container-x">
           <FixturesBoard matches={matches} today={pragueToday()} squads={SQUADS.map((s) => s.name)} lang={lang} />
+        </div>
+      </section>
+
+      <section aria-labelledby="tables" className="border-t border-cream/12 py-14 sm:py-20">
+        <div className="container-x">
+          <SectionHeading
+            id="tables"
+            eyebrow={tr(lang, { en: 'Official tables', cs: 'Oficiální tabulky' })}
+            title={tr(lang, { en: 'League tables and results', cs: 'Tabulky a výsledky soutěží' })}
+            intro={tr(lang, {
+              en: `The ${GOVERNING_BODY.name} publishes every table, scorecard and player statistic on czechcricket.cz. These are the competitions our squads play.`,
+              cs: 'Českomoravský kriketový svaz zveřejňuje všechny tabulky, výsledky zápasů a statistiky hráčů na czechcricket.cz. Toto jsou soutěže, které hrají naše týmy.',
+            })}
+          />
+          <Reveal className="stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {COMPETITIONS.map((c) => (
+              <a key={c.key} href={c.url} target="_blank" rel="noopener noreferrer" className="card card-hover group flex h-full flex-col p-6">
+                <span className="eyebrow">{c.year}</span>
+                <span className="h-sub mt-3 text-[26px] leading-tight group-hover:text-gold">{c.name[lang]}</span>
+                <span className="mt-2 text-[15px] text-muted">
+                  {c.squads
+                    .map((slug) => SQUADS.find((s) => s.slug === slug)?.name)
+                    .filter(Boolean)
+                    .join(', ')}
+                </span>
+                <span className="mt-auto inline-flex items-center gap-2 pt-6 font-display text-[17px] font-extrabold uppercase italic tracking-[0.04em] text-gold">
+                  {tr(lang, { en: 'Table and results', cs: 'Tabulka a výsledky' })} <ArrowUpRight size={16} />
+                </span>
+              </a>
+            ))}
+          </Reveal>
         </div>
       </section>
 

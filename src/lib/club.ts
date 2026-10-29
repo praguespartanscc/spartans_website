@@ -80,7 +80,7 @@ export const MEMBERSHIP = {
 // Season results the club can point to.
 export const HONOURS: { year: number; en: string; cs: string }[] = [
   { year: 2026, en: 'ECS Czechia Challenger Division winners', cs: 'Vítězové ECS Czechia Challenger Division' },
-  { year: 2026, en: 'ČMKS T10 winners', cs: 'Vítězové ČMKS T10' },
+  { year: 2026, en: 'ČMKS T10 League winners (Vanguards, final on 3 October 2026)', cs: 'Vítězové ČMKS T10 League (Vanguards, finále 3. října 2026)' },
   { year: 2026, en: 'Division 2 winners (Mobilizers)', cs: 'Vítězové 2. divize (Mobilizers)' },
   { year: 2026, en: 'Division 1: 2nd after the league stage and semi-finalists (Vanguards)', cs: '1. divize: 2. místo po základní části a postup do semifinále (Vanguards)' },
 ];
@@ -92,10 +92,11 @@ export type Squad = {
   tagline: string;
   taglineCs: string;
   division: number; // Czech Cricket Union league division
-  cricheroes?: string;
+  teamUrl?: string; // official team page on czechcricket.cz (results and stats)
 };
 
-// CricHeroes team links found publicly; the club should confirm them (and add Strikers).
+// 2026 team pages on the union's site (czechcricket.cz runs on CricHeroes, so the IDs are CricHeroes team IDs).
+// Check them at the start of each season: the union sometimes registers squads as new teams.
 export const SQUADS: Squad[] = [
   {
     name: 'Vanguards',
@@ -104,7 +105,7 @@ export const SQUADS: Squad[] = [
     tagline: 'Leading from the front in the Czech league.',
     taglineCs: 'Vlajková loď klubu v české lize.',
     division: 1,
-    cricheroes: 'https://cricheroes.com/team-profile/4182668/spartans-cc-vanguards/matches',
+    teamUrl: 'https://www.czechcricket.cz/team/12736847/PSCC-Vanguards',
   },
   {
     name: 'Mobilizers',
@@ -113,7 +114,7 @@ export const SQUADS: Squad[] = [
     tagline: 'Quick on their feet, hungry for runs.',
     taglineCs: 'Rychlí v běhu, hladoví po runech.',
     division: 2,
-    cricheroes: 'https://cricheroes.com/team-profile/1230716/prague-spartans-cc-mobilizers/matches',
+    teamUrl: 'https://www.czechcricket.cz/team/12736850/PSCC-Mobilizers',
   },
   {
     name: 'Strikers',
@@ -122,6 +123,40 @@ export const SQUADS: Squad[] = [
     tagline: 'Built to hit hard and finish strong.',
     taglineCs: 'Tvrdé údery a silný závěr.',
     division: 3,
+    teamUrl: 'https://www.czechcricket.cz/team/12736840/PSCC-Strikers',
+  },
+];
+
+// The union's competitions our squads play, with their official tables and results on czechcricket.cz.
+// Tournament IDs change every season.
+export const COMPETITIONS: { key: string; year: number; name: { en: string; cs: string }; squads: string[]; url: string }[] = [
+  {
+    key: 'division1',
+    year: 2026,
+    name: { en: 'Czech Premier League, Division 1', cs: 'Czech Premier League, 1.\u00a0divize' },
+    squads: ['vanguards'],
+    url: 'https://www.czechcricket.cz/tournament/1899543/Czech-Premier-League-2026-T20-Division-One',
+  },
+  {
+    key: 'division2',
+    year: 2026,
+    name: { en: 'Czech Premier League, Division 2', cs: 'Czech Premier League, 2.\u00a0divize' },
+    squads: ['mobilizers'],
+    url: 'https://www.czechcricket.cz/tournament/1899563/Czech-Premier-League-2026-T20-Division-Two',
+  },
+  {
+    key: 'division3',
+    year: 2026,
+    name: { en: 'Czech Premier League, Division 3', cs: 'Czech Premier League, 3.\u00a0divize' },
+    squads: ['strikers'],
+    url: 'https://www.czechcricket.cz/tournament/1899570/Czech-Premier-League-2026-T20-Division-Three',
+  },
+  {
+    key: 't10',
+    year: 2026,
+    name: { en: 'ČMKS T10 League', cs: 'ČMKS T10 League' },
+    squads: ['vanguards'],
+    url: 'https://www.czechcricket.cz/tournament/2198281/Czech-Cricket-T10-League',
   },
 ];
 

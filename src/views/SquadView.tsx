@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getPlayers, getSquads } from '@/lib/data';
-import { GROUND, PLAYER_GROUPS, PLAYER_GROUPS_CS, ROLE_LABEL, SITE_URL, SQUADS, TRAINING, squadBySlug } from '@/lib/club';
+import { COMPETITIONS, GROUND, PLAYER_GROUPS, PLAYER_GROUPS_CS, ROLE_LABEL, SITE_URL, SQUADS, TRAINING, squadBySlug } from '@/lib/club';
 import Reveal from '@/components/ui/Reveal';
 import Avatar from '@/components/ui/Avatar';
 import PlayerCard from '@/components/PlayerCard';
@@ -20,8 +20,8 @@ import { SQUAD_HONOURS, divisionLabel } from '@/views/PlayersView';
 // Squad-specific 2026 sentence, from the confirmed honours.
 const SQUAD_SEASON: Record<string, { en: string; cs: string }> = {
   vanguards: {
-    en: 'In 2026 they finished second after the Division 1 league stage and reached the semi-finals.',
-    cs: 'V sezóně 2026 skončili po základní části 1. divize na druhém místě a postoupili do semifinále.',
+    en: 'In 2026 they won the ČMKS T10 League, and finished second after the Division 1 league stage before reaching the semi-finals.',
+    cs: 'V sezóně 2026 vyhráli ČMKS T10 League, po základní části 1. divize skončili druzí a postoupili do semifinále.',
   },
   mobilizers: {
     en: 'In 2026 they won Division 2.',
@@ -58,13 +58,14 @@ export default async function SquadView({ lang, slug }: { lang: Lang; slug: stri
   const division = divisionLabel(squad.division, lang);
   const season = SQUAD_SEASON[squad.slug];
   const honour = SQUAD_HONOURS[squad.slug];
+  const competitions = COMPETITIONS.filter((c) => c.squads.includes(squad.slug));
   const groupLabel = (key: string, label: string) => (lang === 'cs' ? (PLAYER_GROUPS_CS[key] ?? label) : label);
 
   const node = squadNode(squad.slug);
   const jsonLd = {
     '@context': 'https://schema.org',
     ...node,
-    ...(squad.cricheroes ? { sameAs: [squad.cricheroes] } : {}),
+    ...(squad.teamUrl ? { sameAs: [squad.teamUrl] } : {}),
     ...(players.length
       ? {
           athlete: players.map((p) => ({
@@ -142,12 +143,24 @@ export default async function SquadView({ lang, slug }: { lang: Lang; slug: stri
                 {tr(lang, { en: `${squad.name} fixtures`, cs: `Zápasy týmu ${squad.name}` })}{' '}
                 <ArrowRight size={16} className="btn-arrow" />
               </Link>
-              {squad.cricheroes && (
-                <a href={squad.cricheroes} target="_blank" rel="noopener noreferrer" className="btn btn-outline">
-                  {tr(lang, { en: 'Stats on CricHeroes', cs: 'Statistiky na CricHeroes' })} <ArrowUpRight size={16} />
+              {squad.teamUrl && (
+                <a href={squad.teamUrl} target="_blank" rel="noopener noreferrer" className="btn btn-outline">
+                  {tr(lang, { en: 'Results and stats', cs: 'Výsledky a statistiky' })} <ArrowUpRight size={16} />
                 </a>
               )}
             </div>
+            {competitions.length > 0 && (
+              <ul className="rise mt-6 flex flex-col gap-2" style={{ ['--d' as string]: '320ms' }}>
+                {competitions.map((c) => (
+                  <li key={c.key}>
+                    <a href={c.url} target="_blank" rel="noopener noreferrer" className="link-arrow text-[17px]">
+                      {tr(lang, { en: `${c.name.en} ${c.year}: table and results`, cs: `${c.name.cs} ${c.year}: tabulka a výsledky` })}
+                      <ArrowUpRight size={16} />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </section>

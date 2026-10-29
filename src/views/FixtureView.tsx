@@ -89,6 +89,11 @@ export async function fixtureMeta(lang: Lang, id: string): Promise<Metadata> {
   });
 }
 
+// Where a scorecard link points: the union's site or CricHeroes itself.
+function scoreSource(url: string) {
+  return /czechcricket\.cz/i.test(url) ? 'czechcricket.cz' : 'CricHeroes';
+}
+
 function eventStatus(m: Match) {
   const text = `${m.result} ${m.summary ?? ''}`;
   if (/cancel|abandon/i.test(text)) return 'https://schema.org/EventCancelled';
@@ -256,8 +261,8 @@ export default async function FixtureView({ lang, id }: { lang: Lang; id: string
             {match.url && (
               <a href={match.url} target="_blank" rel="noopener noreferrer" className="btn btn-gold">
                 {upcoming
-                  ? tr(lang, { en: 'Match on CricHeroes', cs: 'Zápas na CricHeroes' })
-                  : tr(lang, { en: 'Scorecard on CricHeroes', cs: 'Podrobné výsledky na CricHeroes' })}{' '}
+                  ? tr(lang, { en: `Match on ${scoreSource(match.url)}`, cs: `Zápas na ${scoreSource(match.url)}` })
+                  : tr(lang, { en: `Scorecard on ${scoreSource(match.url)}`, cs: `Podrobné výsledky na ${scoreSource(match.url)}` })}{' '}
                 <ArrowUpRight size={16} />
               </a>
             )}

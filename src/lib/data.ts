@@ -111,10 +111,10 @@ export const getSettings = cache(async (): Promise<Record<string, string | null>
   return Object.fromEntries(rows.map((r) => [r.key, r.value]));
 });
 
-// Squads with their CricHeroes links from settings (falling back to the built-in ones).
+// Squads with their official team page links from settings (falling back to the built-in ones).
 export async function getSquads() {
   const settings = await getSettings();
-  return SQUADS.map((s) => ({ ...s, cricheroes: settings[`cricheroes_${s.slug}`] || s.cricheroes }));
+  return SQUADS.map((s) => ({ ...s, teamUrl: settings[`team_url_${s.slug}`] || s.teamUrl }));
 }
 
 export type SelectedPlayer = { player: PublicPlayer; slot: 'xi' | 'twelfth'; is_captain: boolean; is_keeper: boolean };

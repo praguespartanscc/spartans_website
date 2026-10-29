@@ -5,9 +5,9 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import toast, { Toaster } from 'react-hot-toast';
 
 const FIELDS = [
-  { key: 'cricheroes_vanguards', label: 'Vanguards on CricHeroes', hint: 'Team page link, e.g. https://cricheroes.com/team-profile/…' },
-  { key: 'cricheroes_mobilizers', label: 'Mobilizers on CricHeroes', hint: '' },
-  { key: 'cricheroes_strikers', label: 'Strikers on CricHeroes', hint: '' },
+  { key: 'team_url_vanguards', label: 'Vanguards team page', hint: 'Leave empty to use the built-in 2026 link. Official page on czechcricket.cz, e.g. https://www.czechcricket.cz/team/…' },
+  { key: 'team_url_mobilizers', label: 'Mobilizers team page', hint: '' },
+  { key: 'team_url_strikers', label: 'Strikers team page', hint: '' },
   { key: 'youtube_channel', label: 'YouTube channel', hint: 'Channel link or @handle. Used for the live player and Spartans TV.' },
   { key: 'gallery_folder', label: 'Photo gallery folder (Google Drive)', hint: 'Link to the main Drive folder, shared as "Anyone with the link can view". Sub-folders become gallery sections and albums.' },
   { key: 'club_email', label: 'Club email', hint: '' },

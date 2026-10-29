@@ -363,14 +363,14 @@ export default function MatchesManagement() {
             </select>
           </div>
           <div>
-            <label htmlFor="url" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">CricHeroes match / scorecard link</label>
+            <label htmlFor="url" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Scorecard link (czechcricket.cz or CricHeroes)</label>
             <input
               type="url"
               id="url"
               value={newMatch.url}
               onChange={(e) => setNewMatch({ ...newMatch, url: e.target.value })}
               className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#000000] focus:ring-[#000000] text-sm"
-              placeholder="https://cricheroes.com/scorecard/…"
+              placeholder="https://www.czechcricket.cz/match/…"
             />
           </div>
           <div>

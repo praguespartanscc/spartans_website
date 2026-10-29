@@ -23,8 +23,8 @@ export function divisionLabel(division: number, lang: Lang) {
 // Confirmed 2026 results per squad (see HONOURS in club.ts).
 export const SQUAD_HONOURS: Record<string, { en: string; cs: string }> = {
   vanguards: {
-    en: '2026: 2nd in the Division 1 league stage, semi-finalists',
-    cs: '2026: 2. místo po základní části 1. divize, semifinále',
+    en: '2026: ČMKS T10 League winners, Division 1 semi-finalists',
+    cs: '2026: vítězové ČMKS T10 League, semifinále 1. divize',
   },
   mobilizers: {
     en: '2026: Division 2 winners',

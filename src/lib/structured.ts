@@ -59,7 +59,7 @@ export function squadNode(slug: string) {
     parentOrganization: clubRef,
     location: { '@id': GROUND_ID },
     memberOf: { '@type': 'SportsOrganization', name: GOVERNING_BODY.name, url: GOVERNING_BODY.url },
-    ...(s.cricheroes ? { sameAs: [s.cricheroes] } : {}),
+    ...(s.teamUrl ? { sameAs: [s.teamUrl] } : {}),
   };
 }
 
