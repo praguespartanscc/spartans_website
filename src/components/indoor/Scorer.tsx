@@ -2,14 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import toast, { Toaster } from 'react-hot-toast';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import type { BallRecord, EventData, InningsState, MatchState, TeamIndex } from '@/lib/indoor/engine';
-import { bowlerChoices, needs, oversText, target, teamTotal } from '@/lib/indoor/engine';
+import { bowlerChoices, needs, oversText, rulesAt, target, teamTotal } from '@/lib/indoor/engine';
 import type { BallInput, End, ExtraKind, WicketInput } from '@/lib/indoor/scoring';
 import { findZone, scoreBall, wicketStands } from '@/lib/indoor/scoring';
 import type { DismissalKind, IndoorRules, RulesPatch } from '@/lib/indoor/rules';
-import { DISMISSAL_LABEL, isFinalOver } from '@/lib/indoor/rules';
+import { DISMISSAL_LABEL, isFinalOver, normaliseZones } from '@/lib/indoor/rules';
 import { upcoming } from '@/lib/indoor/queue';
 import { newId } from '@/lib/indoor/store';
 import { announceText, ballLabel, ballTone, chaseText, resultText, runRate } from '@/lib/indoor/format';
@@ -18,10 +19,10 @@ import type { Placement, SyncState } from './useScorer';
 import { useScorer } from './useScorer';
 import Court from './Court';
 import Sheet from './Sheet';
-import RulesEditor, { Stepper } from './RulesEditor';
+import RulesEditor, { ConfirmButton, Stepper } from './RulesEditor';
 import { ArrowLeft, Share, Undo } from '@/components/ui/Icons';
 
-type SheetName = 'wicket' | 'bowler' | 'more' | 'ball' | 'history' | 'rules' | 'penalty' | 'player' | 'overs' | 'retire' | 'next' | 'end' | 'info' | 'handover' | null;
+type SheetName = 'wicket' | 'bowler' | 'more' | 'settings' | 'ball' | 'rules' | 'penalty' | 'player' | 'overs' | 'next' | 'end' | 'handover' | null;
 
 const EXTRAS: { id: ExtraKind; label: string }[] = [
   { id: 'wide', label: 'Wide' },
@@ -46,8 +47,10 @@ export default function Scorer({ id, member }: { id: string; member: Member }) {
   if (!lm || !state) {
     return (
       <div className="mx-auto max-w-md px-5 py-20 text-center">
-        <h1 className="h-sub text-3xl">Match not found</h1>
-        <p className="mt-3 text-sand">It may have been deleted, or it was started on another phone that has not synced yet.</p>
+        <h1 className="h-sub text-3xl">{s.gone ? 'This match was deleted' : 'Match not found'}</h1>
+        <p className="mt-3 text-sand">
+          {s.gone ? 'An admin deleted it, so this phone has removed its copy too.' : 'It may have been deleted, or it was started on another phone that has not synced yet.'}
+        </p>
         <Link href="/score" className="btn btn-gold mt-6">
           My matches
         </Link>
@@ -55,12 +58,13 @@ export default function Scorer({ id, member }: { id: string; member: Member }) {
     );
   }
   const owner = lm.match.created_by == null || lm.match.created_by === member.user.id || lm.match.scorer_id === member.user.id;
-  return <Board s={s} state={state} canScore={member.isAdmin || owner} />;
+  return <Board s={s} state={state} canScore={member.isAdmin || owner} isAdmin={member.isAdmin} />;
 }
 
 type ScorerApi = ReturnType<typeof useScorer>;
 
-function Board({ s, state, canScore }: { s: ScorerApi; state: MatchState; canScore: boolean }) {
+function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchState; canScore: boolean; isAdmin: boolean }) {
+  const router = useRouter();
   const lm = s.lm!;
   const rules = state.rules;
   const inn = state.innings[state.current];
@@ -72,12 +76,17 @@ function Board({ s, state, canScore }: { s: ScorerApi; state: MatchState; canSco
   const [place, setPlace] = useState<Placement>({ mode: 'append' });
   const [sheet, setSheet] = useState<SheetName>(null);
   const [picked, setPicked] = useState<BallRecord | null>(null);
-  const lastTap = useRef(0);
+  const [viewOver, setViewOver] = useState<number | null>(null); // null: the current over
+  const lastTap = useRef({ key: '', at: 0 });
 
   const overIndex = Math.floor(inn.legalBalls / bpo);
+  // Changing or inserting an old ball uses the rules that were in force when it was bowled.
+  const editing = place.mode !== 'append' ? inn.overs.flatMap((o) => o.balls).find((b) => b.eventId === place.id) : undefined;
+  const ballRules = editing ? rulesAt(state, editing.rulesAt) : rules;
   const finalOver = isFinalOver(rules, overIndex, inn.oversLimit);
   const need = needs(state);
-  const atBreak = state.current === 1 && !inn.complete && !inn.bowler && !inn.overs.some((o) => o.balls.length) && state.status !== 'complete';
+  // Before the first ball of an innings (also after a restart): pick openers and bowler.
+  const atBreak = !inn.complete && !inn.bowler && !inn.overs.some((o) => o.balls.length) && state.status !== 'complete';
   const done = state.status === 'complete';
 
   useWakeLock(canScore && !done);
@@ -94,10 +103,23 @@ function Board({ s, state, canScore }: { s: ScorerApi; state: MatchState; canSco
 
   const close = useCallback(() => setSheet(null), []);
 
-  const reset = () => {
+  // A rule change can remove the chosen wall or extra: drop it rather than score with it.
+  useEffect(() => {
+    if (zone && !findZone(ballRules, zone)) setZone(null);
+    if ((extra === 'bye' && !ballRules.extras.byesAllowed) || (extra === 'legBye' && !ballRules.extras.legByesAllowed)) setExtra(null);
+  }, [ballRules, zone, extra]);
+
+  // Back to the current over once a new ball is bowled.
+  const inningsNo = state.current;
+  useEffect(() => setViewOver(null), [inn.legalBalls, inningsNo]);
+
+  const clearBall = () => {
     setZone(null);
     setExtra(null);
     setDead(false);
+  };
+  const reset = () => {
+    clearBall();
     setPlace({ mode: 'append' });
   };
 
@@ -134,11 +156,13 @@ function Board({ s, state, canScore }: { s: ScorerApi; state: MatchState; canSco
   };
 
   const ball = (runs: number, wicket: WicketInput | null = null) => {
+    // A double tap on the same button is one ball. A different button always counts.
+    const key = wicket ? `w-${wicket.kind}` : `r-${runs}`;
     const now = Date.now();
-    if (now - lastTap.current < 350) return; // a double tap is one ball
-    lastTap.current = now;
+    if (lastTap.current.key === key && now - lastTap.current.at < 350) return;
+    lastTap.current = { key, at: now };
     const input: BallInput = { zone, runs, extra, wicket, ...(dead ? { deadBall: true } : {}) };
-    const v = scoreBall(rules, input, { finalOver, freeHit: inn.freeHit });
+    const v = scoreBall(ballRules, input, { finalOver, freeHit: inn.freeHit });
     const what = v.wicket ? 'Wicket' : `${v.teamRuns} ${v.teamRuns === 1 ? 'run' : 'runs'}`;
     commit({ type: 'ball', data: input }, place.mode === 'replace' ? 'Ball changed' : `${what} recorded`);
   };
@@ -148,11 +172,11 @@ function Board({ s, state, canScore }: { s: ScorerApi; state: MatchState; canSco
     if (last) toast('Undone', { id: 'last', duration: 1500 });
   };
 
-  const zoneObj = findZone(rules, zone);
-  const runLimit = dead ? rules.running.deadBallMaxRuns : zoneObj && !zoneObj.allowRunning ? 0 : rules.running.maxRunsPerBall ?? 6;
-  const preview = (runs: number) => scoreBall(rules, { zone, runs, extra, wicket: null, deadBall: dead }, { finalOver, freeHit: inn.freeHit });
+  const zoneObj = findZone(ballRules, zone);
+  const runLimit = dead ? ballRules.running.deadBallMaxRuns : zoneObj && !zoneObj.allowRunning ? 0 : ballRules.running.maxRunsPerBall ?? 6;
+  const preview = (runs: number) => scoreBall(ballRules, { zone, runs, extra, wicket: null, deadBall: dead }, { finalOver, freeHit: inn.freeHit });
 
-  const currentOver = inn.overs.find((o) => o.index === overIndex) ?? inn.overs[inn.overs.length - 1];
+  const currentOver = inn.overs.find((o) => o.index === (viewOver ?? overIndex)) ?? inn.overs[inn.overs.length - 1];
   const strikerLine = inn.striker ? inn.batters[inn.striker] : null;
   const nonLine = inn.nonStriker ? inn.batters[inn.nonStriker] : null;
   const bowlerLine = inn.bowler ? inn.bowlers[inn.bowler] : null;
@@ -172,7 +196,7 @@ function Board({ s, state, canScore }: { s: ScorerApi; state: MatchState; canSco
           {state.teams[0].name} v {state.teams[1].name}
         </p>
         <SyncDot sync={s.sync} pending={lm.pending.length} />
-        <button type="button" onClick={() => setSheet('info')} className="chip mr-2 shrink-0 hover:border-gold">
+        <button type="button" onClick={() => setSheet('rules')} className="chip mr-2 shrink-0 hover:border-gold">
           Rules
         </button>
       </div>
@@ -210,7 +234,7 @@ function Board({ s, state, canScore }: { s: ScorerApi; state: MatchState; canSco
       ) : !canScore ? (
         <ReadOnly state={state} id={lm.match.id} pull={s.pull} />
       ) : atBreak ? (
-        <Break state={state} inn={inn} onStart={(evs) => commit(evs, 'Second innings started')} />
+        <Break state={state} inn={inn} onStart={(evs) => commit(evs, state.current === 1 ? 'Second innings started' : 'Match started')} />
       ) : (
         <>
           {/* Batters */}
@@ -263,10 +287,25 @@ function Board({ s, state, canScore }: { s: ScorerApi; state: MatchState; canSco
                 <span className="text-gold">Pick a bowler</span>
               )}
             </button>
-            <button type="button" onClick={() => setSheet('history')} className="chip shrink-0 hover:border-gold">
-              All balls
-            </button>
           </section>
+          {inn.overs.length > 1 && (
+            <div className="mx-4 mt-2 flex gap-1.5 overflow-x-auto pb-1" role="group" aria-label="Choose an over">
+              {inn.overs.map((o) => {
+                const on = o.index === (viewOver ?? overIndex);
+                return (
+                  <button
+                    key={o.index}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => setViewOver(o.index === overIndex ? null : o.index)}
+                    className={`h-9 min-w-9 shrink-0 px-2 font-display text-sm font-bold italic ${on ? 'bg-cream text-ink' : 'border border-cream/22 text-muted'}`}
+                  >
+                    {o.index + 1}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           <OverStrip over={currentOver?.balls ?? []} onPick={(b) => (setPicked(b), setSheet('ball'))} />
 
           {place.mode !== 'append' && (
@@ -280,7 +319,7 @@ function Board({ s, state, canScore }: { s: ScorerApi; state: MatchState; canSco
 
           {/* Extras */}
           <div className="mx-4 mt-3 flex flex-wrap gap-2">
-            {EXTRAS.filter((x) => (x.id === 'bye' ? rules.extras.byesAllowed : x.id === 'legBye' ? rules.extras.legByesAllowed : true)).map((x) => (
+            {EXTRAS.filter((x) => (x.id === 'bye' ? ballRules.extras.byesAllowed : x.id === 'legBye' ? ballRules.extras.legByesAllowed : true)).map((x) => (
               <Toggle key={x.id} on={extra === x.id} onClick={() => setExtra(extra === x.id ? null : x.id)}>
                 {x.label}
               </Toggle>
@@ -289,14 +328,21 @@ function Board({ s, state, canScore }: { s: ScorerApi; state: MatchState; canSco
               Dead ball
             </Toggle>
           </div>
-          {(zone || extra || dead) && <p className="mx-4 mt-2 text-sm text-sand">{describe(rules, zone, extra, dead, finalOver)}</p>}
+          {(zone || extra || dead) && (
+            <div className="mx-4 mt-2 flex items-center justify-between gap-3">
+              <p className="text-sm text-sand">{describe(ballRules, zone, extra, dead, finalOver)}</p>
+              <button type="button" onClick={clearBall} className="min-h-11 shrink-0 px-2 font-display text-sm font-bold uppercase italic text-gold">
+                Clear
+              </button>
+            </div>
+          )}
 
           {/* Court */}
           <div className="mx-auto mt-3 max-w-[360px] px-4">
-            <Court rules={rules} selected={zone} onSelect={setZone} />
+            <Court rules={ballRules} selected={zone} onSelect={setZone} />
           </div>
 
-          {need === 'batter' && <p className="mx-4 mt-2 text-gold">No batter is free to come in. Add a player from More.</p>}
+          {need === 'batter' && <p className="mx-4 mt-2 text-gold">No batter is free to come in. Add a late player from More, then Match settings.</p>}
         </>
       )}
 
@@ -354,6 +400,11 @@ function Board({ s, state, canScore }: { s: ScorerApi; state: MatchState; canSco
             close();
             ball(0, w);
           }}
+          onRetire={(end, out) => {
+            const b = end === 'striker' ? strikerLine : nonLine;
+            close();
+            commit({ type: 'retire', data: { who: end, out } }, `${b?.name ?? 'Batter'} ${out ? 'retired out' : 'retired'}`);
+          }}
         />
       )}
       {sheet === 'bowler' && (
@@ -400,63 +451,72 @@ function Board({ s, state, canScore }: { s: ScorerApi; state: MatchState; canSco
           </div>
         </Sheet>
       )}
-      {sheet === 'history' && (
-        <Sheet title="Every ball this innings" onClose={close}>
-          <div className="space-y-3">
-            {inn.overs.length === 0 && <p className="text-muted">No balls yet.</p>}
-            {[...inn.overs].reverse().map((o) => (
-              <div key={o.index}>
-                <p className="text-sm text-muted">
-                  Over {o.index + 1}
-                  {o.bowlerId ? `, ${inn.bowlers[o.bowlerId]?.name ?? ''}` : ''}
-                </p>
-                <OverStrip over={o.balls} onPick={(b) => (setPicked(b), setSheet('ball'))} flush />
-              </div>
-            ))}
-          </div>
-        </Sheet>
-      )}
       {sheet === 'more' && (
         <Sheet title="More" onClose={close}>
           <div className="grid grid-cols-2 gap-2">
-            <MoreBtn onClick={() => (commit({ type: 'swapStrike', data: {} }, 'Strike changed'), close())}>Swap strike</MoreBtn>
-            <MoreBtn onClick={() => setSheet('retire')}>Retire a batter</MoreBtn>
-            <MoreBtn onClick={() => setSheet('next')}>Choose next batter</MoreBtn>
-            <MoreBtn onClick={() => setSheet('penalty')}>Penalty runs</MoreBtn>
-            <MoreBtn onClick={() => setSheet('player')}>Add a late player</MoreBtn>
-            <MoreBtn onClick={() => setSheet('overs')}>Change overs</MoreBtn>
-            <MoreBtn onClick={() => setSheet('rules')}>Change rules</MoreBtn>
-            <MoreBtn onClick={() => setSheet('end')}>End innings</MoreBtn>
-            <MoreBtn onClick={() => setSheet('handover')}>Hand over scoring</MoreBtn>
             <Link href={`/score/${lm.match.id}/card`} className="btn btn-outline min-h-14 justify-center">
               Scorecard
             </Link>
             <ShareButton slug={lm.match.share_slug} uploaded={!lm.matchPending} />
           </div>
+          <button type="button" onClick={() => setSheet('settings')} className="btn btn-outline btn-lg mt-2 w-full">
+            Match settings
+          </button>
           <p className="mt-5 border-t border-cream/12 pt-4 text-sm text-muted">Umpire call: {announceText(state)}</p>
         </Sheet>
       )}
-      {sheet === 'retire' && (
-        <Sheet title="Retire a batter" onClose={close}>
-          <div className="grid gap-2">
-            {(['striker', 'nonStriker'] as End[]).map((end) => {
-              const b = end === 'striker' ? strikerLine : nonLine;
-              if (!b) return null;
-              return (
-                <div key={end} className="grid grid-cols-2 gap-2">
-                  <button type="button" className="btn btn-outline min-h-14" onClick={() => (commit({ type: 'retire', data: { who: end, out: false } }, `${b.name} retired`), close())}>
-                    {b.name} retires
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-outline min-h-14"
-                    onClick={() => (commit({ type: 'retire', data: { who: end, out: true } }, `${b.name} retired out`), close())}
-                  >
-                    {b.name} retired out (minus {rules.wickets.penalty})
-                  </button>
-                </div>
-              );
-            })}
+      {sheet === 'settings' && (
+        <Sheet title="Match settings" onClose={close}>
+          <div className="grid grid-cols-2 gap-2">
+            <MoreBtn onClick={() => setSheet('overs')}>Change overs</MoreBtn>
+            <MoreBtn onClick={() => setSheet('rules')}>Change rules</MoreBtn>
+            <MoreBtn onClick={() => setSheet('penalty')}>Penalty runs</MoreBtn>
+            <MoreBtn onClick={() => setSheet('player')}>Add a late player</MoreBtn>
+            <MoreBtn onClick={() => setSheet('next')}>Choose next batter</MoreBtn>
+            <MoreBtn onClick={() => setSheet('handover')}>Hand over scoring</MoreBtn>
+            <MoreBtn onClick={() => setSheet('end')}>End innings</MoreBtn>
+          </div>
+          <div className="mt-5 space-y-3 border-t border-cream/12 pt-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm text-sand">Start again from the first ball. Teams and rules stay.</p>
+              <ConfirmButton
+                label="Restart match"
+                confirm="Tap again to restart"
+                onConfirm={() => {
+                  const ids = s.restart();
+                  close();
+                  toast(
+                    (t) => (
+                      <span className="flex items-center gap-3">
+                        <span>Match restarted</span>
+                        <button type="button" className="font-display font-bold uppercase italic text-gold" onClick={() => (s.restoreMany(ids), toast.dismiss(t.id))}>
+                          Undo
+                        </button>
+                      </span>
+                    ),
+                    { id: 'last', duration: 6000 },
+                  );
+                }}
+              />
+            </div>
+            {isAdmin && (
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm text-sand">Delete this match for everyone. This cannot be undone.</p>
+                <ConfirmButton
+                  danger
+                  label="Delete match"
+                  confirm="Tap again to delete"
+                  onConfirm={async () => {
+                    const error = await s.deleteMatch();
+                    if (error) toast.error(error);
+                    else {
+                      toast.success('Match deleted');
+                      router.push('/score');
+                    }
+                  }}
+                />
+              </div>
+            )}
           </div>
         </Sheet>
       )}
@@ -482,7 +542,15 @@ function Board({ s, state, canScore }: { s: ScorerApi; state: MatchState; canSco
           onSave={(o) => (commit({ type: 'oversChange', data: { overs: o } }, `Innings now ${o} overs`), close())}
         />
       )}
-      {sheet === 'rules' && <RulesSheet rules={rules} onClose={close} onSave={(patch) => (commit({ type: 'rulesChange', data: { patch } }, 'Rules changed from here on'), close())} />}
+      {sheet === 'rules' && (
+        <RulesSheet
+          rules={rules}
+          state={state}
+          canEdit={canScore && !done}
+          onClose={close}
+          onSave={(patch) => (commit({ type: 'rulesChange', data: { patch } }, 'Rules changed from here on'), close())}
+        />
+      )}
       {sheet === 'handover' && <HandoverSheet current={lm.match.scorer_id ?? null} onClose={close} onPick={s.handOver} />}
       {sheet === 'end' && (
         <Sheet title="End this innings?" onClose={close}>
@@ -490,27 +558,6 @@ function Board({ s, state, canScore }: { s: ScorerApi; state: MatchState; canSco
           <button type="button" className="btn btn-gold btn-lg mt-5 w-full" onClick={() => (commit({ type: 'inningsEnd', data: {} }, 'Innings ended'), close())}>
             End the innings
           </button>
-        </Sheet>
-      )}
-      {sheet === 'info' && (
-        <Sheet title={rules.name} onClose={close}>
-          <ul className="space-y-1.5 text-sand">
-            {rulesSummary(rules).map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-          {state.rulesLog.length > 0 && (
-            <>
-              <p className="field-label mt-5">Changed during the match</p>
-              <ul className="space-y-1 text-sm text-muted">
-                {state.rulesLog.map((r) => (
-                  <li key={r.eventId}>
-                    Innings {r.innings + 1}, after {r.overs} overs: {Object.keys(r.patch).join(', ')}
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
         </Sheet>
       )}
     </div>
@@ -534,8 +581,9 @@ function useWakeLock(on: boolean) {
 }
 
 function SyncDot({ sync, pending }: { sync: SyncState; pending: number }) {
-  const text = sync === 'offline' ? `Saved on this phone${pending ? `, ${pending} to upload` : ''}` : sync === 'saving' ? 'Saving' : 'Synced';
-  const tone = sync === 'offline' ? 'bg-crimson-hi' : sync === 'saving' ? 'bg-gold' : 'bg-cream/40';
+  const text =
+    sync === 'refused' ? 'Upload refused, ask an admin' : sync === 'offline' ? `Saved on this phone${pending ? `, ${pending} to upload` : ''}` : sync === 'saving' ? 'Saving' : 'Synced';
+  const tone = sync === 'offline' || sync === 'refused' ? 'bg-crimson-hi' : sync === 'saving' ? 'bg-gold' : 'bg-cream/40';
   return (
     <span className="flex h-11 items-center gap-1.5 pr-2 text-xs text-muted" role="status">
       <span className={`h-2 w-2 rounded-full ${tone}`} />
@@ -616,7 +664,7 @@ function describe(rules: IndoorRules, zone: string | null, extra: ExtraKind | nu
   if (extra === 'bye') parts.push('Bye');
   if (extra === 'legBye') parts.push('Leg bye');
   if ((extra === 'wide' || extra === 'noBall') && (rules.extras.rebowl === 'always' || (rules.extras.rebowl === 'finalOver' && finalOver))) parts.push('bowled again');
-  if (dead) parts.push(`Dead ball, at most ${rules.running.deadBallMaxRuns} run`);
+  if (dead) parts.push(`Dead ball, at most ${rules.running.deadBallMaxRuns} ${rules.running.deadBallMaxRuns === 1 ? 'run' : 'runs'}`);
   return parts.join('. ');
 }
 
@@ -650,7 +698,23 @@ export function rulesSummary(r: IndoorRules): string[] {
   ].filter(Boolean);
 }
 
-function WicketSheet({ rules, inn, zone, extra, onClose, onOut }: { rules: IndoorRules; inn: InningsState; zone: string | null; extra: ExtraKind | null; onClose: () => void; onOut: (w: WicketInput) => void }) {
+function WicketSheet({
+  rules,
+  inn,
+  zone,
+  extra,
+  onClose,
+  onOut,
+  onRetire,
+}: {
+  rules: IndoorRules;
+  inn: InningsState;
+  zone: string | null;
+  extra: ExtraKind | null;
+  onClose: () => void;
+  onOut: (w: WicketInput) => void;
+  onRetire: (end: End, out: boolean) => void;
+}) {
   const [kind, setKind] = useState<DismissalKind | null>(null);
   const kinds = rules.wickets.allowed.filter((k) => k !== 'retiredOut' && wicketStands(rules, { kind: k, who: 'striker', zone: null }, inn.freeHit, extra));
   const wallZones = rules.zones.filter((z) => z.enabled && z.catchOffIsOut && z.area !== 'keeperWall');
@@ -684,6 +748,23 @@ function WicketSheet({ rules, inn, zone, extra, onClose, onOut }: { rules: Indoo
           <p className="mt-4 text-sm text-muted">
             {rules.wickets.wicketBallScoresNothing ? `Only minus ${rules.wickets.penalty} counts on this ball.` : `Minus ${rules.wickets.penalty}, runs off this ball still count.`}
           </p>
+          <div className="mt-5 border-t border-cream/12 pt-4">
+            <p className="field-label">Retiring between balls</p>
+            <div className="grid gap-2">
+              {(['striker', 'nonStriker'] as End[]).map((end) =>
+                names[end] ? (
+                  <div key={end} className="grid grid-cols-2 gap-2">
+                    <button type="button" className="min-h-12 border border-cream/22 px-3 text-left text-cream" onClick={() => onRetire(end, false)}>
+                      {names[end]} retires
+                    </button>
+                    <button type="button" className="min-h-12 border border-cream/22 px-3 text-left text-cream" onClick={() => onRetire(end, true)}>
+                      {names[end]} retired out
+                    </button>
+                  </div>
+                ) : null,
+              )}
+            </div>
+          </div>
         </>
       )}
       {(kind === 'runOut' || kind === 'obstructing') && (
@@ -781,21 +862,54 @@ function OversSheet({ current, min, onClose, onSave }: { current: number; min: n
   );
 }
 
-function RulesSheet({ rules, onClose, onSave }: { rules: IndoorRules; onClose: () => void; onSave: (patch: RulesPatch) => void }) {
+// One place for rules: what is in force, what changed during the match, and Edit.
+function RulesSheet({ rules, state, canEdit, onClose, onSave }: { rules: IndoorRules; state: MatchState; canEdit: boolean; onClose: () => void; onSave: (patch: RulesPatch) => void }) {
+  const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(rules);
   const patch = useMemo(() => {
     const p: Record<string, unknown> = {};
     for (const k of Object.keys(draft) as (keyof IndoorRules)[]) {
       if (k === 'schema' || k === 'presetId' || k === 'name') continue;
-      if (JSON.stringify(draft[k]) !== JSON.stringify(rules[k])) p[k] = draft[k];
+      const next = k === 'zones' ? normaliseZones(draft.zones) : draft[k];
+      const now = k === 'zones' ? normaliseZones(rules.zones) : rules[k];
+      if (JSON.stringify(next) !== JSON.stringify(now)) p[k] = next;
     }
     return p as RulesPatch;
   }, [draft, rules]);
   const changed = Object.keys(patch).length > 0;
+
+  if (!editing) {
+    return (
+      <Sheet title={rules.name} onClose={onClose}>
+        <ul className="space-y-1.5 text-sand">
+          {rulesSummary(rules).map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+        {state.rulesLog.length > 0 && (
+          <>
+            <p className="field-label mt-5">Changed during the match</p>
+            <ul className="space-y-1 text-sm text-muted">
+              {state.rulesLog.map((r) => (
+                <li key={r.eventId}>
+                  Innings {r.innings + 1}, after {r.overs} overs: {Object.keys(r.patch).join(', ')}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        {canEdit && (
+          <button type="button" className="btn btn-gold btn-lg mt-5 w-full" onClick={() => setEditing(true)}>
+            Edit rules
+          </button>
+        )}
+      </Sheet>
+    );
+  }
   return (
     <Sheet title="Change rules" onClose={onClose}>
       <p className="mb-4 text-sand">Changes apply from the next ball. Balls already bowled keep the old rules.</p>
-      <RulesEditor rules={draft} onChange={setDraft} />
+      <RulesEditor rules={draft} onChange={setDraft} base={state.setup.rules} midMatch />
       <button type="button" disabled={!changed} className="btn btn-gold btn-lg sticky bottom-0 mt-5 w-full" onClick={() => onSave(patch)}>
         {changed ? 'Use these rules from now' : 'No changes yet'}
       </button>
@@ -811,13 +925,20 @@ function Break({ state, inn, onStart }: { state: MatchState; inn: InningsState; 
   const [bowler, setBowler] = useState<string | null>(null);
   const first = state.innings[0];
   const ok = a && b && a !== b && bowler;
+  const second = inn.index === 1;
   return (
     <section className="mx-4 mt-5 space-y-5">
       <div className="card p-4">
-        <p className="eyebrow">Innings break</p>
+        <p className="eyebrow">{second ? 'Innings break' : 'Ready to start'}</p>
         <p className="mt-2 text-sand">
-          {state.teams[first.batting].name} made {teamTotal(state, first.batting)}/{first.wickets}. {state.teams[inn.batting].name} need {target(state)} to win
-          {state.rules.match.inningsEnd === 'allOvers' ? ', all overs are bowled.' : '.'}
+          {second ? (
+            <>
+              {state.teams[first.batting].name} made {teamTotal(state, first.batting)}/{first.wickets}. {state.teams[inn.batting].name} need {target(state)} to win
+              {state.rules.match.inningsEnd === 'allOvers' ? ', all overs are bowled.' : '.'}
+            </>
+          ) : (
+            `${state.teams[inn.batting].name} bat first. Pick the openers and the first bowler.`
+          )}
         </p>
       </div>
       <Pick title="On strike" list={players} value={a} onPick={(x) => (setA(x), x === b && setB(a))} />
@@ -835,7 +956,7 @@ function Break({ state, inn, onStart }: { state: MatchState; inn: InningsState; 
           ])
         }
       >
-        Start the second innings
+        {second ? 'Start the second innings' : 'Start the match'}
       </button>
     </section>
   );
@@ -879,9 +1000,14 @@ function Finished({ state, slug, id }: { state: MatchState; slug: string; id: st
         </Link>
         <ShareButton slug={slug} />
       </div>
-      <Link href="/score/new" className="btn btn-outline btn-lg w-full">
-        New match
-      </Link>
+      <div className="grid grid-cols-2 gap-2">
+        <Link href={`/score/new?from=${id}`} className="btn btn-outline min-h-14 justify-center">
+          Same teams again
+        </Link>
+        <Link href="/score/new" className="btn btn-outline min-h-14 justify-center">
+          New match
+        </Link>
+      </div>
       <p className="text-center text-sm text-muted">Made a mistake? Undo takes back the last ball and reopens the match.</p>
     </section>
   );

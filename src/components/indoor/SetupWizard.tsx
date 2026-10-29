@@ -7,14 +7,16 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import toast from 'react-hot-toast';
 import type { EventData, IndoorEvent, MatchSetup, Player, TeamIndex } from '@/lib/indoor/engine';
 import type { IndoorRules } from '@/lib/indoor/rules';
-import { cloneRules } from '@/lib/indoor/rules';
+import { cloneRules, normaliseZones } from '@/lib/indoor/rules';
 import { PRESETS, presetById } from '@/lib/indoor/presets';
-import { newId, newSlug, saveLocal } from '@/lib/indoor/store';
+import { loadLocal, newId, newSlug, saveLocal } from '@/lib/indoor/store';
 import type { LocalMatch } from '@/lib/indoor/store';
-import RulesEditor from './RulesEditor';
+import { fetchMatch } from '@/lib/indoor/sync';
+import RulesEditor, { ConfirmButton } from './RulesEditor';
+import { rulesSummary } from './Scorer';
 import { ArrowLeft, ArrowRight, Close } from '@/components/ui/Icons';
 
-const STEPS = ['Teams', 'Squads', 'Rules', 'Toss', 'Start'] as const;
+const STEPS = ['Teams', 'Rules', 'Start'] as const;
 const OVERS = [5, 6, 8, 10, 12, 15];
 const LAST_RULES = 'indoor:lastRules';
 
@@ -23,7 +25,9 @@ const todayInPrague = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe
 function loadLastRules(): IndoorRules | null {
   try {
     const raw = localStorage.getItem(LAST_RULES);
-    return raw ? (JSON.parse(raw) as IndoorRules) : null;
+    if (!raw) return null;
+    const r = JSON.parse(raw) as IndoorRules;
+    return { ...r, zones: normaliseZones(r.zones) };
   } catch {
     return null;
   }
@@ -34,7 +38,9 @@ export default function SetupWizard() {
   const [step, setStep] = useState(0);
   const [names, setNames] = useState<[string, string]>(['', '']);
   const [squads, setSquads] = useState<[Player[], Player[]]>([[], []]);
+  const [base, setBase] = useState<IndoorRules>(() => presetById('league')); // the preset picked
   const [rules, setRules] = useState<IndoorRules>(() => presetById('league'));
+  const [customise, setCustomise] = useState(false);
   const [last, setLast] = useState<IndoorRules | null>(null);
   const [tossWinner, setTossWinner] = useState<TeamIndex | null>(null);
   const [tossChoice, setTossChoice] = useState<'bat' | 'bowl'>('bat');
@@ -42,14 +48,35 @@ export default function SetupWizard() {
   const [bowler, setBowler] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => setLast(loadLastRules()), []);
+  // "Same teams again": /score/new?from=<match id> copies teams, squads and rules.
+  useEffect(() => {
+    setLast(loadLastRules());
+    const from = new URLSearchParams(window.location.search).get('from');
+    if (!from) return;
+    const fill = (setup: MatchSetup) => {
+      setNames([setup.teams[0].name, setup.teams[1].name]);
+      setSquads([setup.teams[0].players, setup.teams[1].players]);
+      const r = { ...cloneRules(setup.rules), zones: normaliseZones(setup.rules.zones) };
+      setBase(r);
+      setRules(r);
+    };
+    const local = loadLocal(from);
+    if (local) return fill(local.match.setup);
+    fetchMatch(createClientComponentClient(), from)
+      .then((m) => m && fill(m.match.setup))
+      .catch(() => {});
+  }, []);
 
   const teamName = (t: TeamIndex) => names[t].trim() || (t === 0 ? 'Team A' : 'Team B');
-  const battingFirst: TeamIndex = tossWinner == null ? 0 : tossChoice === 'bat' ? tossWinner : tossWinner === 0 ? 1 : 0;
-  const batSide = squads[battingFirst];
-  const bowlSide = squads[battingFirst === 0 ? 1 : 0];
-  const striker = openers[0] ?? batSide[0]?.id ?? null;
-  const nonStriker = openers[1] ?? batSide.find((p) => p.id !== striker)?.id ?? null;
+  const battingFirst: TeamIndex | null = tossWinner == null ? null : tossChoice === 'bat' ? tossWinner : tossWinner === 0 ? 1 : 0;
+  const batSide = battingFirst == null ? [] : squads[battingFirst];
+  const bowlSide = battingFirst == null ? [] : squads[battingFirst === 0 ? 1 : 0];
+  // Choices left over from a different toss or squad simply fall back to the batting order.
+  const pickedStriker = openers[0] && batSide.some((p) => p.id === openers[0]) ? openers[0] : null;
+  const striker = pickedStriker ?? batSide[0]?.id ?? null;
+  const pickedNon = openers[1] && openers[1] !== striker && batSide.some((p) => p.id === openers[1]) ? openers[1] : null;
+  const nonStriker = pickedNon ?? batSide.find((p) => p.id !== striker)?.id ?? null;
+  const firstBowler = bowler && bowlSide.some((p) => p.id === bowler) ? bowler : null;
 
   const problems = useMemo(() => {
     const out: string[] = [];
@@ -64,7 +91,7 @@ export default function SetupWizard() {
   const short = squads.map((s) => s.length < rules.match.minPlayers);
 
   function go(to: number) {
-    if (to > 1 && step <= 1 && problems.length) {
+    if (to > 0 && step === 0 && problems.length) {
       toast.error(problems[0]);
       return;
     }
@@ -72,39 +99,61 @@ export default function SetupWizard() {
     window.scrollTo({ top: 0 });
   }
 
+  function startOver() {
+    setStep(0);
+    setNames(['', '']);
+    setSquads([[], []]);
+    setBase(presetById('league'));
+    setRules(presetById('league'));
+    setCustomise(false);
+    setTossWinner(null);
+    setTossChoice('bat');
+    setOpeners([null, null]);
+    setBowler(null);
+    window.scrollTo({ top: 0 });
+  }
+
+  function pickPreset(p: IndoorRules) {
+    const r = { ...cloneRules(p), zones: normaliseZones(p.zones) };
+    setBase(r);
+    setRules(r);
+  }
+
   async function start() {
-    if (problems.length || !striker || !nonStriker || striker === nonStriker || !bowler) {
-      toast.error('Pick two opening batters and a bowler.');
-      return;
-    }
+    if (battingFirst == null) return void toast.error('Pick who won the toss.');
+    if (problems.length || !striker || !nonStriker || striker === nonStriker || !firstBowler) return void toast.error('Pick two opening batters and a bowler.');
     setBusy(true);
-    const setup: MatchSetup = {
-      teams: [
-        { name: teamName(0), players: squads[0] },
-        { name: teamName(1), players: squads[1] },
-      ],
-      battingFirst,
-      rules: cloneRules(rules),
-    };
-    const data: EventData[] = [
-      { type: 'openers', data: { strikerId: striker, nonStrikerId: nonStriker } },
-      { type: 'overStart', data: { bowlerId: bowler } },
-    ];
-    const events = data.map((d, i) => ({ id: newId(), seq: i + 1, ...d }) as IndoorEvent);
-    const id = newId();
-    const lm: LocalMatch = {
-      match: { id, team_a: setup.teams[0].name, team_b: setup.teams[1].name, setup, summary: null, status: 'live', share_slug: newSlug(), played_on: todayInPrague() },
-      events,
-      pending: events.map((e) => e.id),
-      matchPending: true,
-    };
     try {
-      localStorage.setItem(LAST_RULES, JSON.stringify({ ...rules, presetId: 'last', name: 'My last rules' }));
-    } catch {
-      // storage blocked: the match still starts
+      const setup: MatchSetup = {
+        teams: [
+          { name: teamName(0), players: squads[0] },
+          { name: teamName(1), players: squads[1] },
+        ],
+        battingFirst,
+        rules: { ...cloneRules(rules), zones: normaliseZones(rules.zones) },
+      };
+      const data: EventData[] = [
+        { type: 'openers', data: { strikerId: striker, nonStrikerId: nonStriker } },
+        { type: 'overStart', data: { bowlerId: firstBowler } },
+      ];
+      const events = data.map((d, i) => ({ id: newId(), seq: i + 1, ...d }) as IndoorEvent);
+      const id = newId();
+      const lm: LocalMatch = {
+        match: { id, team_a: setup.teams[0].name, team_b: setup.teams[1].name, setup, summary: null, status: 'live', share_slug: newSlug(), played_on: todayInPrague() },
+        events,
+        pending: events.map((e) => e.id),
+        matchPending: true,
+      };
+      try {
+        localStorage.setItem(LAST_RULES, JSON.stringify({ ...setup.rules, presetId: 'last', name: 'My last rules' }));
+      } catch {
+        // storage blocked: the match still starts
+      }
+      if (!saveLocal(lm)) toast('This phone could not save a copy. Keep the screen open until it says Synced.');
+      router.push(`/score/${id}`);
+    } finally {
+      setBusy(false);
     }
-    if (!saveLocal(lm)) toast('This phone could not save a copy. Keep the screen open until it says Synced.');
-    router.push(`/score/${id}`);
   }
 
   return (
@@ -114,10 +163,10 @@ export default function SetupWizard() {
           <ArrowLeft size={22} />
         </Link>
         <p className="eyebrow">New indoor match</p>
-        <span className="w-11" />
+        <ConfirmButton label="Start over" confirm="Tap again" onConfirm={startOver} />
       </div>
 
-      <ol className="mt-4 grid grid-cols-5 gap-1" aria-label="Steps">
+      <ol className="mt-4 grid grid-cols-3 gap-1" aria-label="Steps">
         {STEPS.map((s, i) => (
           <li key={s}>
             <button type="button" onClick={() => i < step && go(i)} disabled={i >= step} aria-current={i === step ? 'step' : undefined} className="w-full text-left">
@@ -130,29 +179,30 @@ export default function SetupWizard() {
 
       <div key={step} className="page-enter mt-8">
         {step === 0 && (
-          <section className="space-y-5">
+          <section className="space-y-6">
             <h1 className="h-sub text-3xl">Who is playing?</h1>
-            {[0, 1].map((t) => (
-              <div key={t}>
-                <label htmlFor={`team-${t}`} className="field-label">
-                  {t === 0 ? 'First team' : 'Second team'}
-                </label>
-                <input
-                  id={`team-${t}`}
-                  className="field"
-                  maxLength={40}
-                  placeholder={t === 0 ? 'Team A' : 'Team B'}
-                  value={names[t]}
-                  onChange={(e) => setNames((n) => (t === 0 ? [e.target.value, n[1]] : [n[0], e.target.value]))}
-                />
-              </div>
-            ))}
+            <div className="grid grid-cols-2 gap-3">
+              {[0, 1].map((t) => (
+                <div key={t}>
+                  <label htmlFor={`team-${t}`} className="field-label">
+                    {t === 0 ? 'First team' : 'Second team'}
+                  </label>
+                  <input
+                    id={`team-${t}`}
+                    className="field"
+                    maxLength={40}
+                    placeholder={t === 0 ? 'Team A' : 'Team B'}
+                    value={names[t]}
+                    onChange={(e) => setNames((n) => (t === 0 ? [e.target.value, n[1]] : [n[0], e.target.value]))}
+                  />
+                </div>
+              ))}
+            </div>
+            <Squads names={[teamName(0), teamName(1)]} squads={squads} setSquads={setSquads} minPlayers={rules.match.minPlayers} />
           </section>
         )}
 
-        {step === 1 && <Squads names={[teamName(0), teamName(1)]} squads={squads} setSquads={setSquads} minPlayers={rules.match.minPlayers} />}
-
-        {step === 2 && (
+        {step === 1 && (
           <section className="space-y-5">
             <h1 className="h-sub text-3xl">Rules for today</h1>
             <div>
@@ -162,9 +212,9 @@ export default function SetupWizard() {
                   <button
                     key={p.presetId}
                     type="button"
-                    aria-pressed={rules.presetId === p.presetId}
-                    onClick={() => setRules({ ...cloneRules(p), match: { ...p.match } })}
-                    className={`min-h-11 px-4 font-semibold ${rules.presetId === p.presetId ? 'bg-gold text-ink' : 'border border-cream/22 text-cream'}`}
+                    aria-pressed={base.presetId === p.presetId}
+                    onClick={() => pickPreset(p)}
+                    className={`min-h-11 px-4 font-semibold ${base.presetId === p.presetId ? 'bg-gold text-ink' : 'border border-cream/22 text-cream'}`}
                   >
                     {p.name}
                   </button>
@@ -185,31 +235,29 @@ export default function SetupWizard() {
                     {o}
                   </button>
                 ))}
-                <label className="flex items-center gap-2 text-muted">
-                  or
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    min={1}
-                    max={50}
-                    aria-label="Any number of overs"
-                    value={rules.match.oversPerInnings}
-                    onChange={(e) => {
-                      const v = Math.max(1, Math.min(50, Number(e.target.value) || 1));
-                      setRules({ ...rules, match: { ...rules.match, oversPerInnings: v } });
-                    }}
-                    className="field h-12 w-20 text-center"
-                  />
-                </label>
+                <OversInput value={rules.match.oversPerInnings} onChange={(v) => setRules({ ...rules, match: { ...rules.match, oversPerInnings: v } })} />
               </div>
             </div>
-            <RulesEditor rules={rules} onChange={setRules} />
+            {customise ? (
+              <RulesEditor rules={rules} onChange={setRules} base={base} />
+            ) : (
+              <div className="card p-4">
+                <ul className="space-y-1 text-sm text-sand">
+                  {rulesSummary(rules).map((l) => (
+                    <li key={l}>{l}</li>
+                  ))}
+                </ul>
+                <button type="button" onClick={() => setCustomise(true)} className="btn btn-outline mt-4 w-full">
+                  Customise rules
+                </button>
+              </div>
+            )}
           </section>
         )}
 
-        {step === 3 && (
+        {step === 2 && (
           <section className="space-y-6">
-            <h1 className="h-sub text-3xl">The toss</h1>
+            <h1 className="h-sub text-3xl">Toss and openers</h1>
             <div>
               <p className="field-label">Who won the toss?</p>
               <div className="grid grid-cols-2 gap-2">
@@ -233,26 +281,14 @@ export default function SetupWizard() {
                 </div>
               </div>
             )}
-            <p className="text-sand">
-              <strong className="text-cream">{teamName(battingFirst)}</strong> bat first.
-            </p>
-          </section>
-        )}
-
-        {step === 4 && (
-          <section className="space-y-6">
-            <h1 className="h-sub text-3xl">Openers and bowler</h1>
-            <PickList title={`On strike for ${teamName(battingFirst)}`} players={batSide} value={striker} onPick={(id) => setOpeners([id, id === nonStriker ? striker : nonStriker])} />
-            <PickList title="At the other end" players={batSide} value={nonStriker} onPick={(id) => setOpeners([id === striker ? nonStriker : striker, id])} />
-            <PickList title={`Opening bowler for ${teamName(battingFirst === 0 ? 1 : 0)}`} players={bowlSide} value={bowler} onPick={setBowler} />
-            <div className="card p-4 text-sand">
-              <p>
-                {rules.name}, {rules.match.oversPerInnings} overs. Wicket {rules.wickets.penalty > 0 ? `minus ${rules.wickets.penalty}` : 'no penalty'}.{' '}
-                {rules.batting.retireAt != null ? `Retire at ${rules.batting.retireAt}.` : 'No retirement.'}{' '}
-                {rules.extras.rebowl === 'finalOver' ? 'Wides and no balls are bowled again in the final over.' : rules.extras.rebowl === 'always' ? 'Wides and no balls are always bowled again.' : 'Wides and no balls always count as a ball.'}
-              </p>
-              {short.some(Boolean) && <p className="mt-2 text-gold">A side has fewer than {rules.match.minPlayers} players. You can still start.</p>}
-            </div>
+            {battingFirst != null && (
+              <>
+                <PickList title={`On strike for ${teamName(battingFirst)}`} players={batSide} value={striker} onPick={(id) => setOpeners([id, id === nonStriker ? striker : nonStriker])} />
+                <PickList title="At the other end" players={batSide} value={nonStriker} onPick={(id) => setOpeners([id === striker ? nonStriker : striker, id])} />
+                <PickList title={`Opening bowler for ${teamName(battingFirst === 0 ? 1 : 0)}`} players={bowlSide} value={firstBowler} onPick={setBowler} />
+                {short.some(Boolean) && <p className="text-gold">A side has fewer than {rules.match.minPlayers} players. You can still start.</p>}
+              </>
+            )}
           </section>
         )}
       </div>
@@ -278,6 +314,37 @@ export default function SetupWizard() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Any number of overs: free typing, settled to 1 to 50 when the field is left.
+function OversInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [text, setText] = useState(String(value));
+  useEffect(() => setText(String(value)), [value]);
+  const settle = () => {
+    const v = Math.max(1, Math.min(50, Math.round(Number(text)) || value));
+    setText(String(v));
+    if (v !== value) onChange(v);
+  };
+  return (
+    <label className="flex items-center gap-2 text-muted">
+      or
+      <input
+        type="number"
+        inputMode="numeric"
+        min={1}
+        max={50}
+        aria-label="Any number of overs"
+        value={text}
+        onChange={(e) => {
+          setText(e.target.value);
+          const v = Number(e.target.value);
+          if (Number.isInteger(v) && v >= 1 && v <= 50) onChange(v);
+        }}
+        onBlur={settle}
+        className="field h-12 w-20 text-center"
+      />
+    </label>
   );
 }
 
@@ -349,7 +416,7 @@ function Squads({ names, squads, setSquads, minPlayers }: { names: [string, stri
 
   return (
     <section className="space-y-5">
-      <h1 className="h-sub text-3xl">Squads</h1>
+      <h2 className="h-sub text-2xl">Squads</h2>
       <div className="grid grid-cols-2 gap-2" role="tablist">
         {([0, 1] as TeamIndex[]).map((t) => (
           <button

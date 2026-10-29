@@ -6,10 +6,10 @@ import type { EventData, IndoorEvent, MatchState } from '@/lib/indoor/engine';
 import { replay, sortEvents } from '@/lib/indoor/engine';
 import { summaryOf } from '@/lib/indoor/format';
 import type { LocalMatch } from '@/lib/indoor/store';
-import { loadLocal, mergeEvents, newId, saveLocal } from '@/lib/indoor/store';
-import { fetchMatch, push } from '@/lib/indoor/sync';
+import { loadLocal, mergeEvents, newId, removeLocal, saveLocal } from '@/lib/indoor/store';
+import { fetchMatch, push, type PushResult } from '@/lib/indoor/sync';
 
-export type SyncState = 'idle' | 'saving' | 'synced' | 'offline';
+export type SyncState = 'idle' | 'saving' | 'synced' | 'offline' | 'refused';
 
 // Where the next event goes: at the end, in place of an old one, or just before one.
 export type Placement = { mode: 'append' } | { mode: 'replace'; id: string } | { mode: 'before'; id: string };
@@ -25,6 +25,7 @@ export function useScorer(id: string) {
   const [loading, setLoading] = useState(true);
   const [missing, setMissing] = useState(false);
   const [sync, setSync] = useState<SyncState>('idle');
+  const [gone, setGone] = useState(false); // an admin deleted the match
   const ref = useRef<LocalMatch | null>(null);
   const pushing = useRef(false);
   const retry = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -35,19 +36,31 @@ export function useScorer(id: string) {
     setLm(next);
   }, []);
 
+  // The match was deleted on the server: drop this phone's copy so it never comes back.
+  const forget = useCallback(() => {
+    removeLocal(id);
+    ref.current = null;
+    setLm(null);
+    setGone(true);
+  }, [id]);
+
   // Server copy merged with the phone copy (anything not uploaded yet wins).
   const pull = useCallback(async (): Promise<boolean> => {
     const remote = await fetchMatch(supabase, id);
-    if (!remote) return false;
     const current = ref.current;
+    if (!remote) {
+      if (current?.uploaded) forget();
+      return false;
+    }
     store({
       match: current?.matchPending ? { ...remote.match, ...current.match } : remote.match,
       events: mergeEvents(current, remote.events),
       pending: current?.pending ?? [],
       matchPending: current?.matchPending ?? false,
+      uploaded: true,
     });
     return true;
-  }, [id, supabase, store]);
+  }, [id, supabase, store, forget]);
 
   // Phone copy first (instant, works offline), then the server copy.
   useEffect(() => {
@@ -83,9 +96,11 @@ export function useScorer(id: string) {
     // Remember what was sent, so an event changed again while uploading stays pending.
     const sent = new Map(current.events.filter((e) => current.pending.includes(e.id)).map((e) => [e.id, JSON.stringify(e)]));
     const sentMatch = JSON.stringify(current.match);
-    const res = await push(supabase, current).catch((e: unknown) => ({ pending: current.pending, matchPending: current.matchPending, error: String(e) }));
+    const res: PushResult = await push(supabase, current).catch((e: unknown) => ({ pending: current.pending, matchPending: current.matchPending, error: String(e) }));
     pushing.current = false;
-    const latest = ref.current!;
+    if (res.code === 'gone') return forget();
+    const latest = ref.current;
+    if (!latest) return;
     const stillPending = latest.pending.filter((eid) => {
       if (!res.pending.includes(eid) && sent.has(eid)) {
         const now = latest.events.find((e) => e.id === eid);
@@ -94,8 +109,10 @@ export function useScorer(id: string) {
       return true;
     });
     const matchPending = latest.matchPending && (res.matchPending || JSON.stringify(latest.match) !== sentMatch);
-    store({ ...latest, pending: stillPending, matchPending });
-    if (res.error) {
+    store({ ...latest, pending: stillPending, matchPending, uploaded: latest.uploaded || !res.matchPending });
+    if (res.code === 'refused') {
+      setSync('refused'); // retrying cannot help: this account may not score the match
+    } else if (res.error) {
       setSync('offline');
       if (retry.current) clearTimeout(retry.current);
       retry.current = setTimeout(() => void flush(), 8000);
@@ -104,7 +121,7 @@ export function useScorer(id: string) {
     } else {
       setSync('synced');
     }
-  }, [supabase, store]);
+  }, [supabase, store, forget]);
 
   useEffect(() => {
     if (!lm) return;
@@ -171,17 +188,21 @@ export function useScorer(id: string) {
     [change],
   );
 
-  const remove = useCallback(
-    (eventId: string) => {
+  const setDeleted = useCallback(
+    (ids: string[], deleted: boolean) => {
       const current = ref.current;
-      if (!current) return;
+      if (!current || ids.length === 0) return;
+      const set = new Set(ids);
       change(
-        current.events.map((e) => (e.id === eventId ? { ...e, deleted: true } : e)),
-        [eventId],
+        current.events.map((e) => (set.has(e.id) ? { ...e, deleted } : e)),
+        ids,
       );
     },
     [change],
   );
+  const remove = useCallback((eventId: string) => setDeleted([eventId], true), [setDeleted]);
+  const restore = useCallback((eventId: string) => setDeleted([eventId], false), [setDeleted]);
+  const restoreMany = useCallback((ids: string[]) => setDeleted(ids, false), [setDeleted]);
 
   // Takes back the latest thing recorded, whatever it was.
   const undo = useCallback((): IndoorEvent | null => {
@@ -194,17 +215,29 @@ export function useScorer(id: string) {
     return last;
   }, [remove]);
 
-  const restore = useCallback(
-    (eventId: string) => {
-      const current = ref.current;
-      if (!current) return;
-      change(
-        current.events.map((e) => (e.id === eventId ? { ...e, deleted: false } : e)),
-        [eventId],
-      );
-    },
-    [change],
-  );
+  // Back to the first ball with the same teams and rules. Every event is kept (marked
+  // deleted), so the restart itself can be undone. Returns the ids it cleared.
+  const restart = useCallback((): string[] => {
+    const current = ref.current;
+    if (!current) return [];
+    const ids = current.events.filter((e) => !e.deleted).map((e) => e.id);
+    setDeleted(ids, true);
+    return ids;
+  }, [setDeleted]);
+
+  // Admins only (the database refuses anyone else). Removes the phone copy too.
+  const deleteMatch = useCallback(async (): Promise<string | null> => {
+    const current = ref.current;
+    if (current?.uploaded || !current) {
+      const { data, error } = await supabase.from('indoor_matches').delete().eq('id', id).select('id');
+      if (error) return error.message;
+      if (!data?.length) return 'Only an admin can delete a match.';
+    }
+    removeLocal(id);
+    ref.current = null;
+    setLm(null);
+    return null;
+  }, [id, supabase]);
 
   const setStatus = useCallback(
     (status: 'live' | 'complete' | 'abandoned') => {
@@ -232,5 +265,5 @@ export function useScorer(id: string) {
     [flush, id, store, supabase],
   );
 
-  return { lm, state, loading, missing, sync, add, remove, undo, restore, setStatus, flush, pull, handOver };
+  return { lm, state, loading, missing, gone, sync, add, remove, undo, restore, restoreMany, restart, deleteMatch, setStatus, flush, pull, handOver };
 }

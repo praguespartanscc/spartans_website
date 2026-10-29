@@ -1,40 +1,28 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import type { DismissalKind, IndoorRules, Zone } from '@/lib/indoor/rules';
-import { DISMISSAL_LABEL } from '@/lib/indoor/rules';
+import { DISMISSAL_LABEL, cloneRules, isSplit, mergeFarWalls, normaliseZones, splitFarWalls } from '@/lib/indoor/rules';
 
 type OnRules = (next: IndoorRules) => void;
 
-// Every house rule in plain English. The common groups are open, the rest fold away.
-export default function RulesEditor({ rules, onChange, hideMatch = false }: { rules: IndoorRules; onChange: OnRules; hideMatch?: boolean }) {
+// Every house rule in plain English. Walls and extras are open, the rest folds away.
+// `base` is what "Reset" goes back to. `midMatch` hides what cannot change once play has started.
+export default function RulesEditor({ rules, onChange, base, midMatch = false }: { rules: IndoorRules; onChange: OnRules; base?: IndoorRules; midMatch?: boolean }) {
   const r = rules;
   const set = <K extends keyof IndoorRules>(key: K, patch: Partial<IndoorRules[K]>) =>
     onChange({ ...r, [key]: { ...(r[key] as object), ...patch } } as IndoorRules);
 
   return (
     <div className="space-y-3">
-      {!hideMatch && (
-        <Group title="Match" open>
-          <Num label="Balls per over" value={r.match.ballsPerOver} min={1} max={12} onChange={(v) => set('match', { ballsPerOver: v })} />
-          <Num label="Minimum players per side" value={r.match.minPlayers} min={1} max={15} onChange={(v) => set('match', { minPlayers: v })} />
-          <OptionalNum label="Most overs per bowler" off="No limit" value={r.match.maxOversPerBowler} fallback={3} min={1} max={20} onChange={(v) => set('match', { maxOversPerBowler: v })} />
-          <Toggle label="A bowler may bowl two overs in a row" value={r.match.consecutiveOversAllowed} onChange={(v) => set('match', { consecutiveOversAllowed: v })} />
-          <Toggle label="Batters change ends after each over" value={r.match.swapEndsAtOverEnd} onChange={(v) => set('match', { swapEndsAtOverEnd: v })} />
-          <Choice
-            label="The second innings ends"
-            value={r.match.inningsEnd}
-            options={[
-              { value: 'chaseStops', label: 'When the target is reached' },
-              { value: 'allOvers', label: 'After all overs, always' },
-            ]}
-            onChange={(v) => set('match', { inningsEnd: v })}
-          />
-        </Group>
+      {base && (
+        <div className="flex justify-end">
+          <ConfirmButton label="Reset all rules" confirm="Tap again to reset every rule" onConfirm={() => onChange(cloneRules(base))} />
+        </div>
       )}
 
       <Group title="Walls" open>
-        <Walls rules={r} onChange={onChange} />
+        <Walls rules={r} onChange={onChange} base={base} />
         <Toggle
           label="Side walls only pay if a run is completed"
           hint="The far wall always pays."
@@ -56,25 +44,14 @@ export default function RulesEditor({ rules, onChange, hideMatch = false }: { ru
           ]}
           onChange={(v) => set('extras', { rebowl: v })}
         />
-        <Toggle label="Runs run on a wide count" value={r.extras.runsRunOnWideCount} onChange={(v) => set('extras', { runsRunOnWideCount: v })} />
         <Toggle label="Free hit after a no ball" value={r.extras.freeHitAfterNoBall} onChange={(v) => set('extras', { freeHitAfterNoBall: v })} />
-        <Toggle label="Byes allowed" value={r.extras.byesAllowed} onChange={(v) => set('extras', { byesAllowed: v })} />
-        <Toggle label="Leg byes allowed" value={r.extras.legByesAllowed} onChange={(v) => set('extras', { legByesAllowed: v })} />
-        <OptionalNum
-          label="Byes and leg byes off any wall score"
-          off="The wall value"
-          value={r.extras.byeWallRuns}
-          fallback={1}
-          min={0}
-          max={6}
-          onChange={(v) => set('extras', { byeWallRuns: v })}
-        />
+        <Toggle label="Byes and leg byes allowed" value={r.extras.byesAllowed && r.extras.legByesAllowed} onChange={(v) => set('extras', { byesAllowed: v, legByesAllowed: v })} />
       </Group>
 
-      <Group title="Wickets" open>
+      <Group title="Wickets and retiring">
         <Num label="Runs off for each wicket" value={r.wickets.penalty} min={0} max={30} onChange={(v) => set('wickets', { penalty: v })} />
         <Toggle label="Also take them off the batter's score" value={r.wickets.alsoFromBatter} onChange={(v) => set('wickets', { alsoFromBatter: v })} />
-        <Toggle label="A wicket ball scores nothing else" value={r.wickets.wicketBallScoresNothing} onChange={(v) => set('wickets', { wicketBallScoresNothing: v })} />
+        <OptionalNum label="Retire at" suffix="runs" off="No retirement" value={r.batting.retireAt} fallback={30} min={1} max={200} onChange={(v) => set('batting', { retireAt: v })} />
         <Num label="Extra runs off when the whole side is out" value={r.wickets.allOutPenalty} min={0} max={50} onChange={(v) => set('wickets', { allOutPenalty: v })} />
         <Choice
           label="When the whole side is out"
@@ -87,83 +64,86 @@ export default function RulesEditor({ rules, onChange, hideMatch = false }: { ru
         />
       </Group>
 
-      <Group title="Batting" open>
-        <OptionalNum label="Retire at" suffix="runs" off="No retirement" value={r.batting.retireAt} fallback={30} min={1} max={200} onChange={(v) => set('batting', { retireAt: v })} />
-        {r.batting.retireAt != null && (
-          <Toggle label="Show a retired batter on the retire score" hint="The side keeps every run either way." value={r.batting.capAtRetire} onChange={(v) => set('batting', { capAtRetire: v })} />
-        )}
-        <Toggle label="Retired batters come back with the others" value={r.wickets.retiredRejoinQueue} onChange={(v) => set('wickets', { retiredRejoinQueue: v })} />
-      </Group>
-
-      <Group title="Short side">
-        <Toggle label="Bigger penalty for a short side" value={r.wickets.shortSide.enabled} onChange={(v) => set('wickets', { shortSide: { ...r.wickets.shortSide, enabled: v } })} />
-        {r.wickets.shortSide.enabled && (
-          <>
-            <Num label="Applies with this many players or fewer" value={r.wickets.shortSide.maxPlayers} min={1} max={15} onChange={(v) => set('wickets', { shortSide: { ...r.wickets.shortSide, maxPlayers: v } })} />
-            <Num label="On every wicket number" value={r.wickets.shortSide.everyNth} min={1} max={15} onChange={(v) => set('wickets', { shortSide: { ...r.wickets.shortSide, everyNth: v } })} />
-            <Num label="Runs off on that wicket" value={r.wickets.shortSide.penalty} min={0} max={50} onChange={(v) => set('wickets', { shortSide: { ...r.wickets.shortSide, penalty: v } })} />
-          </>
-        )}
-      </Group>
-
-      <Group title="Running and dead balls">
-        <OptionalNum label="Most runs on one ball" off="No limit" value={r.running.maxRunsPerBall} fallback={3} min={1} max={10} onChange={(v) => set('running', { maxRunsPerBall: v })} />
-        <Num label="A dead ball keeps at most" suffix="runs run" value={r.running.deadBallMaxRuns} min={0} max={5} onChange={(v) => set('running', { deadBallMaxRuns: v })} />
-        <Toggle
-          label="After a last ball wicket the new batter goes to the non striker's end"
-          value={r.wickets.newBatterNonStrikerAfterLastBall}
-          onChange={(v) => set('wickets', { newBatterNonStrikerAfterLastBall: v })}
-        />
-      </Group>
-
-      <Group title="Ways to be out">
-        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
-          {(Object.keys(DISMISSAL_LABEL) as DismissalKind[]).map((k) => (
-            <Toggle
-              key={k}
-              label={DISMISSAL_LABEL[k]}
-              value={r.wickets.allowed.includes(k)}
-              onChange={(v) => set('wickets', { allowed: v ? [...r.wickets.allowed, k] : r.wickets.allowed.filter((x) => x !== k) })}
-            />
-          ))}
-        </div>
-      </Group>
-
-      <Group title="Penalties and points">
-        <Num label="Behaviour penalty" suffix="runs" value={r.penalties.behaviourRuns} min={0} max={50} onChange={(v) => set('penalties', { behaviourRuns: v })} />
-        <Num label="Points for a win" value={r.points.win} min={0} max={10} onChange={(v) => set('points', { win: v })} />
-        <Num label="Points for a tie" value={r.points.tie} min={0} max={10} onChange={(v) => set('points', { tie: v })} />
+      <Group title="More rules">
+        <Sub title="Match">
+          {!midMatch && <Num label="Balls per over" value={r.match.ballsPerOver} min={1} max={12} onChange={(v) => set('match', { ballsPerOver: v })} />}
+          {!midMatch && <Num label="Minimum players per side" value={r.match.minPlayers} min={1} max={15} onChange={(v) => set('match', { minPlayers: v })} />}
+          <OptionalNum label="Most overs per bowler" off="No limit" value={r.match.maxOversPerBowler} fallback={3} min={1} max={20} onChange={(v) => set('match', { maxOversPerBowler: v })} />
+          <Toggle label="A bowler may bowl two overs in a row" value={r.match.consecutiveOversAllowed} onChange={(v) => set('match', { consecutiveOversAllowed: v })} />
+          <Toggle label="Batters change ends after each over" value={r.match.swapEndsAtOverEnd} onChange={(v) => set('match', { swapEndsAtOverEnd: v })} />
+          <Choice
+            label="The second innings ends"
+            value={r.match.inningsEnd}
+            options={[
+              { value: 'chaseStops', label: 'When the target is reached' },
+              { value: 'allOvers', label: 'After all overs, always' },
+            ]}
+            onChange={(v) => set('match', { inningsEnd: v })}
+          />
+        </Sub>
+        <Sub title="Batting and wickets">
+          <Toggle label="A wicket ball scores nothing else" value={r.wickets.wicketBallScoresNothing} onChange={(v) => set('wickets', { wicketBallScoresNothing: v })} />
+          {r.batting.retireAt != null && (
+            <Toggle label="Show a retired batter on the retire score" hint="The side keeps every run either way." value={r.batting.capAtRetire} onChange={(v) => set('batting', { capAtRetire: v })} />
+          )}
+          <Toggle label="Retired batters come back with the others" value={r.wickets.retiredRejoinQueue} onChange={(v) => set('wickets', { retiredRejoinQueue: v })} />
+          <Toggle
+            label="After a last ball wicket the new batter goes to the non striker's end"
+            value={r.wickets.newBatterNonStrikerAfterLastBall}
+            onChange={(v) => set('wickets', { newBatterNonStrikerAfterLastBall: v })}
+          />
+          <Toggle label="Bigger penalty for a short side" value={r.wickets.shortSide.enabled} onChange={(v) => set('wickets', { shortSide: { ...r.wickets.shortSide, enabled: v } })} />
+          {r.wickets.shortSide.enabled && (
+            <>
+              <Num label="Applies with this many players or fewer" value={r.wickets.shortSide.maxPlayers} min={1} max={15} onChange={(v) => set('wickets', { shortSide: { ...r.wickets.shortSide, maxPlayers: v } })} />
+              <Num label="On every wicket number" value={r.wickets.shortSide.everyNth} min={1} max={15} onChange={(v) => set('wickets', { shortSide: { ...r.wickets.shortSide, everyNth: v } })} />
+              <Num label="Runs off on that wicket" value={r.wickets.shortSide.penalty} min={0} max={50} onChange={(v) => set('wickets', { shortSide: { ...r.wickets.shortSide, penalty: v } })} />
+            </>
+          )}
+        </Sub>
+        <Sub title="Running and extras">
+          <OptionalNum label="Most runs on one ball" off="No limit" value={r.running.maxRunsPerBall} fallback={3} min={1} max={10} onChange={(v) => set('running', { maxRunsPerBall: v })} />
+          <Num label="A dead ball keeps at most" suffix="runs run" value={r.running.deadBallMaxRuns} min={0} max={5} onChange={(v) => set('running', { deadBallMaxRuns: v })} />
+          <Toggle label="Runs run on a wide count" value={r.extras.runsRunOnWideCount} onChange={(v) => set('extras', { runsRunOnWideCount: v })} />
+          <OptionalNum
+            label="Byes and leg byes off any wall score"
+            off="The wall value"
+            value={r.extras.byeWallRuns}
+            fallback={1}
+            min={0}
+            max={6}
+            onChange={(v) => set('extras', { byeWallRuns: v })}
+          />
+        </Sub>
+        <Sub title="Ways to be out">
+          <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+            {(Object.keys(DISMISSAL_LABEL) as DismissalKind[]).map((k) => (
+              <Toggle
+                key={k}
+                label={DISMISSAL_LABEL[k]}
+                value={r.wickets.allowed.includes(k)}
+                onChange={(v) => set('wickets', { allowed: v ? [...r.wickets.allowed, k] : r.wickets.allowed.filter((x) => x !== k) })}
+              />
+            ))}
+          </div>
+        </Sub>
+        <Sub title="Penalties and points">
+          <Num label="Behaviour penalty" suffix="runs" value={r.penalties.behaviourRuns} min={0} max={50} onChange={(v) => set('penalties', { behaviourRuns: v })} />
+          <Num label="Points for a win" value={r.points.win} min={0} max={10} onChange={(v) => set('points', { win: v })} />
+          <Num label="Points for a tie" value={r.points.tie} min={0} max={10} onChange={(v) => set('points', { tie: v })} />
+        </Sub>
       </Group>
     </div>
   );
 }
 
-// Side walls can be one zone per half, or each far half split again into two.
-function Walls({ rules, onChange }: { rules: IndoorRules; onChange: OnRules }) {
-  const zones = rules.zones;
-  const split = zones.some((z) => z.area === 'farLeftA');
-  const update = (id: string, patch: Partial<Zone>) => onChange({ ...rules, zones: zones.map((z) => (z.id === id ? { ...z, ...patch } : z)) });
-
-  const toggleSplit = () => {
-    if (split) {
-      const rest = zones.filter((z) => !['farLeftA', 'farLeftB', 'farRightA', 'farRightB'].includes(z.area));
-      const make = (side: 'Left' | 'Right'): Zone => ({ id: `far${side}`, label: `Far side wall, ${side.toLowerCase()}`, area: `far${side}`, runs: 2, allowRunning: true, catchOffIsOut: true, boundary: false, enabled: true });
-      onChange({ ...rules, zones: [...rest, make('Left'), make('Right')] });
-    } else {
-      const rest = zones.filter((z) => z.area !== 'farLeft' && z.area !== 'farRight');
-      const half = (side: 'Left' | 'Right', part: 'A' | 'B'): Zone => ({
-        id: `far${side}${part}`,
-        label: `Far side wall, ${side.toLowerCase()}, ${part === 'A' ? 'first' : 'second'} half`,
-        area: `far${side}${part}`,
-        runs: part === 'A' ? 1 : 2,
-        allowRunning: true,
-        catchOffIsOut: true,
-        boundary: false,
-        enabled: true,
-      });
-      onChange({ ...rules, zones: [...rest, half('Left', 'A'), half('Left', 'B'), half('Right', 'A'), half('Right', 'B')] });
-    }
-  };
+// One card per wall in court order. The split button switches the far side walls between one
+// zone and two halves, and tapping it twice changes nothing.
+function Walls({ rules, onChange, base }: { rules: IndoorRules; onChange: OnRules; base?: IndoorRules }) {
+  const zones = normaliseZones(rules.zones);
+  const split = isSplit(zones);
+  const setZones = (next: Zone[]) => onChange({ ...rules, zones: normaliseZones(next) });
+  const update = (id: string, patch: Partial<Zone>) => setZones(zones.map((z) => (z.id === id ? { ...z, ...patch } : z)));
 
   return (
     <div className="space-y-2">
@@ -189,9 +169,44 @@ function Walls({ rules, onChange }: { rules: IndoorRules; onChange: OnRules }) {
           </div>
         </div>
       ))}
-      <button type="button" onClick={toggleSplit} className="btn btn-outline w-full">
+      <button type="button" onClick={() => setZones(split ? mergeFarWalls(zones) : splitFarWalls(zones))} className="btn btn-outline w-full">
         {split ? 'Use one zone for each far side wall' : 'Split the far side walls into two halves'}
       </button>
+      {base && (
+        <div className="flex justify-end">
+          <ConfirmButton label="Reset walls" confirm="Tap again to reset the walls" onConfirm={() => setZones(cloneRules(base).zones)} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Two taps for anything that throws away changes: the first arms it for a few seconds.
+export function ConfirmButton({ label, confirm, onConfirm, danger = false }: { label: string; confirm: string; onConfirm: () => void; danger?: boolean }) {
+  const [armed, setArmed] = useState(false);
+  useEffect(() => {
+    if (!armed) return;
+    const t = window.setTimeout(() => setArmed(false), 4000);
+    return () => window.clearTimeout(t);
+  }, [armed]);
+  return (
+    <button
+      type="button"
+      onClick={() => (armed ? (setArmed(false), onConfirm()) : setArmed(true))}
+      className={`min-h-11 px-3 font-display text-sm font-bold uppercase italic transition-colors duration-150 ${
+        armed ? (danger ? 'bg-crimson text-cream' : 'bg-gold text-ink') : danger ? 'border border-crimson-hi text-cream' : 'border border-cream/22 text-muted hover:text-cream'
+      }`}
+    >
+      {armed ? confirm : label}
+    </button>
+  );
+}
+
+function Sub({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-3 border-t border-cream/12 pt-3 first:border-t-0 first:pt-0">
+      <p className="eyebrow">{title}</p>
+      {children}
     </div>
   );
 }

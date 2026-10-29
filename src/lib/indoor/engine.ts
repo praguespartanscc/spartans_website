@@ -70,6 +70,7 @@ export type BallRecord = {
   retiredId: string | null;
   totalAfter: number;
   wicketsAfter: number;
+  rulesAt: number; // how many mid-match rule changes came before this ball
 };
 
 export type OverRecord = { index: number; bowlerId: string | null; balls: BallRecord[] };
@@ -516,6 +517,7 @@ function ball(state: MatchState, inn: InningsState, eventId: string, input: Ball
     retiredId,
     totalAfter: inn.total,
     wicketsAfter: inn.wickets,
+    rulesAt: state.rulesLog.length,
   });
 
   checkInningsEnd(state, inn, v.teamRuns > 0);
@@ -591,3 +593,10 @@ export function currentInnings(state: MatchState): InningsState {
 }
 
 export type { WicketInput };
+
+// The rules a ball was bowled under: the setup rules plus the changes made before it.
+export function rulesAt(state: MatchState, changes: number): IndoorRules {
+  let r = cloneRules(state.setup.rules);
+  for (const entry of state.rulesLog.slice(0, changes)) r = applyRulesPatch(r, entry.patch);
+  return r;
+}
