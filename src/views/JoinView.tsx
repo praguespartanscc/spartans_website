@@ -58,7 +58,7 @@ function questions(lang: Lang): { q: string; a: ReactNode }[] {
         q: 'Where can I play cricket in Prague?',
         a: (
           <>
-            Prague Spartans Cricket Club trains on Thursdays from 17:00 to 19:00 at {weekly.venue.name} in Prague 3 – Žižkov and plays home
+            Prague Spartans Cricket Club trains on Thursdays from 17:00 to 19:00 in the cricket nets at {weekly.venue.name} in Prague 3 – Žižkov and plays home
             matches at <InlineLink href={L('/ground')}>{GROUND.name}</InlineLink>, {groundAddress}. New players of every level can apply on
             this page.
           </>
@@ -70,13 +70,13 @@ function questions(lang: Lang): { q: string; a: ReactNode }[] {
       },
       {
         q: 'Do I need my own kit?',
-        a: 'Membership includes club kit and free nets sessions. If you are new and have no equipment, say so in your application and ask us what to bring to your first session.',
+        a: 'Membership includes free nets sessions and club kit: full- and half-sleeve shirts, track pants and a jumper. If you are new and have no equipment, say so in your application and ask us what to bring to your first session.',
       },
       {
         q: 'When and where do you train?',
         a: (
           <>
-            Usually on Thursdays from 17:00 to 19:00 at {weekly.venue.name}, {weekly.venue.address}. Upcoming sessions are listed on the{' '}
+            Usually on Thursdays from 17:00 to 19:00 in the cricket nets at {weekly.venue.name}, {weekly.venue.address}. Upcoming sessions are listed on the{' '}
             <InlineLink href={L('/practices')}>training page</InlineLink>.
           </>
         ),
@@ -113,7 +113,7 @@ function questions(lang: Lang): { q: string; a: ReactNode }[] {
         q: 'Kde si mohu v Praze zahrát kriket?',
         a: (
           <>
-            Například u nás. Prague Spartans Cricket Club trénuje ve čtvrtek od 17:00 do 19:00 v Tenisovém centru Olšanská v Praze 3 na
+            Například u nás. Prague Spartans Cricket Club trénuje ve čtvrtek od 17:00 do 19:00 v kriketových sítích v Tenisovém centru Olšanská v Praze 3 na
             Žižkově a domácí zápasy hraje na <InlineLink href={L('/ground')}>kriketovém hřišti ve Vinoři</InlineLink> ({groundAddress}).
             Noví hráči všech úrovní se mohou přihlásit přímo na této stránce.
           </>
@@ -125,13 +125,13 @@ function questions(lang: Lang): { q: string; a: ReactNode }[] {
       },
       {
         q: 'Potřebuji vlastní vybavení?',
-        a: 'Členství zahrnuje klubový dres a tréninky v sítích zdarma. Pokud s kriketem začínáte a vybavení nemáte, uveďte to v přihlášce a zeptejte se nás, co si vzít na první trénink.',
+        a: 'Členství zahrnuje tréninky v sítích zdarma a klubové oblečení: trička s dlouhým i krátkým rukávem, sportovní kalhoty a svetr. Pokud s kriketem začínáte a vybavení nemáte, uveďte to v přihlášce a zeptejte se nás, co si vzít na první trénink.',
       },
       {
         q: 'Kdy a kde trénujete?',
         a: (
           <>
-            Obvykle ve čtvrtek od 17:00 do 19:00 v Tenisovém centru Olšanská, {weekly.venue.address}. Aktuální termíny najdete na{' '}
+            Obvykle ve čtvrtek od 17:00 do 19:00 v kriketových sítích v Tenisovém centru Olšanská, {weekly.venue.address}. Aktuální termíny najdete na{' '}
             <InlineLink href={L('/practices')}>stránce tréninků</InlineLink>.
           </>
         ),
@@ -150,7 +150,7 @@ function questions(lang: Lang): { q: string; a: ReactNode }[] {
       },
       {
         q: 'Kolik stojí členství?',
-        a: 'Na podmínky členství se nás zeptejte v přihlášce. Členství zahrnuje tréninky v sítích zdarma, klubový dres a slevy pro studenty.',
+        a: 'Na podmínky členství se nás zeptejte v přihlášce. Členství zahrnuje tréninky v sítích zdarma, klubové oblečení a slevy pro studenty.',
       },
       {
         q: 'Mohu se přijít podívat na zápas?',
@@ -182,7 +182,7 @@ export default function JoinView({ lang }: { lang: Lang }) {
       },
       {
         title: 'Come to training',
-        text: `We invite you to a training session, usually on a Thursday (${weekly.time}) at ${weekly.venue.name}.`,
+        text: `We invite you to a training session, usually on a Thursday (${weekly.time}) in the cricket nets at ${weekly.venue.name}.`,
       },
       {
         title: 'Join a squad',
@@ -201,7 +201,7 @@ export default function JoinView({ lang }: { lang: Lang }) {
       },
       {
         title: 'Přijďte na trénink',
-        text: 'Pozveme vás na trénink, obvykle ve čtvrtek od 17:00 do 19:00 v Tenisovém centru Olšanská.',
+        text: 'Pozveme vás na trénink, obvykle ve čtvrtek od 17:00 do 19:00 v kriketových sítích v Tenisovém centru Olšanská.',
       },
       {
         title: 'Zařadíme vás do týmu',

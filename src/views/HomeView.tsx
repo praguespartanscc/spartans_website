@@ -152,8 +152,8 @@ function ClubFacts({ lang }: { lang: Lang }) {
 
           <Fact label={tr(lang, { en: 'Training', cs: 'Tréninky' })}>
             {tr(lang, {
-              en: `Usually on ${weekly.day.en}s, ${weekly.time}, at ${weekly.venue.name}, ${weekly.venue.address}. Winter indoor sessions at ${winterEn}.`,
-              cs: `Obvykle ve ${weekly.day.cs} ${weekly.time} v Tenisovém centru Olšanská, ${VENUES.olsanska.address}. V zimě trénujeme v hale: ve sportovní hale VŠE Na Třebešíně, ve Sportovní hale Radotín a na Olšanské.`,
+              en: `Usually on ${weekly.day.en}s, ${weekly.time}, in the cricket nets at ${weekly.venue.name}, ${weekly.venue.address}. Winter indoor sessions at ${winterEn}.`,
+              cs: `Obvykle ve ${weekly.day.cs} ${weekly.time} v kriketových sítích v Tenisovém centru Olšanská, ${VENUES.olsanska.address}. V zimě trénujeme v hale: ve sportovní hale VŠE Na Třebešíně, ve Sportovní hale Radotín a na Olšanské.`,
             })}{' '}
             <Link href={localePath(lang, '/practices')} className={link}>
               {tr(lang, { en: 'Training calendar', cs: 'Kalendář tréninků' })}

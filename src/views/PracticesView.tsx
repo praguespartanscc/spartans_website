@@ -22,8 +22,8 @@ export function practicesMeta(lang: Lang): Metadata {
     path: '/practices',
     title: tr(lang, { en: 'Cricket Training & Nets in Prague', cs: 'Kriketové tréninky v Praze' }),
     description: tr(lang, {
-      en: 'Cricket training in Prague with Prague Spartans Cricket Club: Thursdays 17:00–19:00 at Tenisové centrum Olšanská, Prague 3, plus indoor sessions in winter. Beginners welcome.',
-      cs: 'Kriketové tréninky v Praze s klubem Prague Spartans: ve čtvrtek 17:00–19:00 v Tenisovém centru Olšanská v Praze 3, v zimě v hale. Začátečníci jsou vítáni.',
+      en: 'Cricket training in Prague with Prague Spartans Cricket Club: Thursdays 17:00–19:00 in the cricket nets at Tenisové centrum Olšanská, Prague 3, plus indoor sessions in winter. Beginners welcome.',
+      cs: 'Kriketové tréninky v Praze s klubem Prague Spartans: ve čtvrtek 17:00–19:00 v kriketových sítích v Tenisovém centru Olšanská v Praze 3, v zimě v hale. Začátečníci jsou vítáni.',
     }),
   });
 }
@@ -64,8 +64,8 @@ export default async function PracticesView({ lang }: { lang: Lang }) {
           ),
         })}
         intro={tr(lang, {
-          en: 'Prague Spartans Cricket Club usually trains on Thursdays from 17:00 to 19:00 at Tenisové centrum Olšanská in Prague 3 – Žižkov, with indoor sessions through the winter. Beginners and experienced players are welcome.',
-          cs: 'Prague Spartans Cricket Club obvykle trénuje ve čtvrtek od 17:00 do 19:00 v Tenisovém centru Olšanská v Praze 3 na Žižkově a v zimě v hale. Vítáme začátečníky i zkušené hráče.',
+          en: 'Prague Spartans Cricket Club usually trains on Thursdays from 17:00 to 19:00 in the cricket nets at Tenisové centrum Olšanská in Prague 3 – Žižkov, with indoor sessions through the winter. Beginners and experienced players are welcome.',
+          cs: 'Prague Spartans Cricket Club obvykle trénuje ve čtvrtek od 17:00 do 19:00 v kriketových sítích v Tenisovém centru Olšanská v Praze 3 na Žižkově a v zimě v hale. Vítáme začátečníky i zkušené hráče.',
         })}
         image="/home_carousel.jpeg"
         imagePosition="center 40%"

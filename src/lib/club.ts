@@ -57,8 +57,8 @@ export const VENUES = {
   },
   radotin: {
     name: 'Sportovní hala Radotín',
-    address: 'Praha 16 – Radotín',
-    mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Sportovn%C3%AD+hala+Radot%C3%ADn',
+    address: 'U Starého stadiónu 5, 153 00 Praha 16 – Radotín',
+    mapsUrl: 'https://maps.app.goo.gl/YR4fdn4nnNac9eRS9',
   },
 } satisfies Record<string, Venue>;
 
@@ -71,8 +71,8 @@ export const TRAINING = {
 // What membership includes. The club does not publish a fee.
 export const MEMBERSHIP = {
   includes: {
-    en: ['Free nets sessions', 'Club kit', 'Student discounts'],
-    cs: ['Tréninky v sítích zdarma', 'Klubový dres', 'Slevy pro studenty'],
+    en: ['Free nets sessions', 'Club kit: full- and half-sleeve shirts, track pants and a jumper', 'Student discounts'],
+    cs: ['Tréninky v sítích zdarma', 'Klubové oblečení: trička s dlouhým i krátkým rukávem, sportovní kalhoty a svetr', 'Slevy pro studenty'],
   },
   minimumAge: null as number | null,
 };

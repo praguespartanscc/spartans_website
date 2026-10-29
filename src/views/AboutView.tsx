@@ -290,8 +290,8 @@ export default function AboutView({ lang }: { lang: Lang }) {
             <FactCard id="training-heading" eyebrow={tr(lang, { en: '06 · Training', cs: '06 · Tréninky' })} title={tr(lang, { en: 'When we train', cs: 'Kdy trénujeme' })}>
               <p>
                 {tr(lang, {
-                  en: `Usually on ${weekly.day.en}s, ${weekly.time}, at ${weekly.venue.name} (${weekly.venue.address}).`,
-                  cs: `Obvykle ve ${weekly.day.cs} ${weekly.time} v Tenisovém centru Olšanská (${VENUES.olsanska.address}).`,
+                  en: `Usually on ${weekly.day.en}s, ${weekly.time}, in the cricket nets at ${weekly.venue.name} (${weekly.venue.address}).`,
+                  cs: `Obvykle ve ${weekly.day.cs} ${weekly.time} v kriketových sítích v Tenisovém centru Olšanská (${VENUES.olsanska.address}).`,
                 })}
               </p>
               <p className="text-muted">
@@ -396,7 +396,7 @@ export default function AboutView({ lang }: { lang: Lang }) {
               <p className="mt-5 text-[16px] leading-relaxed text-muted">
                 {tr(lang, {
                   en: 'Beginners and experienced players are welcome, and there is no minimum age. Membership includes free nets, club kit and student discounts.',
-                  cs: 'Vítáme začátečníky i zkušené hráče a minimální věk není stanoven. Členství zahrnuje tréninky v sítích zdarma, klubový dres a slevy pro studenty.',
+                  cs: 'Vítáme začátečníky i zkušené hráče a minimální věk není stanoven. Členství zahrnuje tréninky v sítích zdarma, klubové oblečení a slevy pro studenty.',
                 })}
               </p>
               <Link href={localePath(lang, '/join')} className="link-arrow mt-6">

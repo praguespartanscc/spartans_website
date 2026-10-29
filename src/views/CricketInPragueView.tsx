@@ -551,8 +551,8 @@ export default function CricketInPragueView({ lang }: { lang: Lang }) {
                   <Check size={20} className="mt-1 shrink-0 text-gold" />
                   <span>
                     {tr(lang, {
-                      en: `Beginners and experienced players welcome, no minimum age, English-speaking. Training usually on ${weekly.day.en}s, ${weekly.time}, at ${weekly.venue.name}; membership includes free nets, club kit and student discounts.`,
-                      cs: `Vítáme začátečníky i zkušené hráče, minimální věk není stanoven a v klubu se mluví anglicky. Trénujeme obvykle ve ${weekly.day.cs} ${weekly.time} v Tenisovém centru Olšanská; členství zahrnuje tréninky v sítích zdarma, klubový dres a slevy pro studenty.`,
+                      en: `Beginners and experienced players welcome, no minimum age, English-speaking. Training usually on ${weekly.day.en}s, ${weekly.time}, in the cricket nets at ${weekly.venue.name}; membership includes free nets, club kit and student discounts.`,
+                      cs: `Vítáme začátečníky i zkušené hráče, minimální věk není stanoven a v klubu se mluví anglicky. Trénujeme obvykle ve ${weekly.day.cs} ${weekly.time} v kriketových sítích v Tenisovém centru Olšanská; členství zahrnuje tréninky v sítích zdarma, klubový dres a slevy pro studenty.`,
                     })}
                   </span>
                 </li>
