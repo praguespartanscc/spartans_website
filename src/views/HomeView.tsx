@@ -34,6 +34,7 @@ import CommitteeSection from '@/components/CommitteeSection';
 import SponsorsSection from '@/components/SponsorsSection';
 import GallerySection from '@/components/GallerySection';
 import NewsSection from '@/components/NewsSection';
+import QuickLinks from '@/components/QuickLinks';
 import JoinCta from '@/components/JoinCta';
 import SectionHeading from '@/components/ui/SectionHeading';
 import Reveal from '@/components/ui/Reveal';
@@ -267,6 +268,7 @@ export default async function HomeView({ lang }: { lang: Lang }) {
       <LiveBar live={live.live} now={liveNow} lang={lang} />
       <HeroSection lang={lang} photos={photos} t10Year={t10Year(honours)} />
       <NextMatchBar match={next} live={!!next && next.date === today && !!next.stream_url} lang={lang} />
+      <QuickLinks lang={lang} />
       <ValuesBand lang={lang} />
       {lang === 'cs' && <CricketIntroCs />}
       <SquadsSection lang={lang} />

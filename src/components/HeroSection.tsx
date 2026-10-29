@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import type { Photo } from '@/lib/drive';
 import { photoCaption, photoSrcSet, photoUrl } from '@/lib/photos';
 import Link from 'next/link';
@@ -75,10 +74,7 @@ const HeroSection = ({ lang = 'en', photos = [], t10Year = null }: { lang?: Lang
 
   return (
     <>
-    {/* On phones the header shows the name as text, so the full logo sits here on solid black (never over the photo). */}
-    <div className="flex justify-center border-b border-cream/12 bg-ink py-6 lg:hidden">
-      <Image src="/brand/spartans-logo.png" alt={tr(lang, { en: 'Prague Spartans Cricket Club logo', cs: 'Logo kriketového klubu Prague Spartans' })} width={99} height={120} priority className="h-[120px] w-auto" />
-    </div>
+    {/* The crest sits in the header bar on solid black (never over the photo), so the photo starts at once. */}
     <section
       aria-label={tr(lang, { en: 'Welcome', cs: 'Úvod' })}
       className="relative isolate flex min-h-[78svh] items-end overflow-hidden lg:min-h-[calc(100svh-152px)]"

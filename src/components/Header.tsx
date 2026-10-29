@@ -10,17 +10,49 @@ import { ArrowRight, Facebook, Instagram } from '@/components/ui/Icons';
 import { hasCzech, localePath, splitLangPath, tr, type Lang } from '@/lib/i18n';
 import { CLUB_EMAIL, SOCIAL } from '@/lib/club';
 
-// English paths; the Czech section uses the same paths under /cs.
-const navLinks = [
-  { href: '/', label: { en: 'Home', cs: 'Úvod' } },
-  { href: '/players', label: { en: 'Team', cs: 'Tým' } },
-  { href: '/fixtures', label: { en: 'Fixtures', cs: 'Zápasy' } },
-  { href: '/practices', label: { en: 'Training', cs: 'Tréninky' } },
-  { href: '/news', label: { en: 'News', cs: 'Novinky' } },
-  { href: '/achievements', label: { en: 'Achievements', cs: 'Úspěchy' } },
-  { href: '/about', label: { en: 'About', cs: 'O klubu' } },
-  { href: '/gallery', label: { en: 'Gallery', cs: 'Galerie' } },
-  { href: '/live', label: { en: 'Live', cs: 'Živě' } },
+// Five groups instead of a long row of links. English paths: the Czech section uses the same
+// paths under /cs. A group's first page is where its name leads.
+type Label = { en: string; cs: string };
+type NavGroup = { label: Label; href: string; items: { href: string; label: Label; hint: Label }[] };
+
+const navGroups: NavGroup[] = [
+  {
+    label: { en: 'Matches', cs: 'Zápasy' },
+    href: '/fixtures',
+    items: [
+      { href: '/fixtures', label: { en: 'Fixtures and results', cs: 'Zápasy a výsledky' }, hint: { en: 'All three squads this season', cs: 'Všechny tři týmy v této sezóně' } },
+      { href: '/live', label: { en: 'Live', cs: 'Živě' }, hint: { en: 'Stream, indoor scores and training today', cs: 'Přenosy, halové skóre a dnešní trénink' } },
+      { href: '/ground', label: { en: 'Vinoř ground', cs: 'Hřiště Vinoř' }, hint: { en: 'Our home ground and how to get there', cs: 'Naše domácí hřiště a jak se k němu dostat' } },
+    ],
+  },
+  { label: { en: 'Training', cs: 'Tréninky' }, href: '/practices', items: [] },
+  {
+    label: { en: 'Team', cs: 'Tým' },
+    href: '/players',
+    items: [
+      { href: '/players', label: { en: 'Squads and players', cs: 'Týmy a hráči' }, hint: { en: 'Vanguards, Mobilizers and Strikers', cs: 'Vanguards, Mobilizers a Strikers' } },
+      { href: '/achievements', label: { en: 'Achievements', cs: 'Úspěchy' }, hint: { en: 'Titles and awards by season', cs: 'Tituly a ocenění po sezónách' } },
+      { href: '/committee', label: { en: 'Committee', cs: 'Výbor' }, hint: { en: 'The people who run the club', cs: 'Lidé, kteří vedou klub' } },
+    ],
+  },
+  {
+    label: { en: 'News', cs: 'Novinky' },
+    href: '/news',
+    items: [
+      { href: '/news', label: { en: 'News and reports', cs: 'Novinky a zprávy' }, hint: { en: 'Results and club life', cs: 'Výsledky a život v klubu' } },
+      { href: '/gallery', label: { en: 'Photo gallery', cs: 'Fotogalerie' }, hint: { en: 'Match days and club events', cs: 'Zápasy a klubové akce' } },
+    ],
+  },
+  {
+    label: { en: 'Club', cs: 'Klub' },
+    href: '/about',
+    items: [
+      { href: '/about', label: { en: 'About the club', cs: 'O klubu' }, hint: { en: 'Our story since 2019', cs: 'Náš příběh od roku 2019' } },
+      { href: '/cricket-in-prague', label: { en: 'Cricket in Prague', cs: 'Kriket v Praze' }, hint: { en: 'A guide for newcomers', cs: 'Průvodce pro nováčky' } },
+      { href: '/sponsors', label: { en: 'Sponsors', cs: 'Sponzoři' }, hint: { en: 'Partners who support us', cs: 'Partneři, kteří nás podporují' } },
+      { href: '/safeguarding', label: { en: 'Safeguarding', cs: 'Bezpečí dětí' }, hint: { en: 'Code of conduct and welfare', cs: 'Pravidla chování a ochrana' } },
+    ],
+  },
 ];
 
 // EN | CS switch: goes to the same page in the other language (or that language's home page).
@@ -58,6 +90,7 @@ const Header = () => {
   const [hidden, setHidden] = useState(false);
   const [isLive, setIsLive] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
 
   useEffect(() => {
     const getUser = async () => {
@@ -183,7 +216,8 @@ const Header = () => {
   const navRef = useRef<HTMLElement>(null);
   const [hovered, setHovered] = useState<string | null>(null);
   const [bar, setBar] = useState({ x: 0, w: 0, ready: false });
-  const activeHref = navLinks.slice(1).find((l) => isActive(l.href))?.href ?? null;
+  const groupActive = (g: NavGroup) => isActive(g.href) || g.items.some((i) => isActive(i.href));
+  const activeHref = navGroups.find(groupActive)?.href ?? null;
   const target = hovered ?? activeHref;
 
   const measure = useCallback(() => {
@@ -230,8 +264,10 @@ const Header = () => {
                 showLogo ? 'opacity-100' : 'pointer-events-none opacity-0'
               }`}
             />
+            {/* Phones and tablets: the crest sits in the bar, on solid black, beside the name */}
+            <Image src="/brand/spartans-logo.png" alt="" width={99} height={120} priority className="mr-2.5 h-11 w-auto lg:hidden" />
             <span
-              className={`font-varsity text-[19px] uppercase leading-none tracking-[0.02em] transition-opacity duration-300 sm:text-[22px] ${
+              className={`font-varsity text-[18px] uppercase leading-none tracking-[0.02em] transition-opacity duration-300 min-[380px]:text-[19px] sm:text-[22px] ${
                 showLogo ? 'lg:opacity-0' : 'opacity-100'
               }`}
             >
@@ -245,25 +281,60 @@ const Header = () => {
             className="relative hidden items-center gap-0 lg:flex xl:gap-1"
             onMouseLeave={() => setHovered(null)}
           >
-            {navLinks.slice(1).map((link) => (
-              <Link
-                key={link.href}
-                href={L(link.href)}
-                data-nav={link.href}
-                onMouseEnter={() => setHovered(link.href)}
-                onFocus={() => setHovered(link.href)}
-                onBlur={() => setHovered(null)}
-                aria-current={isActive(link.href) ? 'page' : undefined}
-                className={`group relative whitespace-nowrap px-2 py-2 font-display text-[17px] font-bold uppercase tracking-[0.04em] transition-colors xl:px-3 xl:text-[19px] xl:tracking-[0.06em] duration-200 ${
-                  isActive(link.href) ? 'text-cream' : 'text-muted hover:text-cream'
-                }`}
-              >
-                {tr(lang, link.label)}
-                {link.href === '/live' && isLive && (
-                  <span aria-label={tr(lang, { en: '(live now)', cs: '(právě živě)' })} className="live-dot ml-1.5 inline-block h-2 w-2 -translate-y-0.5 rounded-full bg-crimson-hi" />
-                )}
-              </Link>
-            ))}
+            {navGroups.map((g) => {
+              const open = openGroup === g.href && g.items.length > 0;
+              return (
+                <div
+                  key={g.href}
+                  className="relative"
+                  onMouseEnter={() => (setHovered(g.href), setOpenGroup(g.href))}
+                  onMouseLeave={() => setOpenGroup(null)}
+                  onFocus={() => (setHovered(g.href), setOpenGroup(g.href))}
+                  onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && (setOpenGroup(null), setHovered(null))}
+                  onKeyDown={(e) => e.key === 'Escape' && setOpenGroup(null)}
+                >
+                  <Link
+                    href={L(g.href)}
+                    data-nav={g.href}
+                    aria-current={groupActive(g) ? 'page' : undefined}
+                    aria-haspopup={g.items.length ? 'true' : undefined}
+                    aria-expanded={g.items.length ? open : undefined}
+                    className={`group relative flex items-center gap-1 whitespace-nowrap px-3 py-2 font-display text-[18px] font-bold uppercase tracking-[0.05em] transition-colors duration-200 xl:px-4 xl:text-[20px] ${
+                      groupActive(g) ? 'text-cream' : 'text-muted hover:text-cream'
+                    }`}
+                  >
+                    {tr(lang, g.label)}
+                    {g.items.length > 0 && <span aria-hidden="true" className={`text-[11px] text-dim transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>▼</span>}
+                  </Link>
+                  {g.items.length > 0 && (
+                    <div
+                      className={`absolute left-1/2 top-full z-20 w-[min(560px,80vw)] -translate-x-1/2 pt-3 transition-[opacity,transform] duration-200 ease-out-expo ${
+                        open ? 'visible translate-y-0 opacity-100' : 'invisible -translate-y-1 opacity-0'
+                      }`}
+                    >
+                      <ul className={`grid gap-2 border border-cream/12 bg-ink-2 p-3 shadow-2xl ${g.items.length > 2 ? 'grid-cols-2' : 'grid-cols-2'}`}>
+                        {g.items.map((item) => (
+                          <li key={item.href}>
+                            <Link
+                              href={L(item.href)}
+                              onClick={() => setOpenGroup(null)}
+                              aria-current={isActive(item.href) ? 'page' : undefined}
+                              className={`flex h-full flex-col gap-1 border p-3 transition-colors duration-200 ${isActive(item.href) ? 'border-gold bg-panel' : 'border-cream/10 bg-panel hover:border-gold'}`}
+                            >
+                              <span className="flex items-center gap-2 font-display text-[18px] font-extrabold uppercase italic text-cream">
+                                {tr(lang, item.label)}
+                                {item.href === '/live' && isLive && <span className="live-dot inline-block h-2 w-2 rounded-full bg-crimson-hi" />}
+                              </span>
+                              <span className="text-[14px] normal-case text-muted">{tr(lang, item.hint)}</span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             {/* One gold bar that glides to the hovered link and settles back under the current page */}
             <span
               aria-hidden="true"
@@ -277,6 +348,11 @@ const Header = () => {
           </nav>
 
           <div className="flex items-center gap-2">
+            {isLive && (
+              <Link href={L('/live')} className="chip shrink-0 border-crimson-hi bg-crimson text-white" aria-label={tr(lang, { en: 'Live now', cs: 'Právě živě' })}>
+                <span className="live-dot h-1.5 w-1.5 rounded-full bg-white" /> {tr(lang, { en: 'Live', cs: 'Živě' })}
+              </Link>
+            )}
             <LangSwitch lang={lang} path={path} className="hidden text-[15px] lg:flex" />
             {!loading && (
               <div className="hidden items-center gap-1 font-display text-[16px] font-bold uppercase tracking-[0.06em] lg:flex">
@@ -317,7 +393,7 @@ const Header = () => {
                 )}
               </div>
             )}
-            <Link href={L('/join')} className="btn btn-gold hidden sm:inline-flex">
+            <Link href={L('/join')} className="btn btn-gold hidden lg:inline-flex">
               {tr(lang, { en: 'Join the club', cs: 'Přidejte se' })}
             </Link>
             <button
@@ -365,39 +441,55 @@ const Header = () => {
       >
         <nav aria-label={tr(lang, { en: 'Mobile', cs: 'Mobilní menu' })} className="container-x flex min-h-full flex-col pb-10 pt-6">
           <LangSwitch lang={lang} path={path} className="mb-4 text-[18px]" />
-          <ul className="flex flex-col">
-            {navLinks.map((link, i) => (
+          <ul className="flex flex-col gap-2">
+            {isLive && (
+              <li className={`transition-[opacity,transform] duration-700 ease-[var(--ease-out-expo)] ${menuOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+                <Link
+                  href={L('/live')}
+                  onClick={() => setMenuOpen(false)}
+                  className="card flex items-center justify-between gap-3 border-crimson-hi bg-gradient-to-r from-brown to-panel p-4"
+                >
+                  <span className="font-display text-[26px] font-extrabold uppercase italic leading-none">{tr(lang, { en: 'Live', cs: 'Živě' })}</span>
+                  <span className="chip bg-crimson text-white">
+                    <span className="live-dot h-1.5 w-1.5 rounded-full bg-white" /> {tr(lang, { en: 'On now', cs: 'Právě teď' })}
+                  </span>
+                </Link>
+              </li>
+            )}
+            {navGroups.map((g, i) => (
               <li
-                key={link.href}
-                className={`border-b border-cream/10 transition-[opacity,transform] duration-700 ease-[var(--ease-out-expo)] ${
-                  menuOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-                }`}
-                style={{ transitionDelay: menuOpen ? `${80 + i * 45}ms` : '0ms' }}
+                key={g.href}
+                className={`card transition-[opacity,transform] duration-700 ease-[var(--ease-out-expo)] ${groupActive(g) ? 'border-gold' : ''} ${menuOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
+                style={{ transitionDelay: menuOpen ? `${60 + i * 45}ms` : '0ms' }}
               >
                 <Link
-                  href={L(link.href)}
-                  aria-current={isActive(link.href) ? 'page' : undefined}
+                  href={L(g.href)}
+                  aria-current={groupActive(g) ? 'page' : undefined}
                   onClick={() => setMenuOpen(false)}
-                  className={`flex items-center justify-between py-4 font-varsity text-[34px] uppercase leading-none sm:text-[44px] ${
-                    isActive(link.href) ? 'text-gold' : 'text-cream'
-                  }`}
+                  className="flex items-center justify-between px-4 pt-3.5 pb-1 font-display text-[26px] font-extrabold uppercase italic leading-none text-cream"
                 >
-                  <span className="flex items-center gap-3">
-                    {tr(lang, link.label)}
-                    {link.href === '/live' && isLive && (
-                      <span className="chip bg-crimson text-white">
-                        <span className="live-dot h-1.5 w-1.5 rounded-full bg-white" /> {tr(lang, { en: 'Live now', cs: 'Právě živě' })}
-                      </span>
-                    )}
-                  </span>
-                  <ArrowRight size={26} className="text-dim" />
+                  {tr(lang, g.label)}
+                  <ArrowRight size={20} className="text-gold" />
                 </Link>
+                <span className="flex flex-wrap gap-x-1 px-3 pb-3 text-[15px]">
+                  {(g.items.length ? g.items : [{ href: g.href, label: { en: 'Thursday nets and winter halls', cs: 'Čtvrteční sítě a zimní haly' } }]).map((item) => (
+                    <Link
+                      key={item.href}
+                      href={L(item.href)}
+                      onClick={() => setMenuOpen(false)}
+                      aria-current={isActive(item.href) ? 'page' : undefined}
+                      className={`inline-flex min-h-9 items-center px-1 ${isActive(item.href) ? 'text-gold' : 'text-muted'}`}
+                    >
+                      {tr(lang, item.label)}
+                    </Link>
+                  ))}
+                </span>
               </li>
             ))}
           </ul>
 
           <div
-            className={`mt-8 flex flex-col gap-3 transition-[opacity,transform] duration-700 ease-[var(--ease-out-expo)] sm:flex-row ${
+            className={`mt-5 grid grid-cols-2 gap-2 transition-[opacity,transform] duration-700 ease-[var(--ease-out-expo)] ${
               menuOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
             }`}
             style={{ transitionDelay: menuOpen ? '420ms' : '0ms' }}
@@ -431,9 +523,6 @@ const Header = () => {
               ))}
           </div>
 
-          <div className="mt-10 flex justify-center">
-            <Image src="/brand/spartans-logo.png" alt="Prague Spartans Cricket Club" width={99} height={120} className="h-[120px] w-auto" />
-          </div>
 
           <div className="mt-auto flex items-center gap-3 pt-10 text-muted">
             <a href={SOCIAL.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="flex h-11 w-11 items-center justify-center rounded-full border border-cream/20 transition-colors hover:border-gold hover:text-gold">
