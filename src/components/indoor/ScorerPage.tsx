@@ -5,6 +5,7 @@ import MemberGate from './MemberGate';
 import Scorer, { rulesSummary } from './Scorer';
 import Scorecard from './Scorecard';
 import MatchList from './MatchList';
+import ScorerBar from './ScorerBar';
 import SetupWizard from './SetupWizard';
 import { useScorer } from './useScorer';
 import { resultText } from '@/lib/indoor/format';
@@ -16,7 +17,12 @@ export default function ScorerPage({ id, card = false }: { id: string; card?: bo
 }
 
 export function ScoreHome() {
-  return <MemberGate>{(m) => <MatchList member={m} />}</MemberGate>;
+  return (
+    <>
+      <ScorerBar />
+      <MemberGate>{(m) => <MatchList member={m} />}</MemberGate>
+    </>
+  );
 }
 
 export function NewMatch() {
