@@ -17,10 +17,17 @@ export function sitePhotoUrl(list: Pickable[], n: number, width = 1920): string 
   return p ? photoUrl(p.id, width) : undefined;
 }
 
-// A file name worth reading out ("Trophy night"), not a camera name ("IMG_1234").
+// A file name worth reading out ("Trophy night"), not a camera name ("IMG_1234"). Camera
+// numbers ("DSC 8186") and copy marks ("(1)") are dropped from longer names.
 export function photoCaption(name: string): string | null {
-  const clean = name.replace(/^\d+[\s._-]*/, '').replace(/[_-]+/g, ' ').trim();
-  if (!/[a-z]{3}/i.test(clean) || /^(img|dsc|dscn|pxl|photo|image|whatsapp image)\b/i.test(clean)) return null;
+  const clean = name
+    .replace(/^\d+[\s._-]*/, '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\(\d+\)/g, ' ')
+    .replace(/\b(img|dsc|dscn|dscf|ecn|pxl|mvimg|gopr|photo|image)\s*\d+\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!/[a-z]{3}/i.test(clean) || /^\W*(whatsapp image|screenshot|img|dsc|dscn|dscf|pxl|mvimg|photo|image)[\s_-]*[\d(]/i.test(name)) return null;
   return clean.charAt(0).toUpperCase() + clean.slice(1);
 }
 
