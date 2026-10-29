@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import type { IndoorEvent } from '../engine.ts';
 import { bowlerChoices, needs, replay, teamTotal } from '../engine.ts';
 import { BOUNDARY_STOPS_RULES, PRESETS, QUICK_RULES, STANDARD_ZONES } from '../presets.ts';
-import { DISMISSAL_LABEL } from '../rules.ts';
+import { DISMISSAL_LABEL, isSplit, mergeFarWalls, normaliseZones, splitFarWalls } from '../rules.ts';
 import { ballLabel, chaseText, resultText } from '../format.ts';
 import { Log, inn0, inn1, rules, setup } from './helpers.ts';
 
@@ -422,4 +422,32 @@ test('league preset defaults: 8 overs, far wall 4 on the full and 6 after a boun
   assert.equal(league.match.oversPerInnings, 8);
   assert.equal(league.zones.find((z) => z.id === 'farFull')?.runs, 4);
   assert.equal(league.zones.find((z) => z.id === 'farBounce')?.runs, 6);
+});
+
+// ---------- Walls in the rules editor ----------
+
+test('splitting and merging the far side walls gives back the same walls', () => {
+  const split = splitFarWalls(STANDARD_ZONES);
+  assert.equal(isSplit(split), true);
+  assert.equal(split.filter((z) => z.area.startsWith('farLeft')).length, 2);
+  assert.deepEqual(mergeFarWalls(split), normaliseZones(STANDARD_ZONES));
+  // Tapping split again on a split court changes nothing.
+  assert.deepEqual(splitFarWalls(split), split);
+  assert.deepEqual(mergeFarWalls(mergeFarWalls(split)), mergeFarWalls(split));
+});
+
+test('a split keeps the wall switches and a merge keeps the old value', () => {
+  const custom = STANDARD_ZONES.map((z) => (z.id === 'farLeft' ? { ...z, runs: 3, allowRunning: false } : z));
+  const split = splitFarWalls(custom);
+  assert.equal(split.find((z) => z.id === 'farLeftA')?.allowRunning, false);
+  assert.equal(mergeFarWalls(split).find((z) => z.id === 'farLeft')?.runs, 3);
+});
+
+test('duplicate walls are dropped and halves replace the whole wall', () => {
+  const dupes = [...STANDARD_ZONES, STANDARD_ZONES[0], ...splitFarWalls(STANDARD_ZONES).filter((z) => z.area.startsWith('farLeft'))];
+  const clean = normaliseZones(dupes);
+  assert.equal(new Set(clean.map((z) => z.id)).size, clean.length);
+  assert.equal(clean.some((z) => z.id === 'farLeft'), false);
+  assert.equal(clean[0].area, 'farWall');
+  assert.equal(clean[clean.length - 1].area, 'keeperWall');
 });

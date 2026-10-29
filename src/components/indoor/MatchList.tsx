@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import type { MatchRecord } from '@/lib/indoor/store';
-import { listLocal } from '@/lib/indoor/store';
+import { listLocal, removeLocal } from '@/lib/indoor/store';
+import toast, { Toaster } from 'react-hot-toast';
+import { ConfirmButton } from './RulesEditor';
 import type { Member } from './MemberGate';
 import EmptyState from '@/components/ui/EmptyState';
 import { ArrowRight } from '@/components/ui/Icons';
@@ -35,12 +37,24 @@ export default function MatchList({ member }: { member: Member }) {
       });
   }, []);
 
-  const mine = (r: Row) => r.local || r.created_by === member.user.id || r.scorer_id === member.user.id;
+  // Started on this phone and not uploaded yet, or started by or handed to this member.
+  const mine = (r: Row) => (r.local && !r.created_by) || r.created_by === member.user.id || r.scorer_id === member.user.id;
+
+  // Admins only: the database refuses everyone else.
+  const remove = async (r: Row) => {
+    const { data, error } = await createClientComponentClient().from('indoor_matches').delete().eq('id', r.id).select('id');
+    if (error || (!data?.length && !r.unsynced)) return void toast.error(error?.message ?? 'Only an admin can delete a match.');
+    removeLocal(r.id);
+    setRows((list) => (list ?? []).filter((x) => x.id !== r.id));
+    toast.success('Match deleted');
+  };
+  const onDelete = member.isAdmin ? remove : undefined;
   const live = (rows ?? []).filter((r) => r.status === 'live');
   const rest = (rows ?? []).filter((r) => r.status !== 'live');
 
   return (
     <div className="mx-auto max-w-lg px-4 pb-16 pt-8">
+      <Toaster position="top-center" toastOptions={{ style: { background: '#1a1a1a', color: '#fff', borderRadius: 0 } }} />
       <p className="eyebrow">Indoor cricket</p>
       <h1 className="display mt-3 text-[clamp(36px,10vw,56px)]">Scorer</h1>
       <p className="mt-3 text-sand">Score an indoor match ball by ball. Every rule can be set for the day, and the score saves on your phone as you go.</p>
@@ -60,15 +74,15 @@ export default function MatchList({ member }: { member: Member }) {
         </div>
       ) : (
         <>
-          {live.length > 0 && <List title="Live now" rows={live} mine={mine} />}
-          {rest.length > 0 && <List title="Recent" rows={rest} mine={mine} />}
+          {live.length > 0 && <List title="Live now" rows={live} mine={mine} onDelete={onDelete} />}
+          {rest.length > 0 && <List title="Recent" rows={rest} mine={mine} onDelete={onDelete} />}
         </>
       )}
     </div>
   );
 }
 
-function List({ title, rows, mine }: { title: string; rows: Row[]; mine: (r: Row) => boolean }) {
+function List({ title, rows, mine, onDelete }: { title: string; rows: Row[]; mine: (r: Row) => boolean; onDelete?: (r: Row) => void }) {
   return (
     <section className="mt-10">
       <h2 className="eyebrow">{title}</h2>
@@ -103,6 +117,16 @@ function List({ title, rows, mine }: { title: string; rows: Row[]; mine: (r: Row
               {r.summary?.result && <p className="mt-2 text-sm text-gold">{r.summary.result}</p>}
               {r.unsynced && <p className="mt-2 text-xs text-muted">Saved on this phone, waiting to upload</p>}
             </Link>
+            {(onDelete || r.status === 'complete') && (
+              <div className="mt-1 flex items-center justify-end gap-2">
+                {r.status === 'complete' && (
+                  <Link href={`/score/new?from=${r.id}`} className="min-h-11 content-center px-2 font-display text-sm font-bold uppercase italic text-muted hover:text-cream">
+                    Same teams again
+                  </Link>
+                )}
+                {onDelete && <ConfirmButton danger label="Delete" confirm="Tap again to delete" onConfirm={() => onDelete(r)} />}
+              </div>
+            )}
           </li>
         ))}
       </ul>

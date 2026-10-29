@@ -51,6 +51,7 @@ export type Zone = {
   catchOffIsOut: boolean; // a catch after the ball hits this surface is out
   boundary: boolean; // shown as a boundary in stats and on the chips
   enabled: boolean;
+  mergedRuns?: number; // on a split half: what the whole wall scored, so merging brings it back
 };
 
 export type IndoorRules = {
@@ -110,6 +111,69 @@ export type RulesPatch = {
       : IndoorRules[K];
 };
 
+// Court order for lists and the diagram: far wall, far halves, near halves, keeper wall.
+const AREA_ORDER: Zone['area'][] = ['farWall', 'farLeftB', 'farLeft', 'farLeftA', 'farRightB', 'farRight', 'farRightA', 'nearLeft', 'nearRight', 'keeperWall', 'ceiling'];
+
+// One copy of each wall, in court order. A side split into halves drops its whole-wall zone.
+export function normaliseZones(zones: Zone[]): Zone[] {
+  const seen = new Set<string>();
+  const unique = zones.filter((z) => (seen.has(z.id) ? false : (seen.add(z.id), true)));
+  const halves = new Set(unique.filter((z) => /^far(Left|Right)[AB]$/.test(z.area)).map((z) => z.area.slice(0, -1)));
+  return unique
+    .filter((z) => !halves.has(z.area))
+    .map((z, i) => ({ z, i }))
+    .sort((a, b) => AREA_ORDER.indexOf(a.z.area) - AREA_ORDER.indexOf(b.z.area) || a.i - b.i)
+    .map(({ z }) => z);
+}
+
+export function isSplit(zones: Zone[]): boolean {
+  return zones.some((z) => z.area === 'farLeftA' || z.area === 'farRightA');
+}
+
+// Far side walls into a first half (1) and second half (2), keeping each wall's switches.
+export function splitFarWalls(zones: Zone[]): Zone[] {
+  const out: Zone[] = [];
+  for (const z of normaliseZones(zones)) {
+    const side = z.area === 'farLeft' ? 'Left' : z.area === 'farRight' ? 'Right' : null;
+    if (!side) {
+      out.push(z);
+      continue;
+    }
+    const half = (part: 'A' | 'B'): Zone => ({
+      ...z,
+      id: `far${side}${part}`,
+      area: `far${side}${part}`,
+      label: `${z.label}, ${part === 'A' ? 'first' : 'second'} half`,
+      runs: part === 'A' ? 1 : 2,
+      mergedRuns: z.runs,
+    });
+    out.push(half('A'), half('B'));
+  }
+  return normaliseZones(out);
+}
+
+// Back to one zone per far side wall, as it was before the split.
+export function mergeFarWalls(zones: Zone[]): Zone[] {
+  const out: Zone[] = [];
+  for (const z of normaliseZones(zones)) {
+    const m = /^far(Left|Right)([AB])$/.exec(z.area);
+    if (!m) {
+      out.push(z);
+      continue;
+    }
+    if (m[2] === 'B') continue;
+    const { mergedRuns, ...rest } = z;
+    out.push({
+      ...rest,
+      id: `far${m[1]}`,
+      area: `far${m[1]}` as Zone['area'],
+      label: z.label.replace(/, first half$/, ''),
+      runs: mergedRuns ?? zones.find((x) => x.area === `far${m[1]}B`)?.runs ?? z.runs,
+    });
+  }
+  return normaliseZones(out);
+}
+
 // Applies a mid-match change. Nested groups merge, zone lists replace.
 export function applyRulesPatch(rules: IndoorRules, patch: RulesPatch): IndoorRules {
   const next = { ...rules } as Record<string, unknown>;
@@ -120,6 +184,7 @@ export function applyRulesPatch(rules: IndoorRules, patch: RulesPatch): IndoorRu
         ? { ...(current as object), ...(value as object) }
         : value;
   }
+  if (patch.zones) next.zones = normaliseZones(patch.zones);
   return next as unknown as IndoorRules;
 }
 
