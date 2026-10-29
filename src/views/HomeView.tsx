@@ -44,12 +44,12 @@ export function homeMeta(lang: Lang): Metadata {
     lang,
     path: '/',
     absoluteTitle: tr(lang, {
-      en: 'Prague Spartans Cricket Club – Cricket Club in Prague, Czech Republic',
-      cs: 'Kriket v Praze – kriketový klub Prague Spartans',
+      en: 'Prague Spartans Cricket Club | Cricket Club in Prague, Czech Republic',
+      cs: 'Kriket v Praze | Kriketový klub Prague Spartans',
     }),
     description: tr(lang, {
-      en: 'Cricket club in Prague with three squads in Czech Cricket Union Divisions 1–3, ČMKS T10 and ECS Czechia. Home ground: Vinoř. All levels welcome – join Prague Spartans.',
-      cs: 'Kriketový klub v Praze: tři týmy v 1.–3. divizi Českomoravského kriketového svazu, ČMKS T10 a ECS Czechia. Domácí hřiště ve Vinoři. Vítáme hráče všech úrovní.',
+      en: 'Cricket club in Prague with three squads in Czech Cricket Union Divisions 1, 2 and 3, ČMKS T10 and ECS Czechia. Home ground: Vinoř. All levels are welcome.',
+      cs: 'Kriketový klub v Praze: tři týmy v 1., 2. a 3. divizi Českomoravského kriketového svazu, ČMKS T10 a ECS Czechia. Domácí hřiště ve Vinoři. Vítáme hráče všech úrovní.',
     }),
   });
 }
@@ -131,7 +131,7 @@ function ClubFacts({ lang }: { lang: Lang }) {
                   <Link href={localePath(lang, `/squads/${s.slug}`)} className={link}>
                     {s.name}
                   </Link>{' '}
-                  – {tr(lang, { en: `Division ${s.division}`, cs: `${s.division}. divize` })}
+                  ({tr(lang, { en: `Division ${s.division}`, cs: `${s.division}. divize` })})
                 </li>
               ))}
             </ul>

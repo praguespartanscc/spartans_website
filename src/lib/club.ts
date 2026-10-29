@@ -33,9 +33,9 @@ export const GROUND = {
   name: 'Vinoř Cricket Ground',
   pitch: 'Scott Page Field',
   localName: 'Kriketové hřiště Vinoř',
-  streetAddress: 'Bohdanečská 261',
+  streetAddress: 'Bohdanečská 261, Vinoř',
   postalCode: '190 17',
-  locality: 'Praha 9 – Vinoř',
+  locality: 'Praha 9',
   city: 'Prague',
   country: 'CZ',
   mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Vino%C5%99+Cricket+Ground+Bohdane%C4%8Dsk%C3%A1+261+Praha',
@@ -47,17 +47,17 @@ export type Venue = { name: string; address: string; mapsUrl: string };
 export const VENUES = {
   olsanska: {
     name: 'Tenisové centrum Olšanská',
-    address: 'Chelčického 2614/43, 130 00 Praha 3 – Žižkov',
+    address: 'Chelčického 2614/43, Žižkov, 130 00 Praha 3',
     mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Tenisov%C3%A9+centrum+Ol%C5%A1ansk%C3%A1+Chel%C4%8Dick%C3%A9ho+43+Praha',
   },
   trebesin: {
     name: 'VŠE sportovní hala Na Třebešíně',
-    address: 'Na Třebešíně 3215/1, 130 00 Praha 10 – Strašnice',
+    address: 'Na Třebešíně 3215/1, Strašnice, 130 00 Praha 10',
     mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Sportovn%C3%AD+hala+V%C5%A0E+Na+T%C5%99ebe%C5%A1%C3%ADn%C4%9B+3215',
   },
   radotin: {
     name: 'Sportovní hala Radotín',
-    address: 'U Starého stadiónu 5, 153 00 Praha 16 – Radotín',
+    address: 'U Starého stadiónu 5, Radotín, 153 00 Praha 16',
     mapsUrl: 'https://maps.app.goo.gl/YR4fdn4nnNac9eRS9',
   },
 } satisfies Record<string, Venue>;
@@ -79,7 +79,7 @@ export const MEMBERSHIP = {
 
 // Season results the club can point to.
 export const HONOURS: { year: number; en: string; cs: string }[] = [
-  { year: 2026, en: 'ECS Czechia – Challenger Division winners', cs: 'ECS Czechia – vítězové Challenger Division' },
+  { year: 2026, en: 'ECS Czechia Challenger Division winners', cs: 'Vítězové ECS Czechia Challenger Division' },
   { year: 2026, en: 'ČMKS T10 winners', cs: 'Vítězové ČMKS T10' },
   { year: 2026, en: 'Division 2 winners (Mobilizers)', cs: 'Vítězové 2. divize (Mobilizers)' },
   { year: 2026, en: 'Division 1: 2nd after the league stage and semi-finalists (Vanguards)', cs: '1. divize: 2. místo po základní části a postup do semifinále (Vanguards)' },

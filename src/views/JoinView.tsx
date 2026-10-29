@@ -20,8 +20,8 @@ export function joinMeta(lang: Lang): Metadata {
     lang,
     path: '/join',
     absoluteTitle: tr(lang, {
-      en: 'Play Cricket in Prague – Join Prague Spartans Cricket Club',
-      cs: 'Hrajte kriket v Praze – přidejte se ke Prague Spartans',
+      en: 'Play Cricket in Prague | Join Prague Spartans Cricket Club',
+      cs: 'Hrajte kriket v Praze | Přidejte se ke Prague Spartans',
     }),
     description: tr(lang, {
       en: 'Play cricket in Prague with Prague Spartans Cricket Club: all levels welcome, Thursday training in Prague 3, three league squads and T10 cricket. Apply online.',
@@ -58,7 +58,7 @@ function questions(lang: Lang): { q: string; a: ReactNode }[] {
         q: 'Where can I play cricket in Prague?',
         a: (
           <>
-            Prague Spartans Cricket Club trains on Thursdays from 17:00 to 19:00 in the cricket nets at {weekly.venue.name} in Prague 3 – Žižkov and plays home
+            Prague Spartans Cricket Club trains on Thursdays from 17:00 to 19:00 in the cricket nets at {weekly.venue.name} in Žižkov, Prague 3 and plays home
             matches at <InlineLink href={L('/ground')}>{GROUND.name}</InlineLink>, {groundAddress}. New players of every level can apply on
             this page.
           </>
@@ -83,7 +83,7 @@ function questions(lang: Lang): { q: string; a: ReactNode }[] {
       },
       {
         q: 'Is there indoor cricket in winter?',
-        a: `Yes. In winter the club holds indoor sessions at ${winter[0]} (Prague 10 – Strašnice), ${winter[1]} and ${winter[2]}.`,
+        a: `Yes. In winter the club holds indoor sessions at ${winter[0]} (Strašnice, Prague 10), ${winter[1]} and ${winter[2]}.`,
       },
       {
         q: 'Do I need to speak Czech?',
@@ -138,7 +138,7 @@ function questions(lang: Lang): { q: string; a: ReactNode }[] {
       },
       {
         q: 'Hraje se kriket i v zimě v hale?',
-        a: 'Ano. V zimě trénujeme v hale: ve sportovní hale VŠE Na Třebešíně (Praha 10 – Strašnice), ve Sportovní hale Radotín a v Tenisovém centru Olšanská.',
+        a: 'Ano. V zimě trénujeme v hale: ve sportovní hale VŠE Na Třebešíně (Strašnice, Praha 10), ve Sportovní hale Radotín a v Tenisovém centru Olšanská.',
       },
       {
         q: 'V jakém jazyce se v klubu mluví?',
@@ -248,7 +248,7 @@ export default function JoinView({ lang }: { lang: Lang }) {
           ),
         })}
         intro={tr(lang, {
-          en: 'Prague Spartans Cricket Club is an amateur cricket club in Prague, Czech Republic, founded in 2019. We train on Thursdays in Prague 3 – Žižkov, play home matches at Vinoř Cricket Ground and welcome new players of every level and nationality.',
+          en: 'Prague Spartans Cricket Club is an amateur cricket club in Prague, Czech Republic, founded in 2019. We train on Thursdays in Žižkov, Prague 3, play home matches at Vinoř Cricket Ground and welcome new players of every level and nationality.',
           cs: 'Prague Spartans Cricket Club je amatérský kriketový klub v Praze, založený v roce 2019. Trénujeme ve čtvrtek v Praze 3 na Žižkově, domácí zápasy hrajeme na kriketovém hřišti ve Vinoři a rádi přivítáme nové hráče všech úrovní i národností.',
         })}
         image="/spartan_team.PNG"

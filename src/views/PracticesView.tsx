@@ -64,7 +64,7 @@ export default async function PracticesView({ lang }: { lang: Lang }) {
           ),
         })}
         intro={tr(lang, {
-          en: 'Prague Spartans Cricket Club usually trains on Thursdays from 17:00 to 19:00 in the cricket nets at Tenisové centrum Olšanská in Prague 3 – Žižkov, with indoor sessions through the winter. Beginners and experienced players are welcome.',
+          en: 'Prague Spartans Cricket Club usually trains on Thursdays from 17:00 to 19:00 in the cricket nets at Tenisové centrum Olšanská in Žižkov, Prague 3, with indoor sessions through the winter. Beginners and experienced players are welcome.',
           cs: 'Prague Spartans Cricket Club obvykle trénuje ve čtvrtek od 17:00 do 19:00 v kriketových sítích v Tenisovém centru Olšanská v Praze 3 na Žižkově a v zimě v hale. Vítáme začátečníky i zkušené hráče.',
         })}
         image="/home_carousel.jpeg"
@@ -112,7 +112,7 @@ export default async function PracticesView({ lang }: { lang: Lang }) {
             <h2 className="h-sub text-[30px]">{tr(lang, { en: 'Winter indoor training', cs: 'Zimní tréninky v hale' })}</h2>
             <p className="mt-4 leading-relaxed text-muted">
               {tr(lang, {
-                en: 'In winter the club trains indoors. Sessions are held at these venues; check the calendar below for dates.',
+                en: 'In winter the club trains indoors. Sessions are held at these venues. Check the calendar below for dates.',
                 cs: 'V zimě trénujeme v hale, a to na těchto místech. Termíny najdete v kalendáři níže.',
               })}
             </p>
@@ -154,8 +154,8 @@ export default async function PracticesView({ lang }: { lang: Lang }) {
               }
             >
               {tr(lang, {
-                en: 'Specific session dates are not listed right now. Training usually runs on Thursdays from 17:00 to 19:00; get in touch and we will confirm the next one.',
-                cs: 'Konkrétní termíny teď v kalendáři nejsou. Obvykle trénujeme ve čtvrtek od 17:00 do 19:00; ozvěte se nám a potvrdíme vám nejbližší trénink.',
+                en: 'Specific session dates are not listed right now. Training usually runs on Thursdays from 17:00 to 19:00. Get in touch and we will confirm the next one.',
+                cs: 'Konkrétní termíny teď v kalendáři nejsou. Obvykle trénujeme ve čtvrtek od 17:00 do 19:00. Ozvěte se nám a potvrdíme vám nejbližší trénink.',
               })}
             </EmptyState>
           ) : (

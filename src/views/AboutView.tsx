@@ -32,12 +32,12 @@ export function aboutMeta(lang: Lang): Metadata {
     lang,
     path: '/about',
     absoluteTitle: tr(lang, {
-      en: 'About Prague Spartans Cricket Club – History, Ground & Leagues',
-      cs: 'O klubu Prague Spartans – historie, hřiště a soutěže',
+      en: 'About Prague Spartans Cricket Club | History, Ground & Leagues',
+      cs: 'O klubu Prague Spartans | Historie, hřiště a soutěže',
     }),
     description: tr(lang, {
-      en: `Prague Spartans Cricket Club is an amateur cricket club in Prague, founded in ${FOUNDED}. Three squads in Czech Cricket Union Divisions 1–3, home ground at Vinoř, 2026 honours.`,
-      cs: `Prague Spartans Cricket Club je amatérský kriketový klub v Praze, založený v roce ${FOUNDED}. Tři týmy v 1.–3. divizi ČMKS, domácí hřiště ve Vinoři a úspěchy sezóny 2026.`,
+      en: `Prague Spartans Cricket Club is an amateur cricket club in Prague, founded in ${FOUNDED}. Three squads in Czech Cricket Union Divisions 1, 2 and 3, home ground at Vinoř, 2026 honours.`,
+      cs: `Prague Spartans Cricket Club je amatérský kriketový klub v Praze, založený v roce ${FOUNDED}. Tři týmy v 1., 2. a 3. divizi ČMKS, domácí hřiště ve Vinoři a úspěchy sezóny 2026.`,
     }),
   });
 }
@@ -75,7 +75,7 @@ const OFFERS = [
 const SOCIAL_LINKS: { label: string; href: string; text: { en: string; cs: string } }[] = [
   { label: 'Instagram', href: SOCIAL.instagram, text: { en: 'News, photos and match days', cs: 'Novinky, fotky a zápasové dny' } },
   { label: 'Facebook', href: SOCIAL.facebook, text: { en: 'Club page', cs: 'Stránka klubu' } },
-  { label: 'YouTube', href: SOCIAL.youtube, text: { en: 'Spartans TV – match streams', cs: 'Spartans TV – přenosy zápasů' } },
+  { label: 'YouTube', href: SOCIAL.youtube, text: { en: 'Spartans TV match streams', cs: 'Spartans TV, přenosy zápasů' } },
   { label: 'Play-Cricket', href: SOCIAL.playCricket, text: { en: 'Club profile and scorecards', cs: 'Profil klubu a zápisy ze zápasů' } },
 ];
 
@@ -134,8 +134,8 @@ export default function AboutView({ lang }: { lang: Lang }) {
             </h2>
             <p className="mt-6 text-[17px] leading-relaxed text-sand">
               {tr(lang, {
-                en: `${CLUB_NAME} (Prague Spartans CC) is an amateur cricket club based in Prague, Czech Republic. It was founded in ${FOUNDED} and is a member of the Czech Cricket Union (Českomoravský kriketový svaz, ČMKS). In 2026 its three squads – Vanguards, Mobilizers and Strikers – play in Divisions 1, 2 and 3 of the Czech Cricket Union leagues, and the club also plays ČMKS T10 and ECS Czechia. Home matches are played at ${GROUND.name} in Prague 9 – Vinoř.`,
-                cs: `${CLUB_NAME} (Prague Spartans CC) je amatérský kriketový klub se sídlem v Praze. Vznikl v roce ${FOUNDED} a je členem Českomoravského kriketového svazu (ČMKS). V roce 2026 hrají jeho tři týmy – Vanguards, Mobilizers a Strikers – 1., 2. a 3. divizi soutěží svazu. Klub se účastní také soutěží ČMKS T10 a ECS Czechia. Domácí zápasy hraje na kriketovém hřišti ve Vinoři (Praha 9).`,
+                en: `${CLUB_NAME} (Prague Spartans CC) is an amateur cricket club based in Prague, Czech Republic. It was founded in ${FOUNDED} and is a member of the Czech Cricket Union (Českomoravský kriketový svaz, ČMKS). In 2026 its three squads (Vanguards, Mobilizers and Strikers) play in Divisions 1, 2 and 3 of the Czech Cricket Union leagues, and the club also plays ČMKS T10 and ECS Czechia. Home matches are played at ${GROUND.name} in Vinoř, Prague 9.`,
+                cs: `${CLUB_NAME} (Prague Spartans CC) je amatérský kriketový klub se sídlem v Praze. Vznikl v roce ${FOUNDED} a je členem Českomoravského kriketového svazu (ČMKS). V roce 2026 hrají jeho tři týmy (Vanguards, Mobilizers a Strikers) 1., 2. a 3. divizi soutěží svazu. Klub se účastní také soutěží ČMKS T10 a ECS Czechia. Domácí zápasy hraje na kriketovém hřišti ve Vinoři (Praha 9).`,
               })}
             </p>
             <p className="mt-4 text-[17px] leading-relaxed text-muted">
@@ -191,7 +191,7 @@ export default function AboutView({ lang }: { lang: Lang }) {
             <p className="mt-4 text-[17px] leading-relaxed text-muted">
               {tr(lang, {
                 en: 'Our aim has stayed the same: good cricket, sportsmanship and the spirit of the game, on and off the field.',
-                cs: 'Náš cíl se nemění: dobrý kriket, sportovní chování a duch hry – na hřišti i mimo něj.',
+                cs: 'Náš cíl se nemění: dobrý kriket, sportovní chování a duch hry, na hřišti i mimo něj.',
               })}
             </p>
           </Reveal>

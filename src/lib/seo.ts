@@ -7,7 +7,7 @@ export const OG_IMAGE = {
   url: '/og/prague-spartans-cricket-club.jpg',
   width: 1200,
   height: 630,
-  alt: 'Prague Spartans Cricket Club – cricket club in Prague, Czech Republic',
+  alt: 'Prague Spartans Cricket Club, a cricket club in Prague, Czech Republic',
 };
 
 type Img = { url: string; width?: number; height?: number; alt?: string };

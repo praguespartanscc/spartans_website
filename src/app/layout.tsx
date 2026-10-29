@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     template: `%s | ${CLUB_NAME}`,
     default: CLUB_NAME,
   },
-  description: `${CLUB_NAME} – cricket club in Prague, Czech Republic, playing in the Czech Cricket Union leagues. Beginners welcome.`,
+  description: `${CLUB_NAME} is a cricket club in Prague, Czech Republic, playing in the Czech Cricket Union leagues. Beginners welcome.`,
   applicationName: CLUB_NAME,
   authors: [{ name: CLUB_NAME }],
   category: 'Sports',

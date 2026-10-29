@@ -26,7 +26,7 @@ export default function CommitteeSection({ members, lang = 'en' }: { members: Co
           title={tr(lang, { en: 'The committee', cs: 'Výbor klubu' })}
           intro={tr(lang, {
             en: 'The people who keep the club running, from fixtures to finances.',
-            cs: 'Lidé, kteří se starají o chod klubu – od rozpisu zápasů po finance.',
+            cs: 'Lidé, kteří se starají o chod klubu, od rozpisu zápasů po finance.',
           })}
           action={
             <Link href={localePath(lang, '/committee')} className="link-arrow">

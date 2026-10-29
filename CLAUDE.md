@@ -46,6 +46,10 @@ export default function Page() { return <CommitteeView lang="en" />; }
 - New public page = a view in `src/views/` + two thin route files + sitemap entry in `src/app/sitemap.ts`.
 - Copy is written inline as `tr(lang, { en: '…', cs: '…' })` (`src/lib/i18n.ts`). Every user-facing
   string on public pages needs both languages. Links go through `localePath(lang, '/path')`.
+- Copy style (both languages): no dashes (– or —) and no semicolons in sentences, because the owner
+  finds they read as AI-written. Use a full stop, a comma or brackets instead. Page titles separate
+  parts with ` | `. Addresses read "Street 1, District, 190 17 Praha 9". The only dashes allowed are
+  in ranges such as `17:00–19:00`.
 - Page metadata goes through `pageMeta()` in `src/lib/seo.ts` (canonical, hreflang, Open Graph).
 - Club facts (founding year, ground, venues, training, membership, honours, squads) live in
   `src/lib/club.ts`. Never hard-code them in a view.

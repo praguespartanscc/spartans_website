@@ -62,7 +62,7 @@ export async function playerMeta(lang: Lang, slug: string): Promise<Metadata> {
     en: `${player.name} is ${/^[aeiou]/i.test(type) ? 'an' : 'a'} ${type.toLowerCase()} for ${
       squad ? `the Prague Spartans ${squad.name} squad (${divisionLabel(squad.division, lang)})` : 'Prague Spartans Cricket Club'
     }, a cricket club in Prague. Player profile and playing role.`,
-    cs: `${player.name} – ${type.toLowerCase()} ${
+    cs: `${player.name}: ${type.toLowerCase()} ${
       squad ? `týmu ${squad.name} (${divisionLabel(squad.division, lang)})` : ''
     } kriketového klubu Prague Spartans v Praze. Profil hráče a herní role.`.replace(/\s+/g, ' '),
   });
@@ -73,7 +73,7 @@ export async function playerMeta(lang: Lang, slug: string): Promise<Metadata> {
     ...pageMeta({
       lang,
       path: `/players/${player.slug}`,
-      title: `${player.name} – ${type}${squad ? `, ${squad.name}` : ''}`,
+      title: `${player.name}, ${type}${squad ? `, ${squad.name}` : ''}`,
       description,
       type: 'profile',
       ...(player.photo_url ? { images: [{ url: player.photo_url, alt: player.name }] } : {}),

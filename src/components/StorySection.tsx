@@ -44,7 +44,7 @@ export default function StorySection({ lang = 'en' }: { lang?: Lang }) {
           <p className="mt-4 text-[17px] leading-relaxed text-muted">
             {tr(lang, {
               en: 'Whether you are a seasoned cricketer or picking up a bat for the first time, there is a place for you in the Spartan family, on and off the field.',
-              cs: 'Ať už jste zkušený hráč, nebo budete držet pálku poprvé v životě, ve Spartans pro vás najdeme místo – na hřišti i mimo něj.',
+              cs: 'Ať už jste zkušený hráč, nebo budete držet pálku poprvé v životě, ve Spartans pro vás najdeme místo, na hřišti i mimo něj.',
             })}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">

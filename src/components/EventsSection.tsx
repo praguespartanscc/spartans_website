@@ -18,8 +18,8 @@ export default function EventsSection({ upcoming, latest, today, lang = 'en' }: 
           eyebrow={tr(lang, { en: 'On the calendar', cs: 'V kalendáři' })}
           title={tr(lang, { en: 'Upcoming matches', cs: 'Nadcházející zápasy' })}
           intro={tr(lang, {
-            en: 'League, T10 and tournament matches for all three Spartans squads. Home games are played at Vinoř Cricket Ground in Prague 9 – come and support us.',
-            cs: 'Ligové zápasy, T10 a turnaje všech tří týmů Spartans. Domácí zápasy hrajeme na kriketovém hřišti ve Vinoři v Praze 9 – přijďte nás podpořit.',
+            en: 'League, T10 and tournament matches for all three Spartans squads. Home games are played at Vinoř Cricket Ground in Prague 9. Come and support us.',
+            cs: 'Ligové zápasy, T10 a turnaje všech tří týmů Spartans. Domácí zápasy hrajeme na kriketovém hřišti ve Vinoři v Praze 9. Přijďte nás podpořit.',
           })}
           action={
             <Link href={localePath(lang, '/fixtures')} className="link-arrow">

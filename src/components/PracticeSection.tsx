@@ -35,7 +35,7 @@ const PracticeSection = ({ practices, lang = 'en' }: { practices: Practice[]; la
             </h2>
             <p className="mt-4 max-w-lg text-[17px] leading-relaxed text-muted">
               {tr(lang, {
-                en: `We usually train on Thursdays from 17:00 to 19:00 in the cricket nets at ${weekly.venue.name} in Prague 3 – Žižkov. In winter we move indoors to VŠE sportovní hala Na Třebešíně, Sportovní hala Radotín and Olšanská. Beginners and experienced players are both welcome.`,
+                en: `We usually train on Thursdays from 17:00 to 19:00 in the cricket nets at ${weekly.venue.name} in Žižkov, Prague 3. In winter we move indoors to VŠE sportovní hala Na Třebešíně, Sportovní hala Radotín and Olšanská. Beginners and experienced players are both welcome.`,
                 cs: 'Trénujeme obvykle ve čtvrtek od 17:00 do 19:00 v kriketových sítích v Tenisovém centru Olšanská v Praze 3 na Žižkově. V zimě se přesouváme do hal: do sportovní haly VŠE Na Třebešíně, do Sportovní haly Radotín a na Olšanskou. Vítáme začátečníky i zkušené hráče.',
               })}
             </p>

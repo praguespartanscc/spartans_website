@@ -78,7 +78,7 @@ function matchImages(m: Match, alt: string) {
 export async function fixtureMeta(lang: Lang, id: string): Promise<Metadata> {
   const match = await load(id);
   if (!match) notFound();
-  const title = `${matchName(match, lang)} – ${shortDate(match.date, lang)}`;
+  const title = `${matchName(match, lang)}, ${shortDate(match.date, lang)}`;
   const named = /prague spartans/i.test(title);
   return pageMeta({
     lang,
@@ -198,7 +198,7 @@ export default async function FixtureView({ lang, id }: { lang: Lang; id: string
       <JsonLd
         data={breadcrumbs(lang, [
           [tr(lang, { en: 'Fixtures & results', cs: 'Zápasy a výsledky' }), '/fixtures'],
-          [`${name} – ${shortDate(match.date, lang)}`, `/fixtures/${match.id}`],
+          [`${name}, ${shortDate(match.date, lang)}`, `/fixtures/${match.id}`],
         ])}
       />
 

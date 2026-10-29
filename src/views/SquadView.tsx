@@ -37,12 +37,12 @@ export function squadMeta(lang: Lang, slug: string): Metadata {
     lang,
     path: `/squads/${squad.slug}`,
     title: tr(lang, {
-      en: `${squad.name} – ${division} cricket squad`,
-      cs: `${squad.name} – kriketový tým ${division}`,
+      en: `${squad.name}, ${division} cricket squad`,
+      cs: `${squad.name}, kriketový tým ${division}`,
     }),
     description: tr(lang, {
       en: `${squad.name} is the Prague Spartans Cricket Club squad playing ${division} of the Czech Cricket Union league in 2026. Squad list, captain, fixtures and player profiles.`,
-      cs: `${squad.name} – tým kriketového klubu Prague Spartans, který v sezóně 2026 hraje ${squad.division}. divizi soutěží Českomoravského kriketového svazu. Soupiska, kapitán, zápasy a profily hráčů.`,
+      cs: `${squad.name} je tým kriketového klubu Prague Spartans, který v sezóně 2026 hraje ${squad.division}. divizi soutěží Českomoravského kriketového svazu. Soupiska, kapitán, zápasy a profily hráčů.`,
     }),
   });
 }

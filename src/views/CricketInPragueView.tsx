@@ -22,8 +22,8 @@ const TITLE = {
 };
 
 const HEADLINE = {
-  en: 'Cricket in Prague and the Czech Republic – a practical guide',
-  cs: 'Kriket v Praze a v Česku – praktický průvodce',
+  en: 'A practical guide to cricket in Prague and the Czech Republic',
+  cs: 'Praktický průvodce kriketem v Praze a v Česku',
 };
 
 const DESCRIPTION = {
@@ -46,23 +46,23 @@ const ext = { target: '_blank', rel: 'noopener noreferrer' } as const;
 
 // External references, numbered in this order in the text and in the Sources list.
 const SOURCES = [
-  { key: 'icc', title: 'Czech Republic – ICC Associate Member profile, International Cricket Council', url: 'https://www.icc-cricket.com/about/members/associate/czech-republic' },
-  { key: 'wikiCzech', title: 'Czech Cricket (Czech Cricket Union) – Wikipedia', url: 'https://en.wikipedia.org/wiki/Czech_Cricket' },
-  { key: 'wikiTeam', title: 'Czech Republic national cricket team – Wikipedia', url: 'https://en.wikipedia.org/wiki/Czech_Republic_national_cricket_team' },
-  { key: 'radio', title: '“What is this game?” The steady rise of Czech cricket – Radio Prague International', url: 'https://english.radio.cz/what-game-steady-rise-czech-cricket-8772005' },
-  { key: 'vinor', title: 'Vinoř Cricket Ground – Wikipedia', url: GROUND.wikipedia },
-  { key: 'page', title: 'New field to be named in honour of Scott Page – Prague Barbarians CC (2020)', url: 'https://praguebarbarianscc.cz/2020/05/25/press-release/' },
-  { key: 'cricinfo', title: 'Scott Page Field, Vinor – ground records, ESPNcricinfo', url: 'https://www.espncricinfo.com/cricket-grounds/scott-page-field-vinor-1230852/records' },
-  { key: 'ecs', title: 'Prague Power Play: ECS Czechia 2026 set to light up Vinor – European Cricket Network', url: 'https://www.ecn.cricket/post/prague-power-play-ecs-czechia-2026-set-to-light-up-vinor' },
-  { key: 'cec', title: 'Central Europe Cup – Wikipedia', url: 'https://en.wikipedia.org/wiki/Central_Europe_Cup' },
-  { key: 'radioCec', title: 'Vinoř hosts three teams for the Central Europe Cup – Radio Prague International', url: 'https://english.radio.cz/bringing-international-world-cricket-prague-vinor-hosts-three-teams-central-8853661' },
-  { key: 'clubs', title: 'Clubs – Czech Cricket Union (czechcricket.cz)', url: 'https://czechcricket.cz/pages/clubs' },
-  { key: 'kacr', title: 'Kriketová akademie ČR (KAČR) – Czech Cricket Union', url: 'https://czechcricket.cz/pages/kacr' },
-  { key: 'women', title: "Czech Republic women's national cricket team – Wikipedia", url: 'https://en.wikipedia.org/wiki/Czech_Republic_women%27s_national_cricket_team' },
-  { key: 'cricheroes', title: 'Czech Cricket – competitions, scores and results, CricHeroes', url: 'https://cricheroes.com/association/1068/czech-cricket/home' },
-  { key: 'pcc', title: 'Prague Cricket Club – official website', url: 'https://praguecricket.cz/' },
-  { key: 'bohemian', title: 'Bohemian Cricket Club – Facebook', url: 'https://www.facebook.com/p/bohemian_cricket_club-100069571262171/' },
-  { key: 'barbarians', title: 'Prague Barbarians Cricket Club – Facebook', url: 'https://www.facebook.com/PragueBarbarians/' },
+  { key: 'icc', title: 'Czech Republic (ICC Associate Member profile, International Cricket Council)', url: 'https://www.icc-cricket.com/about/members/associate/czech-republic' },
+  { key: 'wikiCzech', title: 'Czech Cricket (Czech Cricket Union) (Wikipedia)', url: 'https://en.wikipedia.org/wiki/Czech_Cricket' },
+  { key: 'wikiTeam', title: 'Czech Republic national cricket team (Wikipedia)', url: 'https://en.wikipedia.org/wiki/Czech_Republic_national_cricket_team' },
+  { key: 'radio', title: '“What is this game?” The steady rise of Czech cricket (Radio Prague International)', url: 'https://english.radio.cz/what-game-steady-rise-czech-cricket-8772005' },
+  { key: 'vinor', title: 'Vinoř Cricket Ground (Wikipedia)', url: GROUND.wikipedia },
+  { key: 'page', title: 'New field to be named in honour of Scott Page (Prague Barbarians CC (2020))', url: 'https://praguebarbarianscc.cz/2020/05/25/press-release/' },
+  { key: 'cricinfo', title: 'Scott Page Field, Vinor (ground records, ESPNcricinfo)', url: 'https://www.espncricinfo.com/cricket-grounds/scott-page-field-vinor-1230852/records' },
+  { key: 'ecs', title: 'Prague Power Play: ECS Czechia 2026 set to light up Vinor (European Cricket Network)', url: 'https://www.ecn.cricket/post/prague-power-play-ecs-czechia-2026-set-to-light-up-vinor' },
+  { key: 'cec', title: 'Central Europe Cup (Wikipedia)', url: 'https://en.wikipedia.org/wiki/Central_Europe_Cup' },
+  { key: 'radioCec', title: 'Vinoř hosts three teams for the Central Europe Cup (Radio Prague International)', url: 'https://english.radio.cz/bringing-international-world-cricket-prague-vinor-hosts-three-teams-central-8853661' },
+  { key: 'clubs', title: 'Clubs (Czech Cricket Union (czechcricket.cz))', url: 'https://czechcricket.cz/pages/clubs' },
+  { key: 'kacr', title: 'Kriketová akademie ČR (KAČR) (Czech Cricket Union)', url: 'https://czechcricket.cz/pages/kacr' },
+  { key: 'women', title: "Czech Republic women's national cricket team (Wikipedia)", url: 'https://en.wikipedia.org/wiki/Czech_Republic_women%27s_national_cricket_team' },
+  { key: 'cricheroes', title: 'Czech Cricket (competitions, scores and results, CricHeroes)', url: 'https://cricheroes.com/association/1068/czech-cricket/home' },
+  { key: 'pcc', title: 'Prague Cricket Club (official website)', url: 'https://praguecricket.cz/' },
+  { key: 'bohemian', title: 'Bohemian Cricket Club (Facebook)', url: 'https://www.facebook.com/p/bohemian_cricket_club-100069571262171/' },
+  { key: 'barbarians', title: 'Prague Barbarians Cricket Club (Facebook)', url: 'https://www.facebook.com/PragueBarbarians/' },
 ] as const;
 
 type SourceKey = (typeof SOURCES)[number]['key'];
@@ -235,12 +235,12 @@ export default function CricketInPragueView({ lang }: { lang: Lang }) {
         title={tr(lang, {
           en: (
             <>
-              <span className="text-gold">Cricket in Prague</span> and the Czech Republic – a practical guide
+              A practical guide to <span className="text-gold">cricket in Prague</span> and the Czech Republic
             </>
           ),
           cs: (
             <>
-              <span className="text-gold">Kriket v Praze</span> a v Česku – praktický průvodce
+              Praktický průvodce <span className="text-gold">kriketem v Praze</span> a v Česku
             </>
           ),
         })}
@@ -279,7 +279,7 @@ export default function CricketInPragueView({ lang }: { lang: Lang }) {
               </a>
             </Fact>
             <Fact label={tr(lang, { en: 'ICC status', cs: 'Členství v ICC' })}>
-              {tr(lang, { en: 'Member since 2000; Associate Member since 2017', cs: 'Člen od roku 2000, přidružený člen od roku 2017' })}
+              {tr(lang, { en: 'Member since 2000, Associate Member since 2017', cs: 'Člen od roku 2000, přidružený člen od roku 2017' })}
             </Fact>
             <Fact label={tr(lang, { en: 'Main ground', cs: 'Hlavní hřiště' })}>
               <Link href={localePath(lang, '/ground')} className={link}>
@@ -301,8 +301,8 @@ export default function CricketInPragueView({ lang }: { lang: Lang }) {
           <Section id="history-heading" eyebrow={tr(lang, { en: '01 · History', cs: '01 · Historie' })} title={tr(lang, { en: 'A short history of Czech cricket', cs: 'Stručná historie českého kriketu' })}>
             <p>
               {tr(lang, {
-                en: 'Cricket is a young sport in the Czech Republic. The first recorded match in the country was played in 1997, the year Prague Cricket Club – the first team in the country – was founded.',
-                cs: 'Kriket je v Česku mladý sport. První zaznamenaný zápas se v zemi odehrál v roce 1997, kdy vznikl i Prague Cricket Club – vůbec první tým v zemi.',
+                en: 'Cricket is a young sport in the Czech Republic. The first recorded match in the country was played in 1997, the year Prague Cricket Club, the first team in the country, was founded.',
+                cs: 'Kriket je v Česku mladý sport. První zaznamenaný zápas se v zemi odehrál v roce 1997, kdy vznikl i Prague Cricket Club, vůbec první tým v zemi.',
               })}
               <Cite ids={['wikiCzech', 'radio']} />
             </p>
@@ -315,7 +315,7 @@ export default function CricketInPragueView({ lang }: { lang: Lang }) {
             </p>
             <p>
               {tr(lang, {
-                en: 'In 2012 the union opened Vinoř Cricket Ground in Prague, the first ground in the country built for cricket; a second field followed in 2014. For many years the game was played mainly by expatriates in Prague, which is why the Kriketová akademie ČR was set up to bring more young and Czech-speaking players into the sport.',
+                en: 'In 2012 the union opened Vinoř Cricket Ground in Prague, the first ground in the country built for cricket. A second field followed in 2014. For many years the game was played mainly by expatriates in Prague, which is why the Kriketová akademie ČR was set up to bring more young and Czech-speaking players into the sport.',
                 cs: 'V roce 2012 otevřel svaz v Praze kriketové hřiště Vinoř, první hřiště v zemi postavené přímo pro kriket. V roce 2014 přibyla druhá hrací plocha. Kriket dlouho hráli v Praze hlavně cizinci, a proto vznikla Kriketová akademie ČR, která do sportu přivádí mladé a česky mluvící hráče.',
               })}
               <Cite ids={['vinor', 'kacr']} />
@@ -353,7 +353,7 @@ export default function CricketInPragueView({ lang }: { lang: Lang }) {
           <Section id="ground-heading" eyebrow={tr(lang, { en: '03 · Ground', cs: '03 · Hřiště' })} title={tr(lang, { en: 'Vinoř Cricket Ground', cs: 'Kriketové hřiště Vinoř' })}>
             <p>
               {tr(lang, {
-                en: `Vinoř Cricket Ground, ${GROUND.streetAddress}, ${GROUND.postalCode} ${GROUND.locality}, is the home of Czech cricket. It is run by the Czech Cricket Union, the national team plays its home internationals there, and many Prague clubs – Prague Spartans among them – play their league matches there.`,
+                en: `Vinoř Cricket Ground, ${GROUND.streetAddress}, ${GROUND.postalCode} ${GROUND.locality}, is the home of Czech cricket. It is run by the Czech Cricket Union, the national team plays its home internationals there, and many Prague clubs, Prague Spartans among them, play their league matches there.`,
                 cs: `Kriketové hřiště Vinoř (${GROUND.streetAddress}, ${GROUND.postalCode} ${GROUND.locality}) je domovem českého kriketu. Provozuje ho Českomoravský kriketový svaz, hraje tu domácí zápasy česká reprezentace a ligové zápasy tu odehrává řada pražských klubů včetně Prague Spartans.`,
               })}
               <Cite ids={['vinor', 'cricinfo']} />
@@ -382,7 +382,7 @@ export default function CricketInPragueView({ lang }: { lang: Lang }) {
             </p>
             <p>
               {tr(lang, {
-                en: 'Vinoř also hosts the Czech national team. The Central Europe Cup, an international tournament organised by the Czech Cricket Union, was first held in 2014 and is played at Vinoř; it is now a Twenty20 event.',
+                en: 'Vinoř also hosts the Czech national team. The Central Europe Cup, an international tournament organised by the Czech Cricket Union, was first held in 2014 and is played at Vinoř. It is now a Twenty20 event.',
                 cs: 'Ve Vinoři hraje i česká reprezentace. Central Europe Cup, mezinárodní turnaj pořádaný Českomoravským kriketovým svazem, se poprvé konal v roce 2014 a hraje se ve Vinoři, dnes ve formátu Twenty20.',
               })}
               <Cite ids={['cec', 'radioCec', 'cricinfo']} />
@@ -392,7 +392,7 @@ export default function CricketInPragueView({ lang }: { lang: Lang }) {
           <Section id="clubs-heading" eyebrow={tr(lang, { en: '05 · Clubs', cs: '05 · Kluby' })} title={tr(lang, { en: 'Cricket clubs in Prague', cs: 'Kriketové kluby v Praze' })}>
             <p>
               {tr(lang, {
-                en: 'Prague has more cricket clubs than any other Czech city. These are the Prague clubs we could verify, in alphabetical order; the Czech Cricket Union keeps the official list of member clubs.',
+                en: 'Prague has more cricket clubs than any other Czech city. These are the Prague clubs we could verify, in alphabetical order. The Czech Cricket Union keeps the official list of member clubs.',
                 cs: 'Praha má víc kriketových klubů než kterékoli jiné české město. Níže jsou pražské kluby, jejichž existenci jsme si ověřili, v abecedním pořadí. Oficiální seznam členských klubů vede Českomoravský kriketový svaz.',
               })}
               <Cite ids={['clubs', 'wikiCzech']} />
@@ -453,7 +453,7 @@ export default function CricketInPragueView({ lang }: { lang: Lang }) {
             </p>
             <p>
               {tr(lang, {
-                en: "The Czech Republic also has a women's national team, and a women's league – the Czech Women's Premier League – was played in 2026.",
+                en: "The Czech Republic also has a women's national team, and a women's league, the Czech Women's Premier League, was played in 2026.",
                 cs: 'Česko má také ženskou reprezentaci a v roce 2026 se hrála ženská liga Czech Women’s Premier League.',
               })}
               <Cite ids={['women', 'cricheroes']} />
@@ -470,7 +470,7 @@ export default function CricketInPragueView({ lang }: { lang: Lang }) {
               {tr(lang, {
                 en: (
                   <>
-                    Most league and international matches in Prague are played at Vinoř – see the{' '}
+                    Most league and international matches in Prague are played at Vinoř. See the{' '}
                     <Link href={localePath(lang, '/ground')} className={link}>
                       ground page
                     </Link>{' '}
@@ -480,7 +480,7 @@ export default function CricketInPragueView({ lang }: { lang: Lang }) {
                 ),
                 cs: (
                   <>
-                    Většina ligových i mezinárodních zápasů v Praze se hraje ve Vinoři – adresu a cestu najdete na{' '}
+                    Většina ligových i mezinárodních zápasů v Praze se hraje ve Vinoři. Adresu a cestu najdete na{' '}
                     <Link href={localePath(lang, '/ground')} className={link}>
                       stránce o hřišti
                     </Link>
@@ -536,8 +536,8 @@ export default function CricketInPragueView({ lang }: { lang: Lang }) {
                   <Check size={20} className="mt-1 shrink-0 text-gold" />
                   <span>
                     {tr(lang, {
-                      en: 'Three squads – Vanguards, Mobilizers and Strikers – in Divisions 1, 2 and 3 of the Czech Cricket Union leagues, plus ČMKS T10 and ECS Czechia.',
-                      cs: 'Tři týmy – Vanguards, Mobilizers a Strikers – v 1., 2. a 3. divizi soutěží ČMKS, k tomu ČMKS T10 a ECS Czechia.',
+                      en: 'Three squads (Vanguards, Mobilizers and Strikers) in Divisions 1, 2 and 3 of the Czech Cricket Union leagues, plus ČMKS T10 and ECS Czechia.',
+                      cs: 'Tři týmy (Vanguards, Mobilizers a Strikers) v 1., 2. a 3. divizi soutěží ČMKS, k tomu ČMKS T10 a ECS Czechia.',
                     })}
                   </span>
                 </li>
@@ -554,8 +554,8 @@ export default function CricketInPragueView({ lang }: { lang: Lang }) {
                   <Check size={20} className="mt-1 shrink-0 text-gold" />
                   <span>
                     {tr(lang, {
-                      en: `Beginners and experienced players welcome, no minimum age, English-speaking. Training usually on ${weekly.day.en}s, ${weekly.time}, in the cricket nets at ${weekly.venue.name}; membership includes free nets, use of the club's cricket equipment and student discounts.`,
-                      cs: `Vítáme začátečníky i zkušené hráče, minimální věk není stanoven a v klubu se mluví anglicky. Trénujeme obvykle ve ${weekly.day.cs} ${weekly.time} v kriketových sítích v Tenisovém centru Olšanská; členství zahrnuje tréninky v sítích zdarma, klubové kriketové vybavení a slevy pro studenty.`,
+                      en: `Beginners and experienced players welcome, no minimum age, English-speaking. Training usually on ${weekly.day.en}s, ${weekly.time}, in the cricket nets at ${weekly.venue.name}. Membership includes free nets, use of the club's cricket equipment and student discounts.`,
+                      cs: `Vítáme začátečníky i zkušené hráče, minimální věk není stanoven a v klubu se mluví anglicky. Trénujeme obvykle ve ${weekly.day.cs} ${weekly.time} v kriketových sítích v Tenisovém centru Olšanská. Členství zahrnuje tréninky v sítích zdarma, klubové kriketové vybavení a slevy pro studenty.`,
                     })}
                   </span>
                 </li>

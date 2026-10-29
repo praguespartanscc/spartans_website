@@ -16,7 +16,7 @@ export function liveMeta(lang: Lang): Metadata {
   return pageMeta({
     lang,
     path: '/live',
-    title: tr(lang, { en: 'Spartans TV – Live Cricket from Prague', cs: 'Spartans TV – kriket živě z Prahy' }),
+    title: tr(lang, { en: 'Spartans TV | Live Cricket from Prague', cs: 'Spartans TV | Kriket živě z Prahy' }),
     description: tr(lang, {
       en: 'Watch Prague Spartans Cricket Club matches live on YouTube with Spartans TV, plus replays and highlights of our cricket in Prague.',
       cs: 'Sledujte zápasy kriketového klubu Prague Spartans živě na YouTube na kanálu Spartans TV. Najdete tu i záznamy a sestřihy z pražského kriketu.',
@@ -44,8 +44,8 @@ function liveVideoLd(video: Video, lang: Lang) {
     '@type': 'VideoObject',
     name: video.title,
     description: tr(lang, {
-      en: `Live cricket from Prague: ${video.title} – Prague Spartans Cricket Club (Spartans TV)`,
-      cs: `Kriket živě z Prahy: ${video.title} – Prague Spartans Cricket Club (Spartans TV)`,
+      en: `Live cricket from Prague: ${video.title}, streamed by Prague Spartans Cricket Club on Spartans TV`,
+      cs: `Kriket živě z Prahy: ${video.title}. Vysílá Prague Spartans Cricket Club na Spartans TV`,
     }),
     thumbnailUrl: [video.thumbnail || `https://i.ytimg.com/vi/${video.id}/maxresdefault.jpg`],
     uploadDate: video.published,
@@ -103,7 +103,7 @@ export default async function LiveView({ lang }: { lang: Lang }) {
             <span className="mask-line"><span style={{ ['--d' as string]: '80ms' }}>
             Spartans <span className="text-gold">TV</span>{' '}
             <span className="mt-3 block font-display text-[0.3em] font-extrabold italic tracking-wide text-sand">
-              {tr(lang, { en: '– live cricket from Prague', cs: '– kriket živě z Prahy' })}
+              {tr(lang, { en: 'Live cricket from Prague', cs: 'Kriket živě z Prahy' })}
             </span>
             </span></span>
           </h1>

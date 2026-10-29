@@ -11,7 +11,7 @@ const LABELS = {
   en: {
     list: (title: string) => `${title} photos`,
     open: (n: number, total: number) => `Open photo ${n} of ${total}`,
-    alt: (title: string, n: number) => `${title} – Prague Spartans Cricket Club, photo ${n}`,
+    alt: (title: string, n: number) => `${title}, Prague Spartans Cricket Club, photo ${n}`,
     viewer: (title: string, n: number, total: number) => `${title}: photo ${n} of ${total}`,
     fullSize: 'Full size',
     close: 'Close',
@@ -21,7 +21,7 @@ const LABELS = {
   cs: {
     list: (title: string) => `Fotky: ${title}`,
     open: (n: number, total: number) => `Otevřít fotku ${n} z ${total}`,
-    alt: (title: string, n: number) => `${title} – Prague Spartans Cricket Club, fotka ${n}`,
+    alt: (title: string, n: number) => `${title}, Prague Spartans Cricket Club, fotka ${n}`,
     viewer: (title: string, n: number, total: number) => `${title}: fotka ${n} z ${total}`,
     fullSize: 'Plná velikost',
     close: 'Zavřít',

@@ -19,12 +19,12 @@ export function groundMeta(lang: Lang): Metadata {
     lang,
     path: '/ground',
     title: tr(lang, {
-      en: 'Vinoř Cricket Ground, Prague – Directions & Info',
-      cs: 'Kriketové hřiště Vinoř, Praha – adresa a doprava',
+      en: 'Vinoř Cricket Ground, Prague | Directions & Info',
+      cs: 'Kriketové hřiště Vinoř, Praha | Adresa a doprava',
     }),
     description: tr(lang, {
-      en: `Vinoř Cricket Ground (Scott Page Field), ${GROUND.streetAddress}, Prague 9 – the Czech Republic's main cricket ground and home of Prague Spartans Cricket Club. Address, map and directions.`,
-      cs: `Kriketové hřiště Vinoř (Scott Page Field), ${GROUND.streetAddress}, Praha 9 – hlavní kriketové hřiště v Česku a domácí hřiště klubu Prague Spartans. Adresa, mapa a cesta na hřiště.`,
+      en: `Vinoř Cricket Ground (Scott Page Field), ${GROUND.streetAddress}, Prague 9. The Czech Republic's main cricket ground and the home of Prague Spartans Cricket Club. Address, map and directions.`,
+      cs: `Kriketové hřiště Vinoř (Scott Page Field), ${GROUND.streetAddress}, Praha 9. Hlavní kriketové hřiště v Česku a domácí hřiště klubu Prague Spartans. Adresa, mapa a cesta na hřiště.`,
     }),
   });
 }
@@ -38,32 +38,32 @@ const PID_URL = { en: 'https://pid.cz/en/', cs: 'https://pid.cz/' };
 const SOURCES = [
   {
     key: 'wiki',
-    title: 'Vinoř Cricket Ground – Wikipedia',
+    title: 'Vinoř Cricket Ground (Wikipedia)',
     url: GROUND.wikipedia,
   },
   {
     key: 'cricinfo',
-    title: 'Scott Page Field, Vinor – ground records, ESPNcricinfo',
+    title: 'Scott Page Field, Vinor (ground records, ESPNcricinfo)',
     url: 'https://www.espncricinfo.com/cricket-grounds/scott-page-field-vinor-1230852/records',
   },
   {
     key: 'page',
-    title: 'New field to be named in honour of Scott Page – Prague Barbarians CC (2020)',
+    title: 'New field to be named in honour of Scott Page (Prague Barbarians CC (2020))',
     url: 'https://praguebarbarianscc.cz/2020/05/25/press-release/',
   },
   {
     key: 'cec',
-    title: 'Central Europe Cup – Wikipedia',
+    title: 'Central Europe Cup (Wikipedia)',
     url: 'https://en.wikipedia.org/wiki/Central_Europe_Cup',
   },
   {
     key: 'ecs',
-    title: 'Prague Power Play: ECS Czechia 2026 set to light up Vinor – European Cricket Network',
+    title: 'Prague Power Play: ECS Czechia 2026 set to light up Vinor (European Cricket Network)',
     url: 'https://www.ecn.cricket/post/prague-power-play-ecs-czechia-2026-set-to-light-up-vinor',
   },
   {
     key: 'radio',
-    title: 'Bringing the international world of cricket to Prague: Vinoř hosts the Central Europe Cup – Radio Prague International',
+    title: 'Bringing the international world of cricket to Prague: Vinoř hosts the Central Europe Cup (Radio Prague International)',
     url: 'https://english.radio.cz/bringing-international-world-cricket-prague-vinor-hosts-three-teams-central-8853661',
   },
 ] as const;
@@ -112,7 +112,7 @@ export default function GroundView({ lang }: { lang: Lang }) {
       <ReadingProgress />
 
       <PageHero
-        eyebrow={tr(lang, { en: 'Home ground · Prague 9 – Vinoř', cs: 'Domácí hřiště · Praha 9 – Vinoř' })}
+        eyebrow={tr(lang, { en: 'Home ground · Vinoř, Prague 9', cs: 'Domácí hřiště · Vinoř, Praha 9' })}
         title={tr(lang, {
           en: (
             <>
@@ -172,7 +172,7 @@ export default function GroundView({ lang }: { lang: Lang }) {
           >
             <p>
               {tr(lang, {
-                en: `${GROUND.name} in Prague 9 – Vinoř is the main cricket ground in the Czech Republic and the first in the country built for cricket. It is run by the Czech Cricket Union (Českomoravský kriketový svaz, ČMKS) and has been in use since 2012. A second field was added in 2014.`,
+                en: `${GROUND.name} in Vinoř, Prague 9, is the main cricket ground in the Czech Republic and the first in the country built for cricket. It is run by the Czech Cricket Union (Českomoravský kriketový svaz, ČMKS) and has been in use since 2012. A second field was added in 2014.`,
                 cs: 'Kriketové hřiště ve Vinoři (Praha 9) je hlavním kriketovým hřištěm v Česku a prvním hřištěm v zemi postaveným přímo pro kriket. Hřiště provozuje Českomoravský kriketový svaz (ČMKS) a v provozu je od roku 2012. V roce 2014 přibyla druhá hrací plocha.',
               })}
               <Cite ids={['wiki']} />
@@ -197,7 +197,7 @@ export default function GroundView({ lang }: { lang: Lang }) {
                 cs: 'Hřiště není jen naše: ve Vinoři hraje své zápasy i několik dalších pražských klubů.',
               })}{' '}
               <Link href={localePath(lang, '/cricket-in-prague')} className={link}>
-                {tr(lang, { en: 'Cricket in Prague – a guide', cs: 'Průvodce kriketem v Praze' })}
+                {tr(lang, { en: 'A guide to cricket in Prague', cs: 'Průvodce kriketem v Praze' })}
               </Link>
             </p>
           </Block>
@@ -225,7 +225,7 @@ export default function GroundView({ lang }: { lang: Lang }) {
                       PID journey planner
                     </a>{' '}
                     (Prague Integrated Transport). Enter <strong className="text-cream">Vinoř</strong> as your destination and
-                    check the walk to {GROUND.streetAddress}; the planner always shows the current connections.
+                    check the walk to {GROUND.streetAddress}. The planner always shows the current connections.
                   </>
                 ),
                 cs: (

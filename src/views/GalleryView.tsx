@@ -30,7 +30,7 @@ export async function galleryMeta(lang: Lang): Promise<Metadata> {
   return pageMeta({
     lang,
     path: '/gallery',
-    title: tr(lang, { en: 'Photo Gallery – Cricket in Prague', cs: 'Fotogalerie – kriket v Praze' }),
+    title: tr(lang, { en: 'Photo Gallery | Cricket in Prague', cs: 'Fotogalerie | Kriket v Praze' }),
     description: description(lang),
     ...(cover ? { images: [{ url: photoUrl(cover.id, 1200), alt: galleryName(lang) }] } : {}),
   });
@@ -80,7 +80,7 @@ export default async function GalleryView({ lang }: { lang: Lang }) {
         })}
         intro={tr(lang, {
           en: 'Match days, events, awards and everything in between at Prague Spartans Cricket Club in Prague.',
-          cs: 'Zápasové dny, klubové akce, ocenění a vše mezi tím – fotky z kriketového klubu Prague Spartans v Praze.',
+          cs: 'Zápasové dny, klubové akce, ocenění a vše mezi tím. Fotky z kriketového klubu Prague Spartans v Praze.',
         })}
       />
       <section className="py-16 sm:py-20">
