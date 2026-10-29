@@ -3,23 +3,48 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { driveFileUrl, photoSrcSet, photoUrl } from '@/lib/photos';
 import { ArrowRight, ArrowUpRight, Close } from '@/components/ui/Icons';
+import type { Lang } from '@/lib/i18n';
 
 export type GridPhoto = { id: string; name: string; width: number | null; height: number | null };
 
+const LABELS = {
+  en: {
+    list: (title: string) => `${title} photos`,
+    open: (n: number, total: number) => `Open photo ${n} of ${total}`,
+    alt: (title: string, n: number) => `${title} – Prague Spartans Cricket Club, photo ${n}`,
+    viewer: (title: string, n: number, total: number) => `${title}: photo ${n} of ${total}`,
+    fullSize: 'Full size',
+    close: 'Close',
+    previous: 'Previous photo',
+    next: 'Next photo',
+  },
+  cs: {
+    list: (title: string) => `Fotky: ${title}`,
+    open: (n: number, total: number) => `Otevřít fotku ${n} z ${total}`,
+    alt: (title: string, n: number) => `${title} – Prague Spartans Cricket Club, fotka ${n}`,
+    viewer: (title: string, n: number, total: number) => `${title}: fotka ${n} z ${total}`,
+    fullSize: 'Plná velikost',
+    close: 'Zavřít',
+    previous: 'Předchozí fotka',
+    next: 'Další fotka',
+  },
+};
+
 // Masonry grid of photos; tapping one opens a full-screen viewer (arrow keys, swipe, Esc).
-export default function PhotoGrid({ photos, title }: { photos: GridPhoto[]; title: string }) {
+export default function PhotoGrid({ photos, title, lang = 'en' }: { photos: GridPhoto[]; title: string; lang?: Lang }) {
   const [open, setOpen] = useState<number | null>(null);
+  const t = LABELS[lang];
 
   return (
     <>
-      <ul className="columns-2 gap-2 sm:columns-3 sm:gap-3 lg:columns-4" aria-label={`${title} photos`}>
+      <ul className="columns-2 gap-2 sm:columns-3 sm:gap-3 lg:columns-4" aria-label={t.list(title)}>
         {photos.map((p, i) => (
           <li key={p.id} className="mb-2 break-inside-avoid sm:mb-3">
             <button
               type="button"
               onClick={() => setOpen(i)}
               className="group relative block w-full overflow-hidden bg-panel-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"
-              aria-label={`Open photo ${i + 1} of ${photos.length}`}
+              aria-label={t.open(i + 1, photos.length)}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- resized by Google's image CDN */}
               <img
@@ -28,7 +53,7 @@ export default function PhotoGrid({ photos, title }: { photos: GridPhoto[]; titl
                 sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
                 width={p.width ?? 800}
                 height={p.height ?? 600}
-                alt=""
+                alt={t.alt(title, i + 1)}
                 loading={i < 8 ? 'eager' : 'lazy'}
                 decoding="async"
                 className="block h-auto w-full transition-transform duration-700 ease-[var(--ease-out-expo)] group-hover:scale-[1.03]"
@@ -37,7 +62,7 @@ export default function PhotoGrid({ photos, title }: { photos: GridPhoto[]; titl
           </li>
         ))}
       </ul>
-      {open !== null && <Viewer photos={photos} index={open} onIndex={setOpen} onClose={() => setOpen(null)} title={title} />}
+      {open !== null && <Viewer photos={photos} index={open} onIndex={setOpen} onClose={() => setOpen(null)} title={title} lang={lang} />}
     </>
   );
 }
@@ -48,13 +73,16 @@ function Viewer({
   onIndex,
   onClose,
   title,
+  lang,
 }: {
   photos: GridPhoto[];
   index: number;
   onIndex: (i: number) => void;
   onClose: () => void;
   title: string;
+  lang: Lang;
 }) {
+  const t = LABELS[lang];
   const photo = photos[index];
   const touchX = useRef<number | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -91,7 +119,7 @@ function Viewer({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={`${title}: photo ${index + 1} of ${photos.length}`}
+      aria-label={t.viewer(title, index + 1, photos.length)}
       className="fixed inset-0 z-[300] flex flex-col bg-ink/95 backdrop-blur-sm"
       onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
       onTouchEnd={(e) => {
@@ -107,16 +135,16 @@ function Viewer({
         </span>
         <span className="flex items-center gap-2">
           <a href={driveFileUrl(photo.id)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-2 py-2 hover:text-cream">
-            Full size <ArrowUpRight size={14} />
+            {t.fullSize} <ArrowUpRight size={14} />
           </a>
-          <button ref={closeRef} type="button" onClick={onClose} aria-label="Close" className="flex h-11 w-11 items-center justify-center text-cream hover:text-gold">
+          <button ref={closeRef} type="button" onClick={onClose} aria-label={t.close} className="flex h-11 w-11 items-center justify-center text-cream hover:text-gold">
             <Close size={26} />
           </button>
         </span>
       </div>
       <div className="relative flex min-h-0 flex-1 items-center justify-center px-2 pb-6 sm:px-16" onClick={(e) => e.target === e.currentTarget && onClose()}>
         {photos.length > 1 && (
-          <button type="button" onClick={() => go(-1)} aria-label="Previous photo" className={`${navBtn} left-3`}>
+          <button type="button" onClick={() => go(-1)} aria-label={t.previous} className={`${navBtn} left-3`}>
             <ArrowRight size={22} className="rotate-180" />
           </button>
         )}
@@ -131,7 +159,7 @@ function Viewer({
           draggable={false}
         />
         {photos.length > 1 && (
-          <button type="button" onClick={() => go(1)} aria-label="Next photo" className={`${navBtn} right-3`}>
+          <button type="button" onClick={() => go(1)} aria-label={t.next} className={`${navBtn} right-3`}>
             <ArrowRight size={22} />
           </button>
         )}

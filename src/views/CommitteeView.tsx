@@ -20,7 +20,7 @@ export function committeeMeta(lang: Lang): Metadata {
     title: tr(lang, { en: 'Committee', cs: 'Výbor klubu' }),
     description: tr(lang, {
       en: 'Meet the committee that runs Prague Spartans Cricket Club in Prague: president, chairman, secretary, treasurer and team managers.',
-      cs: 'Seznamte se s výborem, který vede kriketový klub Prague Spartans v Praze: předseda, místopředseda, jednatel, pokladník a manažeři týmů.',
+      cs: 'Seznamte se s výborem, který vede kriketový klub Prague Spartans v Praze: prezident, předseda, jednatel, pokladník a manažeři týmů.',
     }),
   });
 }
@@ -38,7 +38,7 @@ const ROLE_DESCRIPTIONS_CS: Record<string, string> = {
   Chairman: 'Řídí schůze výboru a dohlíží na směřování klubu.',
   Secretary: 'Vyřizuje korespondenci, vede záznamy a stará se o administrativu.',
   Treasurer: 'Spravuje finance klubu, rozpočet a finanční výkazy.',
-  Manager: 'Má na starosti výběr týmu, tréninky a kriketový provoz.',
+  Manager: 'Má na starosti sestavu týmu, tréninky a sportovní chod klubu.',
 };
 
 const LEAD_POSITIONS = ['President', 'Chairman'];
@@ -83,23 +83,26 @@ export default async function CommitteeView({ lang }: { lang: Lang }) {
         title={tr(lang, {
           en: (
             <>
-              Club <span className="text-gold">committee</span>
+              Prague Spartans <span className="text-gold">committee</span>
             </>
           ),
           cs: (
             <>
-              Výbor <span className="text-gold">klubu</span>
+              Výbor klubu <span className="text-gold">Prague Spartans</span>
             </>
           ),
         })}
         intro={tr(lang, {
           en: 'The team behind the team. Our committee keeps Prague Spartans Cricket Club running and makes it the best place it can be for every member.',
-          cs: 'Tým za týmem. Výbor se stará o chod kriketového klubu Prague Spartans a o to, aby byl tím nejlepším místem pro každého člena.',
+          cs: 'Tým, který stojí za týmem. Výbor se stará o chod kriketového klubu Prague Spartans a o to, aby se v něm každý člen cítil co nejlépe.',
         })}
       />
 
-      <section className="py-14 sm:py-20">
+      <section className="py-14 sm:py-20" aria-labelledby="committee-members">
         <div className="container-x">
+          <h2 id="committee-members" className="sr-only">
+            {tr(lang, { en: 'Committee members', cs: 'Členové výboru' })}
+          </h2>
           {members.length === 0 ? (
             <EmptyState title={tr(lang, { en: 'Committee coming soon', cs: 'Výbor brzy doplníme' })}>
               {tr(lang, { en: 'Committee members will be listed here shortly.', cs: 'Členy výboru zde brzy zveřejníme.' })}

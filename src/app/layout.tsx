@@ -85,12 +85,6 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
       </head>
       <body className="flex min-h-screen flex-col bg-ink text-cream antialiased">
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[300] focus:rounded focus:bg-gold focus:px-4 focus:py-3 focus:font-semibold focus:text-ink"
-        >
-          Skip to content
-        </a>
         {/* Header, main and footer come from the English (site) and Czech (cs) layouts. */}
         <SupabaseProviderWrapper>{children}</SupabaseProviderWrapper>
         <Analytics />

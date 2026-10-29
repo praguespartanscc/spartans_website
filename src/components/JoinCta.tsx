@@ -16,7 +16,7 @@ export default function JoinCta({ lang = 'en', title, text }: JoinCtaProps) {
     <section className="bg-gold text-ink">
       <Reveal className="container-x flex flex-wrap items-end justify-between gap-8 py-16 sm:py-24">
         <div className="max-w-3xl">
-          <p className="h-sub text-[20px] tracking-[0.1em]">{tr(lang, { en: 'Every level welcome', cs: 'Vítáme každou úroveň' })}</p>
+          <p className="h-sub text-[20px] tracking-[0.1em]">{tr(lang, { en: 'Every level welcome', cs: 'Vítáme hráče všech úrovní' })}</p>
           <h2 className="display mt-3 text-[clamp(40px,7vw,92px)]">
             {title ?? tr(lang, { en: 'Join the Spartan family', cs: 'Přidejte se ke Spartans' })}
           </h2>

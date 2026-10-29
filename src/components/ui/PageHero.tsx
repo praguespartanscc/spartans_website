@@ -8,10 +8,12 @@ type PageHeroProps = {
   image?: string;
   imagePosition?: string;
   children?: ReactNode;
+  // Smaller type for long headings.
+  compact?: boolean;
 };
 
 // Shared top-of-page banner for every inner page, so each one opens the same way.
-export default function PageHero({ eyebrow, title, intro, image, imagePosition = 'center 35%', children }: PageHeroProps) {
+export default function PageHero({ eyebrow, title, intro, image, imagePosition = 'center 35%', children, compact }: PageHeroProps) {
   return (
     <section className="relative isolate overflow-hidden border-b border-cream/12">
       {image && (
@@ -33,7 +35,7 @@ export default function PageHero({ eyebrow, title, intro, image, imagePosition =
           {eyebrow}
         </p>
         <h1
-          className="display rise max-w-4xl text-[clamp(48px,9vw,112px)]"
+          className={`display rise max-w-4xl ${compact ? 'text-[clamp(38px,5.5vw,72px)]' : 'text-[clamp(48px,9vw,112px)]'}`}
           style={{ ['--d' as string]: '140ms' }}
         >
           {title}

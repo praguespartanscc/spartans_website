@@ -38,7 +38,7 @@ const Footer = async ({ lang }: { lang: Lang }) => {
       {sponsors.length > 0 && (
         <div className="border-b border-cream/12">
           <div className="container-x flex flex-col items-center gap-6 py-10 sm:py-12">
-            <p className="eyebrow text-faint">{tr(lang, { en: 'Proudly supported by', cs: 'Hrdě podporují' })}</p>
+            <p className="eyebrow text-faint">{tr(lang, { en: 'Proudly supported by', cs: 'Hrdě nás podporují' })}</p>
             <ul className="flex flex-wrap items-stretch justify-center gap-3 sm:gap-4">
               {sponsors.map((sponsor) => (
                 <li key={sponsor.id} className="w-[calc(50%-6px)] sm:w-48">
@@ -139,7 +139,7 @@ const Footer = async ({ lang }: { lang: Lang }) => {
       <div className="border-t border-cream/[0.07]">
         <div className="container-x flex flex-wrap items-center justify-between gap-3 py-6 text-[13px] text-dim">
           <p>
-            © {new Date().getFullYear()} {CLUB_NAME} · {tr(lang, { en: `Founded ${FOUNDED}`, cs: `Založeno ${FOUNDED}` })}
+            © {new Date().getFullYear()} {CLUB_NAME} · {tr(lang, { en: `Founded ${FOUNDED}`, cs: `Založen v roce ${FOUNDED}` })}
           </p>
           <Link href="/login" className="transition-colors hover:text-cream">
             {tr(lang, { en: 'Member sign in', cs: 'Přihlášení pro členy' })}

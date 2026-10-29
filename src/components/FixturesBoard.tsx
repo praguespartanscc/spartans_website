@@ -4,24 +4,25 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Match } from '@/types/supabase';
 import MatchRow from '@/components/MatchRow';
 import EmptyState from '@/components/ui/EmptyState';
+import { tr, type Lang } from '@/lib/i18n';
 
 type ResultFilter = 'all' | 'upcoming' | 'win' | 'loss' | 'draw';
 
-const FILTERS: { id: ResultFilter; name: string }[] = [
-  { id: 'all', name: 'All' },
-  { id: 'upcoming', name: 'Upcoming' },
-  { id: 'win', name: 'Wins' },
-  { id: 'loss', name: 'Losses' },
-  { id: 'draw', name: 'Draws' },
+const FILTERS: { id: ResultFilter; name: { en: string; cs: string } }[] = [
+  { id: 'all', name: { en: 'All', cs: 'Vše' } },
+  { id: 'upcoming', name: { en: 'Upcoming', cs: 'Nadcházející' } },
+  { id: 'win', name: { en: 'Wins', cs: 'Výhry' } },
+  { id: 'loss', name: { en: 'Losses', cs: 'Prohry' } },
+  { id: 'draw', name: { en: 'Draws', cs: 'Remízy' } },
 ];
 
 const RESULTS_PER_PAGE = 10;
 
-type Props = { matches: Match[]; today: string; squads: string[] };
+type Props = { matches: Match[]; today: string; squads: string[]; lang?: Lang };
 
 // Filters live in the URL (?result=&team=&page=) so views can be shared. The first render
 // uses the defaults, so the server HTML always lists the upcoming matches and latest results.
-export default function FixturesBoard({ matches, today, squads }: Props) {
+export default function FixturesBoard({ matches, today, squads, lang = 'en' }: Props) {
   const [result, setResult] = useState<ResultFilter>('all');
   const [team, setTeam] = useState('all');
   const [page, setPage] = useState(1);
@@ -84,7 +85,7 @@ export default function FixturesBoard({ matches, today, squads }: Props) {
   return (
     <>
       <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
-        <div role="group" aria-label="Filter by result" className="flex flex-wrap gap-2">
+        <div role="group" aria-label={tr(lang, { en: 'Filter by result', cs: 'Filtrovat podle výsledku' })} className="flex flex-wrap gap-2">
           {FILTERS.map((f) => {
             const active = result === f.id;
             return (
@@ -97,17 +98,17 @@ export default function FixturesBoard({ matches, today, squads }: Props) {
                   active ? 'bg-gold text-ink' : 'border border-cream/25 text-cream hover:border-cream/60'
                 }`}
               >
-                {f.name}
+                {f.name[lang]}
               </button>
             );
           })}
         </div>
         <div className="w-full sm:w-64">
           <label htmlFor="team-filter" className="field-label">
-            Team
+            {tr(lang, { en: 'Team', cs: 'Tým' })}
           </label>
           <select id="team-filter" value={team} onChange={(e) => update({ team: e.target.value })} className="field">
-            <option value="all">All teams</option>
+            <option value="all">{tr(lang, { en: 'All teams', cs: 'Všechny týmy' })}</option>
             {teamOptions.map((name) => (
               <option key={name} value={name}>
                 {name}
@@ -121,14 +122,19 @@ export default function FixturesBoard({ matches, today, squads }: Props) {
         {showUpcoming && (
           <section aria-labelledby="upcoming" className="mb-14">
             <h2 id="upcoming" className="h-sub mb-2 text-[30px]">
-              Upcoming <span className="font-display text-[18px] text-dim">{upcoming.length}</span>
+              {tr(lang, { en: 'Upcoming', cs: 'Nadcházející zápasy' })} <span className="font-display text-[18px] text-dim">{upcoming.length}</span>
             </h2>
             {upcoming.length === 0 ? (
-              <p className="border-t border-cream/12 py-6 text-muted">No upcoming matches scheduled{team !== 'all' ? ` for ${team}` : ''} yet.</p>
+              <p className="border-t border-cream/12 py-6 text-muted">
+                {tr(lang, {
+                  en: `No upcoming matches scheduled${team !== 'all' ? ` for ${team}` : ''} yet.`,
+                  cs: team !== 'all' ? `Pro tým ${team} zatím nejsou naplánované žádné zápasy.` : 'Zatím nejsou naplánované žádné zápasy.',
+                })}
+              </p>
             ) : (
               <div className="border-t border-cream/12">
                 {upcoming.map((m) => (
-                  <MatchRow key={m.id} match={m} live={m.date === today && !!m.stream_url} />
+                  <MatchRow key={m.id} match={m} live={m.date === today && !!m.stream_url} lang={lang} />
                 ))}
               </div>
             )}
@@ -138,25 +144,30 @@ export default function FixturesBoard({ matches, today, squads }: Props) {
         {showResults && (
           <section aria-labelledby="results-heading" id="results" className="scroll-mt-24">
             <h2 id="results-heading" className="h-sub mb-2 text-[30px]">
-              Results <span className="font-display text-[18px] text-dim">{results.length}</span>
+              {tr(lang, { en: 'Results', cs: 'Výsledky' })} <span className="font-display text-[18px] text-dim">{results.length}</span>
             </h2>
             {results.length === 0 ? (
-              <EmptyState title="No results here">Nothing matches these filters. Try another team or result.</EmptyState>
+              <EmptyState title={tr(lang, { en: 'No results here', cs: 'Žádné výsledky' })}>
+                {tr(lang, {
+                  en: 'Nothing matches these filters. Try another team or result.',
+                  cs: 'Těmto filtrům neodpovídá žádný zápas. Zkuste jiný tým nebo výsledek.',
+                })}
+              </EmptyState>
             ) : (
               <div className="border-t border-cream/12">
                 {pageResults.map((m) => (
-                  <MatchRow key={m.id} match={m} />
+                  <MatchRow key={m.id} match={m} lang={lang} />
                 ))}
               </div>
             )}
 
             {totalPages > 1 && (
-              <nav aria-label="Result pages" className="mt-10 flex flex-wrap items-center justify-center gap-2">
+              <nav aria-label={tr(lang, { en: 'Result pages', cs: 'Stránky výsledků' })} className="mt-10 flex flex-wrap items-center justify-center gap-2">
                 <button type="button" onClick={() => goToPage(current - 1)} disabled={current === 1} className="btn btn-outline min-h-11 px-4">
-                  Newer
+                  {tr(lang, { en: 'Newer', cs: 'Novější' })}
                 </button>
                 <span className="px-3 font-display text-[16px] font-bold uppercase tracking-[0.1em] text-muted">
-                  Page {current} of {totalPages}
+                  {tr(lang, { en: `Page ${current} of ${totalPages}`, cs: `Strana ${current} z ${totalPages}` })}
                 </span>
                 <button
                   type="button"
@@ -164,7 +175,7 @@ export default function FixturesBoard({ matches, today, squads }: Props) {
                   disabled={current === totalPages}
                   className="btn btn-outline min-h-11 px-4"
                 >
-                  Older
+                  {tr(lang, { en: 'Older', cs: 'Starší' })}
                 </button>
               </nav>
             )}

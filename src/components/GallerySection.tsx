@@ -3,9 +3,11 @@ import type { Photo } from '@/lib/drive';
 import { photoSrcSet, photoUrl } from '@/lib/photos';
 import SectionHeading from '@/components/ui/SectionHeading';
 import { ArrowRight } from '@/components/ui/Icons';
+import { localePath, tr, type Lang } from '@/lib/i18n';
 
 // Strip of the newest gallery photos on the home page. Hidden until there are photos.
-export default function GallerySection({ photos }: { photos: { photo: Photo; href: string }[] }) {
+// `href` is the English album path; it is localised here.
+export default function GallerySection({ photos, lang = 'en' }: { photos: { photo: Photo; href: string }[]; lang?: Lang }) {
   if (photos.length < 4) return null;
 
   return (
@@ -13,17 +15,22 @@ export default function GallerySection({ photos }: { photos: { photo: Photo; hre
       <div className="container-x">
         <SectionHeading
           id="gallery-heading"
-          eyebrow="Gallery"
-          title="Life at the club"
+          eyebrow={tr(lang, { en: 'Gallery', cs: 'Galerie' })}
+          title={tr(lang, { en: 'Life at the club', cs: 'Život v klubu' })}
           action={
-            <Link href="/gallery" className="link-arrow">
-              See all photos <ArrowRight size={18} />
+            <Link href={localePath(lang, '/gallery')} className="link-arrow">
+              {tr(lang, { en: 'See all photos', cs: 'Všechny fotky' })} <ArrowRight size={18} />
             </Link>
           }
         />
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
           {photos.slice(0, 8).map(({ photo, href }, i) => (
-            <Link key={photo.id} href={href} className={`group relative block overflow-hidden bg-panel-2 ${i === 0 ? 'col-span-2 row-span-2' : ''}`}>
+            <Link
+              key={photo.id}
+              href={localePath(lang, href)}
+              aria-label={tr(lang, { en: 'Open photo album', cs: 'Otevřít fotoalbum' })}
+              className={`group relative block overflow-hidden bg-panel-2 ${i === 0 ? 'col-span-2 row-span-2' : ''}`}
+            >
               <span className="block aspect-square">
                 {/* eslint-disable-next-line @next/next/no-img-element -- resized by Google's image CDN */}
                 <img

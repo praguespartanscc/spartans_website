@@ -82,7 +82,7 @@ export const HONOURS: { year: number; en: string; cs: string }[] = [
   { year: 2026, en: 'ECS Czechia – Challenger Division winners', cs: 'ECS Czechia – vítězové Challenger Division' },
   { year: 2026, en: 'ČMKS T10 winners', cs: 'Vítězové ČMKS T10' },
   { year: 2026, en: 'Division 2 winners (Mobilizers)', cs: 'Vítězové 2. divize (Mobilizers)' },
-  { year: 2026, en: 'Division 1: 2nd after the league stage and semi-finalists (Vanguards)', cs: '1. divize: 2. místo po základní části a semifinále (Vanguards)' },
+  { year: 2026, en: 'Division 1: 2nd after the league stage and semi-finalists (Vanguards)', cs: '1. divize: 2. místo po základní části a postup do semifinále (Vanguards)' },
 ];
 
 export type Squad = {
@@ -102,7 +102,7 @@ export const SQUADS: Squad[] = [
     slug: 'vanguards',
     logo: '/brand/vanguards.png',
     tagline: 'Leading from the front in the Czech league.',
-    taglineCs: 'V čele klubu v české lize.',
+    taglineCs: 'Vlajková loď klubu v české lize.',
     division: 1,
     cricheroes: 'https://cricheroes.com/team-profile/4182668/spartans-cc-vanguards/matches',
   },
@@ -120,7 +120,7 @@ export const SQUADS: Squad[] = [
     slug: 'strikers',
     logo: '/brand/strikers.png',
     tagline: 'Built to hit hard and finish strong.',
-    taglineCs: 'Silný úder a silný závěr.',
+    taglineCs: 'Tvrdé údery a silný závěr.',
     division: 3,
   },
 ];
@@ -183,7 +183,7 @@ export const PRACTICE_TYPE_LABEL: Record<string, { en: string; cs: string }> = {
   regular: { en: 'Regular practice', cs: 'Běžný trénink' },
   batting: { en: 'Batting practice', cs: 'Trénink pálkování' },
   bowling: { en: 'Bowling practice', cs: 'Trénink nadhazování' },
-  fielding: { en: 'Fielding practice', cs: 'Trénink v poli' },
+  fielding: { en: 'Fielding practice', cs: 'Trénink hry v poli' },
 };
 
 export const ROLE_LABEL: Record<string, { en: string; cs: string }> = {

@@ -1,10 +1,11 @@
 import Image from 'next/image';
 import Reveal from '@/components/ui/Reveal';
+import { tr, type Lang } from '@/lib/i18n';
 
 // Full-bleed brand line over a photo held back by an 80% black overlay (brand manual rule).
-export default function QuoteBand() {
+export default function QuoteBand({ lang = 'en' }: { lang?: Lang }) {
   return (
-    <section aria-label="Club motto" className="relative isolate overflow-hidden">
+    <section aria-label={tr(lang, { en: 'Club motto', cs: 'Klubové motto' })} className="relative isolate overflow-hidden">
       <Image
         src="/home_carousel.jpeg"
         alt=""
@@ -14,11 +15,11 @@ export default function QuoteBand() {
       />
       <div className="absolute inset-0 -z-10 bg-ink/80" />
       <Reveal className="container-x flex min-h-[380px] flex-col items-center justify-center py-20 text-center sm:min-h-[520px]">
-        <p className="eyebrow">Matchday</p>
+        <p className="eyebrow">{tr(lang, { en: 'Matchday', cs: 'Den zápasu' })}</p>
         <p className="display mt-5 text-[clamp(40px,7.5vw,104px)]">
-          Stand together.
+          {tr(lang, { en: 'Stand together.', cs: 'Držíme spolu.' })}
           <br />
-          <span className="text-gold">Strike harder.</span>
+          <span className="text-gold">{tr(lang, { en: 'Strike harder.', cs: 'Hrajeme naplno.' })}</span>
         </p>
       </Reveal>
     </section>

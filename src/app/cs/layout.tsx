@@ -7,6 +7,12 @@ export default function CzechLayout({ children }: { children: React.ReactNode })
   return (
     <div lang="cs" className="flex flex-grow flex-col">
       <HtmlLang lang="cs" />
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[300] focus:rounded focus:bg-gold focus:px-4 focus:py-3 focus:font-semibold focus:text-ink"
+      >
+        Přeskočit na obsah
+      </a>
       <Header />
       <main id="main" className="flex-grow">
         {children}

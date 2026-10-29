@@ -206,7 +206,7 @@ const Header = () => {
                 key={link.href}
                 href={L(link.href)}
                 aria-current={isActive(link.href) ? 'page' : undefined}
-                className={`group relative px-2 py-2 font-display text-[17px] font-bold uppercase tracking-[0.04em] transition-colors xl:px-3 xl:text-[19px] xl:tracking-[0.06em] duration-200 ${
+                className={`group relative whitespace-nowrap px-2 py-2 font-display text-[17px] font-bold uppercase tracking-[0.04em] transition-colors xl:px-3 xl:text-[19px] xl:tracking-[0.06em] duration-200 ${
                   isActive(link.href) ? 'text-cream' : 'text-muted hover:text-cream'
                 }`}
               >
@@ -256,7 +256,7 @@ const Header = () => {
                   </div>
                 ) : (
                   <Link href="/login" className="whitespace-nowrap px-3 py-2 text-muted transition-colors hover:text-cream">
-                    {tr(lang, { en: 'Sign in', cs: 'Přihlásit' })}
+                    {tr(lang, { en: 'Sign in', cs: 'Přihlásit se' })}
                   </Link>
                 )}
               </div>

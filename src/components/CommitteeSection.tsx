@@ -4,8 +4,17 @@ import SectionHeading from '@/components/ui/SectionHeading';
 import Reveal from '@/components/ui/Reveal';
 import Avatar from '@/components/ui/Avatar';
 import { ArrowRight } from '@/components/ui/Icons';
+import { localePath, tr, type Lang } from '@/lib/i18n';
 
-export default function CommitteeSection({ members }: { members: CommitteeMember[] }) {
+const POSITION_CS: Record<string, string> = {
+  President: 'Prezident',
+  Chairman: 'Předseda',
+  Secretary: 'Jednatel',
+  Treasurer: 'Pokladník',
+  Manager: 'Manažer',
+};
+
+export default function CommitteeSection({ members, lang = 'en' }: { members: CommitteeMember[]; lang?: Lang }) {
   if (members.length === 0) return null;
 
   return (
@@ -13,12 +22,15 @@ export default function CommitteeSection({ members }: { members: CommitteeMember
       <div className="container-x">
         <SectionHeading
           id="committee-heading"
-          eyebrow="Run by members"
-          title="The committee"
-          intro="The people who keep the club running, from fixtures to finances."
+          eyebrow={tr(lang, { en: 'Run by members', cs: 'Klub vedou členové' })}
+          title={tr(lang, { en: 'The committee', cs: 'Výbor klubu' })}
+          intro={tr(lang, {
+            en: 'The people who keep the club running, from fixtures to finances.',
+            cs: 'Lidé, kteří se starají o chod klubu – od rozpisu zápasů po finance.',
+          })}
           action={
-            <Link href="/committee" className="link-arrow">
-              Meet the committee <ArrowRight size={18} />
+            <Link href={localePath(lang, '/committee')} className="link-arrow">
+              {tr(lang, { en: 'Meet the committee', cs: 'Poznejte výbor' })} <ArrowRight size={18} />
             </Link>
           }
         />
@@ -29,7 +41,9 @@ export default function CommitteeSection({ members }: { members: CommitteeMember
                 <Avatar name={member.name} src={member.photo_url} size={56} tone="gold" />
                 <div className="min-w-0">
                   <p className="truncate font-semibold">{member.name}</p>
-                  <p className="text-[14px] text-faint">{member.position}</p>
+                  <p className="text-[14px] text-faint">
+                    {lang === 'cs' ? (POSITION_CS[member.position] ?? member.position) : member.position}
+                  </p>
                 </div>
               </div>
             </Reveal>
