@@ -52,7 +52,7 @@ export default function SquadsSection({ lang = 'en' }: { lang?: Lang }) {
                   alt={tr(lang, { en: `${squad.name} squad logo`, cs: `Logo týmu ${squad.name}` })}
                   width={204}
                   height={240}
-                  className="h-[180px] w-auto sm:h-[240px]"
+                  className="h-[180px] w-auto transition-transform duration-700 ease-[var(--ease-out-expo)] group-hover:-rotate-3 group-hover:scale-105 sm:h-[240px]"
                 />
                 <h3 className="display mt-6 text-[34px] transition-colors duration-300 group-hover:text-gold sm:text-[40px]">
                   {squad.name}

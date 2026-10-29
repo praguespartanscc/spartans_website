@@ -99,11 +99,13 @@ export default async function LiveView({ lang }: { lang: Lang }) {
           <p className="eyebrow rise">
             {status.live ? tr(lang, { en: 'Live now', cs: 'Právě živě' }) : tr(lang, { en: 'Watch live', cs: 'Sledujte živě' })}
           </p>
-          <h1 className="display rise mt-3 text-[clamp(48px,8vw,104px)]" style={{ ['--d' as string]: '80ms' }}>
+          <h1 className="display mt-3 text-[clamp(48px,8vw,104px)]">
+            <span className="mask-line"><span style={{ ['--d' as string]: '80ms' }}>
             Spartans <span className="text-gold">TV</span>{' '}
             <span className="mt-3 block font-display text-[0.3em] font-extrabold italic tracking-wide text-sand">
               {tr(lang, { en: '– live cricket from Prague', cs: '– kriket živě z Prahy' })}
             </span>
+            </span></span>
           </h1>
           <p className="rise mt-6 max-w-2xl text-lg leading-relaxed text-sand" style={{ ['--d' as string]: '120ms' }}>
             {tr(lang, {

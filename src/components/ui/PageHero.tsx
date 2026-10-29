@@ -34,12 +34,12 @@ export default function PageHero({ eyebrow, title, intro, image, imagePosition =
         <p className="eyebrow rise mb-4" style={{ ['--d' as string]: '60ms' }}>
           {eyebrow}
         </p>
-        <h1
-          className={`display rise max-w-4xl ${compact ? 'text-[clamp(38px,5.5vw,72px)]' : 'text-[clamp(48px,9vw,112px)]'}`}
-          style={{ ['--d' as string]: '140ms' }}
-        >
-          {title}
+        <h1 className={`display max-w-4xl ${compact ? 'text-[clamp(38px,5.5vw,72px)]' : 'text-[clamp(48px,9vw,112px)]'}`}>
+          <span className="mask-line">
+            <span style={{ ['--d' as string]: '120ms' }}>{title}</span>
+          </span>
         </h1>
+        <span aria-hidden="true" className="heading-rule draw mt-6" style={{ ['--d' as string]: '420ms' }} />
         {intro && (
           <p
             className="rise mt-6 max-w-2xl text-lg leading-relaxed text-sand sm:text-xl"

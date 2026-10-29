@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Reveal from '@/components/ui/Reveal';
 import { notFound } from 'next/navigation';
 import { findAlbum } from '@/lib/drive';
 import { photoUrl } from '@/lib/photos';
@@ -97,11 +98,13 @@ export default async function AlbumView({ lang, path }: { lang: Lang; path: stri
               </span>
             ))}
           </nav>
-          <h1 className="display rise max-w-4xl text-[clamp(44px,8vw,96px)]" style={{ ['--d' as string]: '80ms' }}>
+          <h1 className="display max-w-4xl text-[clamp(44px,8vw,96px)]">
+            <span className="mask-line"><span style={{ ['--d' as string]: '80ms' }}>
             {album.name}{' '}
             <span className="h-sub mt-3 block text-[clamp(20px,2.6vw,28px)] text-gold">
               {tr(lang, { en: 'Prague Spartans photo album', cs: 'Fotoalbum Prague Spartans' })}
             </span>
+            </span></span>
           </h1>
           <p className="rise mt-4 text-lg text-sand" style={{ ['--d' as string]: '160ms' }}>
             {photoCount(album.total, lang)}
@@ -113,11 +116,11 @@ export default async function AlbumView({ lang, path }: { lang: Lang; path: stri
         <section className="py-14 sm:py-16">
           <div className="container-x">
             {album.photos.length > 0 && <SectionHeading eyebrow={album.name} title={tr(lang, { en: 'Albums', cs: 'Alba' })} />}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Reveal className="stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {album.albums.map((a, i) => (
                 <AlbumCard key={a.id} album={a} priority={i < 3} lang={lang} />
               ))}
-            </div>
+            </Reveal>
           </div>
         </section>
       )}

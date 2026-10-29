@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import PageHero from '@/components/ui/PageHero';
+import { ReadingProgress } from '@/components/ScrollExtras';
 import Reveal from '@/components/ui/Reveal';
 import JsonLd from '@/components/JsonLd';
 import { ArrowRight, Check } from '@/components/ui/Icons';
@@ -225,6 +226,8 @@ export default function CricketInPragueView({ lang }: { lang: Lang }) {
     <>
       <JsonLd data={articleLd(lang)} />
       <JsonLd data={breadcrumbs(lang, [[tr(lang, { en: 'Cricket in Prague', cs: 'Kriket v Praze' }), '/cricket-in-prague']])} />
+
+      <ReadingProgress />
 
       <PageHero
         compact

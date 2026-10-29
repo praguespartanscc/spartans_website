@@ -17,7 +17,8 @@ export default function SectionHeading({ eyebrow, title, intro, action, id }: Se
         <h2 id={id} className="h-section">
           {title}
         </h2>
-        {intro && <p className="mt-4 text-[17px] leading-relaxed text-muted">{intro}</p>}
+        <span aria-hidden="true" className="heading-rule mt-5" />
+        {intro && <p className="mt-5 text-[17px] leading-relaxed text-muted">{intro}</p>}
       </div>
       {action}
     </Reveal>

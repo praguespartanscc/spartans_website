@@ -86,11 +86,25 @@ function Viewer({
   const photo = photos[index];
   const touchX = useRef<number | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
-  const go = useCallback((step: number) => onIndex((index + step + photos.length) % photos.length), [index, photos.length, onIndex]);
+  // Which way the last change went, so the next photo slides in from that side.
+  const [dir, setDir] = useState(0);
+  const [closing, setClosing] = useState(false);
+  const go = useCallback(
+    (step: number) => {
+      setDir(step);
+      onIndex((index + step + photos.length) % photos.length);
+    },
+    [index, photos.length, onIndex],
+  );
+  // Fade out before unmounting.
+  const close = useCallback(() => {
+    setClosing(true);
+    window.setTimeout(onClose, 200);
+  }, [onClose]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') close();
       if (e.key === 'ArrowRight') go(1);
       if (e.key === 'ArrowLeft') go(-1);
     };
@@ -103,7 +117,7 @@ function Viewer({
       document.body.style.overflow = '';
       previous?.focus();
     };
-  }, [go, onClose]);
+  }, [go, close]);
 
   // Load the neighbours in the background so swiping feels instant.
   useEffect(() => {
@@ -120,7 +134,7 @@ function Viewer({
       role="dialog"
       aria-modal="true"
       aria-label={t.viewer(title, index + 1, photos.length)}
-      className="fixed inset-0 z-[300] flex flex-col bg-ink/95 backdrop-blur-sm"
+      className={`fixed inset-0 z-[300] flex flex-col bg-ink/95 backdrop-blur-sm ${closing ? 'lightbox-out' : 'lightbox-in'}`}
       onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
       onTouchEnd={(e) => {
         if (touchX.current === null) return;
@@ -137,12 +151,12 @@ function Viewer({
           <a href={driveFileUrl(photo.id)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-2 py-2 hover:text-cream">
             {t.fullSize} <ArrowUpRight size={14} />
           </a>
-          <button ref={closeRef} type="button" onClick={onClose} aria-label={t.close} className="flex h-11 w-11 items-center justify-center text-cream hover:text-gold">
+          <button ref={closeRef} type="button" onClick={close} aria-label={t.close} className="flex h-11 w-11 items-center justify-center text-cream hover:text-gold">
             <Close size={26} />
           </button>
         </span>
       </div>
-      <div className="relative flex min-h-0 flex-1 items-center justify-center px-2 pb-6 sm:px-16" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="relative flex min-h-0 flex-1 items-center justify-center px-2 pb-6 sm:px-16" onClick={(e) => e.target === e.currentTarget && close()}>
         {photos.length > 1 && (
           <button type="button" onClick={() => go(-1)} aria-label={t.previous} className={`${navBtn} left-3`}>
             <ArrowRight size={22} className="rotate-180" />
@@ -155,7 +169,7 @@ function Viewer({
           srcSet={photoSrcSet(photo.id, [800, 1600, 2400])}
           sizes="100vw"
           alt={photo.name}
-          className="max-h-full max-w-full select-none object-contain"
+          className={`max-h-full max-w-full select-none object-contain ${dir > 0 ? 'photo-next' : dir < 0 ? 'photo-prev' : 'photo-in'}`}
           draggable={false}
         />
         {photos.length > 1 && (

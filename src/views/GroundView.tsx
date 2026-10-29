@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import PageHero from '@/components/ui/PageHero';
+import { ReadingProgress } from '@/components/ScrollExtras';
 import Reveal from '@/components/ui/Reveal';
 import JoinCta from '@/components/JoinCta';
 import JsonLd from '@/components/JsonLd';
@@ -107,6 +108,8 @@ export default function GroundView({ lang }: { lang: Lang }) {
     <>
       <JsonLd data={{ '@context': 'https://schema.org', ...groundNode() }} />
       <JsonLd data={breadcrumbs(lang, [[tr(lang, { en: 'Home ground', cs: 'Domácí hřiště' }), '/ground']])} />
+
+      <ReadingProgress />
 
       <PageHero
         eyebrow={tr(lang, { en: 'Home ground · Prague 9 – Vinoř', cs: 'Domácí hřiště · Praha 9 – Vinoř' })}

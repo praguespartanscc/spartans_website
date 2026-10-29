@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getMatch, getMatches, getSelection, pragueToday } from '@/lib/data';
 import { CLUB_NAME, GOVERNING_BODY, GROUND, ORG_ID, SITE_URL, SQUADS, squadByName, squadId, MATCH_TYPE_LABEL } from '@/lib/club';
-import { dateParts, formatDivision, formatTime, parseDate, titleCase, youTubeId } from '@/lib/format';
+import { dateParts, formatDivision, formatTime, parseDate, pragueISO, titleCase, youTubeId } from '@/lib/format';
 import { LOCALE, localePath, tr, type Lang } from '@/lib/i18n';
 import { OG_IMAGE, pageMeta } from '@/lib/seo';
 import { breadcrumbs, groundNode } from '@/lib/structured';
@@ -87,44 +87,6 @@ export async function fixtureMeta(lang: Lang, id: string): Promise<Metadata> {
     description: description(match, lang),
     images: matchImages(match, title),
   });
-}
-
-// Prague offset ("+02:00") at a given instant.
-function pragueOffset(at: Date) {
-  const tz =
-    new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Prague', timeZoneName: 'longOffset' })
-      .formatToParts(at)
-      .find((p) => p.type === 'timeZoneName')?.value ?? 'GMT+01:00';
-  return tz === 'GMT' ? '+00:00' : tz.replace('GMT', '');
-}
-
-// An instant as Prague local time with its offset: "2026-05-12T14:00:00+02:00".
-function pragueISOAt(at: Date) {
-  const parts = Object.fromEntries(
-    new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'Europe/Prague',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hourCycle: 'h23',
-    })
-      .formatToParts(at)
-      .map((p) => [p.type, p.value]),
-  );
-  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:00${pragueOffset(at)}`;
-}
-
-// Match start in Prague local time with offset, and an end four hours later. Date only when no time is set.
-function pragueISO(date: string, time?: string | null): { start: string; end?: string } {
-  const t = /^(\d{1,2}):(\d{2})/.exec(time ?? '');
-  if (!t) return { start: date };
-  const hm = `${t[1].padStart(2, '0')}:${t[2]}`;
-  const probe = new Date(`${date}T${hm}:00Z`);
-  if (Number.isNaN(probe.getTime())) return { start: date };
-  const start = `${date}T${hm}:00${pragueOffset(probe)}`;
-  return { start, end: pragueISOAt(new Date(new Date(start).getTime() + 4 * 3600_000)) };
 }
 
 function eventStatus(m: Match) {
@@ -249,10 +211,12 @@ export default async function FixtureView({ lang, id }: { lang: Lang; id: string
             <ResultChip result={match.result} live={live} lang={lang} />
             {details && <span className="eyebrow">{details}</span>}
           </div>
-          <h1 className="display rise mt-5 text-[clamp(40px,7vw,96px)] leading-[0.95]" style={{ ['--d' as string]: '80ms' }}>
+          <h1 className="display mt-5 text-[clamp(40px,7vw,96px)] leading-[0.95]">
+            <span className="mask-line"><span style={{ ['--d' as string]: '80ms' }}>
             <TeamName team={match.team1} lang={lang} />{' '}
             <span className="block font-display text-[0.38em] font-extrabold italic text-gold">{vs(lang)}</span>{' '}
             <TeamName team={match.team2} lang={lang} />
+            </span></span>
           </h1>
           {match.summary && (
             <p className="rise h-sub mt-6 text-[clamp(24px,3vw,36px)] text-gold" style={{ ['--d' as string]: '140ms' }}>

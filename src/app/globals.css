@@ -176,6 +176,26 @@ body {
     background: var(--color-gold-hi);
     box-shadow: 0 10px 30px -10px rgb(204 153 1 / 0.55);
   }
+  /* Light sheen that sweeps across gold buttons on hover (sits above the fill, below the label). */
+  .btn-gold {
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .btn-gold::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.42) 50%, transparent 70%);
+    transform: translateX(-120%);
+    pointer-events: none;
+  }
+  @media (hover: hover) {
+    .btn-gold:hover::before {
+      transform: translateX(120%);
+      transition: transform 0.85s var(--ease-out-quart);
+    }
+  }
   .btn-outline {
     border: 2px solid var(--color-cream);
     color: var(--color-cream);
@@ -329,6 +349,14 @@ body {
     opacity: 1;
   }
 }
+@keyframes ps-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
 @keyframes ps-ticker {
   from {
     transform: translate3d(0, 0, 0);
@@ -364,6 +392,76 @@ body {
     opacity: 0.35;
   }
 }
+@keyframes ps-line-up {
+  from {
+    transform: translate3d(0, 105%, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes ps-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes ps-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes ps-tick {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 40%, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes ps-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes ps-slide-from-right {
+  from {
+    opacity: 0;
+    transform: translate3d(48px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes ps-slide-from-left {
+  from {
+    opacity: 0;
+    transform: translate3d(-48px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
 @keyframes ps-progress {
   from {
     transform: scaleX(0);
@@ -385,6 +483,40 @@ body {
   animation-delay: var(--d, 0ms);
 }
 
+/* Headline lines slide up from behind a mask: <span class="mask-line"><span>Text</span></span> */
+.mask-line {
+  display: block;
+  overflow: hidden;
+  /* room for the varsity face's tall caps so nothing is clipped */
+  padding-block: 0.06em;
+  margin-block: -0.06em;
+}
+.mask-line > span {
+  display: block;
+  animation: ps-line-up 1.1s var(--ease-out-expo) both;
+  animation-delay: var(--d, 0ms);
+}
+
+/* Short gold rule under headings. Draws in on load (.draw) or when its <Reveal> scrolls in. */
+.heading-rule {
+  display: block;
+  width: 56px;
+  height: 3px;
+  background: var(--color-gold);
+  transform-origin: left center;
+}
+.heading-rule.draw {
+  animation: ps-draw 0.9s var(--ease-out-expo) both;
+  animation-delay: var(--d, 0ms);
+}
+.js .reveal .heading-rule:not(.draw) {
+  transform: scaleX(0);
+  transition: transform 0.9s var(--ease-out-expo) 0.3s;
+}
+.js .reveal.is-visible .heading-rule:not(.draw) {
+  transform: scaleX(1);
+}
+
 /* Scroll reveal (toggled by <Reveal>). Only hidden once JS is known
    to be running, so content never disappears if scripts fail. */
 .js .reveal {
@@ -398,6 +530,95 @@ body {
 .js .reveal.is-visible {
   opacity: 1;
   transform: none;
+}
+
+/* Image unveil: a panel wipes away upwards while the photo settles from a slight zoom.
+   Use on a <Reveal className="wipe ..."> that wraps the image. */
+.wipe {
+  position: relative;
+  overflow: hidden;
+}
+.js .reveal.wipe {
+  opacity: 1;
+  transform: none;
+}
+.js .wipe::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--color-panel);
+  transform-origin: top center;
+  transition: transform 1s var(--ease-out-expo) var(--d, 0ms);
+  pointer-events: none;
+}
+.js .wipe.is-visible::after {
+  transform: scaleY(0);
+}
+.js .wipe img {
+  transform: scale(1.12);
+  transition: transform 1.4s var(--ease-out-expo) var(--d, 0ms);
+}
+.js .wipe.is-visible img {
+  transform: none;
+}
+@media (hover: hover) {
+  .js .wipe.is-visible.zoom-frame:hover img,
+  .js .wipe.is-visible .zoom-frame:hover img {
+    transform: scale(1.05);
+  }
+}
+
+/* Children of a <Reveal className="stagger"> rise in one after another.
+   Animation (not transition) with backwards fill, so hover transforms on the children still work. */
+.js .reveal.stagger {
+  opacity: 1;
+  transform: none;
+}
+.js .stagger > * {
+  opacity: 0;
+}
+.js .stagger.is-visible > * {
+  opacity: 1;
+  animation: ps-fade-up 0.8s var(--ease-out-expo) backwards;
+}
+.stagger > :nth-child(2) { animation-delay: 70ms; }
+.stagger > :nth-child(3) { animation-delay: 140ms; }
+.stagger > :nth-child(4) { animation-delay: 210ms; }
+.stagger > :nth-child(5) { animation-delay: 280ms; }
+.stagger > :nth-child(6) { animation-delay: 350ms; }
+.stagger > :nth-child(7) { animation-delay: 420ms; }
+.stagger > :nth-child(n + 8) { animation-delay: 490ms; }
+
+/* Result chips pop in; inside a <Reveal> they wait until it scrolls into view. */
+.chip-pop {
+  animation: ps-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s both;
+}
+.js .reveal:not(.is-visible) .chip-pop {
+  animation-play-state: paused;
+}
+
+/* Countdown digits slide in when they change */
+.tick {
+  display: inline-block;
+  animation: ps-tick 0.45s var(--ease-out-expo) both;
+}
+
+/* Lightbox */
+.lightbox-in {
+  animation: ps-fade-in 0.25s var(--ease-out-quart) both;
+}
+.lightbox-out {
+  animation: ps-fade-out 0.2s ease both;
+}
+.photo-in {
+  animation: ps-zoom-in 0.45s var(--ease-out-expo) both;
+}
+.photo-next {
+  animation: ps-slide-from-right 0.45s var(--ease-out-expo) both;
+}
+.photo-prev {
+  animation: ps-slide-from-left 0.45s var(--ease-out-expo) both;
 }
 
 .ticker-track {
@@ -460,8 +681,18 @@ body {
     transition-duration: 0.01ms !important;
   }
   .rise,
-  .js .reveal {
+  .js .reveal,
+  .js .stagger > *,
+  .mask-line > span,
+  .js .wipe img {
     opacity: 1 !important;
+    transform: none !important;
+  }
+  .js .wipe::after,
+  .btn-gold::before {
+    display: none;
+  }
+  .heading-rule {
     transform: none !important;
   }
   .ticker-track {

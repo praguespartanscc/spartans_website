@@ -60,7 +60,7 @@ export default function StorySection({ lang = 'en' }: { lang?: Lang }) {
 
         <div className="grid grid-cols-2 gap-4">
           <Reveal delay={100} as="figure" className="col-span-2 m-0">
-            <div className="zoom-frame relative aspect-[16/9] overflow-hidden">
+            <Reveal delay={150} className="wipe zoom-frame relative aspect-[16/9]">
               <Image
                 src="/home_carouse2.jpeg"
                 alt={tr(lang, {
@@ -71,13 +71,13 @@ export default function StorySection({ lang = 'en' }: { lang?: Lang }) {
                 sizes="(min-width: 1024px) 55vw, 100vw"
                 className="object-cover"
               />
-            </div>
+            </Reveal>
             <figcaption className="mt-2 text-[14px] text-faint">
               {tr(lang, { en: 'Season 2024 player awards', cs: 'Ocenění hráčů za sezónu 2024' })}
             </figcaption>
           </Reveal>
           <Reveal delay={180} as="figure" className="col-span-2 m-0 sm:col-span-2">
-            <div className="zoom-frame relative aspect-[16/9] overflow-hidden">
+            <Reveal delay={260} className="wipe zoom-frame relative aspect-[16/9]">
               <Image
                 src="/story1.jpeg"
                 alt={tr(lang, {
@@ -88,7 +88,7 @@ export default function StorySection({ lang = 'en' }: { lang?: Lang }) {
                 sizes="(min-width: 1024px) 55vw, 100vw"
                 className="object-cover object-[center_60%]"
               />
-            </div>
+            </Reveal>
             <figcaption className="mt-2 text-[14px] text-faint">
               {tr(lang, { en: 'Awards night with the squad', cs: 'Večer vyhlášení klubových ocenění' })}
             </figcaption>

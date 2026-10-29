@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Reveal from '@/components/ui/Reveal';
 import type { Photo } from '@/lib/drive';
 import { photoSrcSet, photoUrl } from '@/lib/photos';
 import SectionHeading from '@/components/ui/SectionHeading';
@@ -23,7 +24,7 @@ export default function GallerySection({ photos, lang = 'en' }: { photos: { phot
             </Link>
           }
         />
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+        <Reveal className="stagger grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
           {photos.slice(0, 8).map(({ photo, href }, i) => (
             <Link
               key={photo.id}
@@ -45,7 +46,7 @@ export default function GallerySection({ photos, lang = 'en' }: { photos: { phot
               </span>
             </Link>
           ))}
-        </div>
+        </Reveal>
       </div>
     </section>
   );

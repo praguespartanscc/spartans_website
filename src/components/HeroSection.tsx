@@ -2,8 +2,9 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowRight } from '@/components/ui/Icons';
+import CountUp from '@/components/ui/CountUp';
 import { FOUNDED } from '@/lib/club';
 import { localePath, tr, type Lang } from '@/lib/i18n';
 
@@ -33,15 +34,28 @@ const slides = [
   },
 ];
 
-const stats = [
-  { value: String(FOUNDED), label: { en: 'Founded', cs: 'Rok založení' } },
-  { value: '3', label: { en: 'Squads', cs: 'Týmy' } },
+// Numeric stats count up on load (from `from`); text stats stay as they are.
+const stats: { value: string; count?: { to: number; from: number }; label: { en: string; cs: string } }[] = [
+  { value: String(FOUNDED), count: { to: FOUNDED, from: FOUNDED - 30 }, label: { en: 'Founded', cs: 'Rok založení' } },
+  { value: '3', count: { to: 3, from: 0 }, label: { en: 'Squads', cs: 'Týmy' } },
   { value: 'T10', label: { en: '2026 ČMKS winners', cs: 'Vítězové ČMKS 2026' } },
 ];
 
 const HeroSection = ({ lang = 'en' }: { lang?: Lang }) => {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  // How many times each slide has been shown: re-keys its image so the slow zoom restarts,
+  // while the outgoing slide keeps its zoom running as it fades out (no jump mid-crossfade).
+  const [shown, setShown] = useState<number[]>(() => slides.map(() => 0));
+  const firstSlide = useRef(true);
+
+  useEffect(() => {
+    if (firstSlide.current) {
+      firstSlide.current = false;
+      return;
+    }
+    setShown((s) => s.map((n, i) => (i === index ? n + 1 : n)));
+  }, [index]);
 
   useEffect(() => {
     if (paused) return;
@@ -76,14 +90,13 @@ const HeroSection = ({ lang = 'en' }: { lang?: Lang }) => {
           }`}
         >
           <Image
-            // Re-keyed when it becomes active so the slow zoom restarts each time.
-            key={i === index ? `active-${index}` : 'idle'}
+            key={`${slide.src}-${shown[i]}`}
             src={slide.src}
             alt={slide.alt[lang]}
             fill
             priority={i === 0}
             sizes="100vw"
-            className={`object-cover ${i === index ? 'kenburns' : ''}`}
+            className="kenburns object-cover"
             style={{ objectPosition: slide.position }}
           />
         </div>
@@ -99,14 +112,14 @@ const HeroSection = ({ lang = 'en' }: { lang?: Lang }) => {
         </p>
         {/* Reads "Prague Spartans Cricket Club Prague, Czech Republic": the spaces between spans are real text. */}
         <h1 className="display text-[clamp(56px,11vw,160px)] leading-[0.92]">
-          <span className="rise block" style={{ ['--d' as string]: '180ms' }}>
-            Prague
+          <span className="mask-line">
+            <span style={{ ['--d' as string]: '150ms' }}>Prague</span>
           </span>{' '}
-          <span className="rise block text-gold" style={{ ['--d' as string]: '280ms' }}>
-            Spartans
+          <span className="mask-line text-gold">
+            <span style={{ ['--d' as string]: '260ms' }}>Spartans</span>
           </span>{' '}
-          <span className="rise mt-2 block text-[0.3em] leading-none tracking-[0.04em]" style={{ ['--d' as string]: '320ms' }}>
-            Cricket Club
+          <span className="mask-line mt-2 text-[0.3em] leading-none tracking-[0.04em]">
+            <span style={{ ['--d' as string]: '380ms' }}>Cricket Club</span>
           </span>{' '}
           <span
             className="rise mt-3 block font-display text-[clamp(18px,2.2vw,26px)] font-extrabold uppercase leading-tight tracking-[0.14em] text-sand"
@@ -142,7 +155,9 @@ const HeroSection = ({ lang = 'en' }: { lang?: Lang }) => {
             {stats.map((stat, i) => (
               <div key={stat.value} className={`flex flex-col-reverse border-cream/15 ${i ? 'border-l pl-6 sm:pl-8' : ''} ${i < stats.length - 1 ? 'pr-6 sm:pr-8' : ''}`}>
                 <dt className="mt-2 font-display text-[13px] font-extrabold tracking-[0.2em] text-muted">{stat.label[lang]}</dt>
-                <dd className="font-varsity text-[30px] leading-none sm:text-[44px]">{stat.value}</dd>
+                <dd className="font-varsity text-[30px] leading-none sm:text-[44px]">
+                  {stat.count ? <CountUp to={stat.count.to} from={stat.count.from} delay={700 + i * 120} /> : stat.value}
+                </dd>
               </div>
             ))}
           </dl>

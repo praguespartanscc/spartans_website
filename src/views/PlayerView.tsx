@@ -179,11 +179,13 @@ export default async function PlayerView({ lang, slug }: { lang: Lang; slug: str
               {squad ? `Prague Spartans ${squad.name} · ` : 'Prague Spartans · '}
               {role}
             </p>
-            <h1 className="display rise mt-3 text-[clamp(44px,7vw,104px)] leading-[0.95]" style={{ ['--d' as string]: '140ms' }}>
+            <h1 className="display mt-3 text-[clamp(44px,7vw,104px)] leading-[0.95]">
+              <span className="mask-line"><span style={{ ['--d' as string]: '140ms' }}>
               {player.name}{' '}
               <span className="h-sub mt-4 block text-[clamp(22px,2.4vw,30px)] leading-tight text-gold">
                 {tr(lang, { en: `${type} · Prague Spartans Cricket Club`, cs: `${type} · kriketový klub Prague Spartans` })}
               </span>
+              </span></span>
             </h1>
 
             {facts.length > 0 && (

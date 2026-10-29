@@ -129,6 +129,19 @@ All motion lives in globals.css. Animate **only `transform` and `opacity`** (GPU
 | `.live-dot` | pulsing live indicator |
 | `.slide-progress` | hero slide timer bar (`--dur`) |
 | `.skeleton` | shimmer placeholder |
+| `.mask-line > span` + `--d` | headline line slides up from behind a mask (hero, `PageHero`, page H1s) |
+| `.heading-rule` | 56px gold rule; draws in when its `Reveal` scrolls in, or on load with `.draw` |
+| `.wipe` on a `Reveal` | image unveil: a panel wipes up while the photo settles from 1.12× zoom |
+| `.stagger` on a `Reveal` | its children rise in one after another (70ms apart); hover transforms on children still work |
+| `.chip-pop` | result chip pops in; waits until its `Reveal` is visible |
+| `.tick` | a changed digit slides in (re-key the element to replay) |
+| `.lightbox-in/-out`, `.photo-in/-next/-prev` | gallery viewer open/close and direction-aware photo change |
+| `.btn-gold` sheen | light sweep across gold buttons on hover |
+
+Motion components: `ui/CountUp` (numbers count up; the server renders the final value),
+`Countdown` (next-match timer), `ScrollExtras` (`ReadingProgress` gold bar for long pages,
+`BackToTop` with a progress ring, mounted in both layouts). The header hides while scrolling down
+and returns on scroll up, and one gold bar glides between the nav links.
 
 Rules:
 - Durations: 150–250ms for hover and colour, 350–500ms for UI movement, 800–1000ms for entrances. Never longer than 1.2s except ambient loops.

@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { User } from '@supabase/supabase-js';
-import { ArrowRight, Close, Facebook, Instagram, Menu } from '@/components/ui/Icons';
+import { ArrowRight, Facebook, Instagram } from '@/components/ui/Icons';
 import { hasCzech, localePath, splitLangPath, tr, type Lang } from '@/lib/i18n';
 import { CLUB_EMAIL, SOCIAL } from '@/lib/club';
 
@@ -54,6 +54,7 @@ const Header = () => {
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const [isLive, setIsLive] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
 
@@ -83,14 +84,21 @@ const Header = () => {
     getUser();
   }, []);
 
-  // Compact bar once the page scrolls. rAF-throttled and passive so it never blocks scrolling.
+  // Compact bar once the page scrolls; tucks away while scrolling down and comes back
+  // as soon as the reader scrolls up. rAF-throttled and passive so it never blocks scrolling.
   useEffect(() => {
     let frame = 0;
+    let lastY = window.scrollY;
     const onScroll = () => {
       if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
-        setScrolled(window.scrollY > 24);
+        const y = window.scrollY;
+        setScrolled(y > 24);
+        if (Math.abs(y - lastY) > 6) {
+          setHidden(y > lastY && y > 480);
+          lastY = y;
+        }
       });
     };
     onScroll();
@@ -116,6 +124,10 @@ const Header = () => {
       window.clearInterval(timer);
     };
   }, []);
+
+  useEffect(() => {
+    if (hidden) setAccountOpen(false);
+  }, [hidden]);
 
   // Close the menus on navigation.
   useEffect(() => {
@@ -166,6 +178,31 @@ const Header = () => {
 
   const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
 
+  // Sliding underline: measure the hovered link (or the current page's link) inside the nav.
+  const navRef = useRef<HTMLElement>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
+  const [bar, setBar] = useState({ x: 0, w: 0, ready: false });
+  const activeHref = navLinks.slice(1).find((l) => isActive(l.href))?.href ?? null;
+  const target = hovered ?? activeHref;
+
+  const measure = useCallback(() => {
+    const nav = navRef.current;
+    const el = target ? nav?.querySelector<HTMLElement>(`[data-nav="${target}"]`) : null;
+    if (!nav || !el || !el.offsetWidth) {
+      setBar((b) => ({ ...b, w: 0 }));
+      return;
+    }
+    const pad = parseFloat(getComputedStyle(el).paddingLeft) || 0;
+    setBar((b) => ({ x: el.offsetLeft + pad, w: Math.max(0, el.offsetWidth - pad * 2), ready: b.ready || b.w > 0 }));
+  }, [target]);
+
+  useEffect(() => {
+    measure();
+    window.addEventListener('resize', measure);
+    document.fonts?.ready.then(measure).catch(() => {});
+    return () => window.removeEventListener('resize', measure);
+  }, [measure, lang, scrolled]);
+
   // Desktop opens with the full 120px club logo (the brand manual's minimum size).
   // Once scrolled, the bar condenses and shows the name as text instead of shrinking the logo.
   const showLogo = !scrolled && !menuOpen;
@@ -175,9 +212,10 @@ const Header = () => {
       {/* Reserves the header's resting height so the fixed bar never overlaps content */}
       <div aria-hidden="true" className="h-16 lg:h-[152px]" />
       <header
-        className={`fixed inset-x-0 top-0 z-[100] border-b bg-ink transition-[height,border-color] duration-500 ease-[var(--ease-out-expo)] ${
+        className={`fixed inset-x-0 top-0 z-[100] border-b bg-ink transition-[height,border-color,transform] duration-500 ease-[var(--ease-out-expo)] ${
           scrolled || menuOpen ? 'h-16 border-cream/12' : 'h-16 border-cream/12 lg:h-[152px]'
-        }`}
+        } ${hidden && !menuOpen ? '-translate-y-full' : 'translate-y-0'}`}
+        onFocusCapture={() => setHidden(false)}
       >
         <div className="container-x relative flex h-full items-center justify-between gap-6">
           <Link href={L('/')} className="group relative flex h-full items-center" aria-label={tr(lang, { en: 'Prague Spartans Cricket Club, home', cs: 'Prague Spartans Cricket Club, úvodní stránka' })}>
@@ -200,11 +238,20 @@ const Header = () => {
             </span>
           </Link>
 
-          <nav aria-label={tr(lang, { en: 'Main', cs: 'Hlavní menu' })} className="hidden items-center gap-0 lg:flex xl:gap-1">
+          <nav
+            ref={navRef}
+            aria-label={tr(lang, { en: 'Main', cs: 'Hlavní menu' })}
+            className="relative hidden items-center gap-0 lg:flex xl:gap-1"
+            onMouseLeave={() => setHovered(null)}
+          >
             {navLinks.slice(1).map((link) => (
               <Link
                 key={link.href}
                 href={L(link.href)}
+                data-nav={link.href}
+                onMouseEnter={() => setHovered(link.href)}
+                onFocus={() => setHovered(link.href)}
+                onBlur={() => setHovered(null)}
                 aria-current={isActive(link.href) ? 'page' : undefined}
                 className={`group relative whitespace-nowrap px-2 py-2 font-display text-[17px] font-bold uppercase tracking-[0.04em] transition-colors xl:px-3 xl:text-[19px] xl:tracking-[0.06em] duration-200 ${
                   isActive(link.href) ? 'text-cream' : 'text-muted hover:text-cream'
@@ -214,13 +261,18 @@ const Header = () => {
                 {link.href === '/live' && isLive && (
                   <span aria-label={tr(lang, { en: '(live now)', cs: '(právě živě)' })} className="live-dot ml-1.5 inline-block h-2 w-2 -translate-y-0.5 rounded-full bg-crimson-hi" />
                 )}
-                <span
-                  className={`absolute inset-x-2 -bottom-0.5 h-[3px] origin-left xl:inset-x-3 bg-gold transition-transform duration-500 ease-[var(--ease-out-expo)] ${
-                    isActive(link.href) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
-                  }`}
-                />
               </Link>
             ))}
+            {/* One gold bar that glides to the hovered link and settles back under the current page */}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute bottom-0.5 left-0 h-[3px] w-px origin-left bg-gold transition-[transform,opacity] duration-500 ease-[var(--ease-out-expo)]"
+              style={{
+                transform: `translateX(${bar.x}px) scaleX(${bar.w})`,
+                opacity: bar.w ? 1 : 0,
+                transitionDuration: bar.ready ? undefined : '0ms',
+              }}
+            />
           </nav>
 
           <div className="flex items-center gap-2">
@@ -272,7 +324,24 @@ const Header = () => {
               aria-controls="mobile-menu"
               onClick={() => setMenuOpen((open) => !open)}
             >
-              {menuOpen ? <Close size={26} /> : <Menu size={26} />}
+              <span aria-hidden="true" className="relative block h-[18px] w-[26px]">
+                {[0, 1, 2].map((n) => (
+                  <span
+                    key={n}
+                    className={`absolute left-0 h-[2px] w-full rounded-full bg-current transition-[transform,opacity] duration-500 ease-[var(--ease-out-expo)] ${
+                      n === 0 ? 'top-0' : n === 1 ? 'top-[8px]' : 'top-[16px]'
+                    } ${
+                      menuOpen
+                        ? n === 0
+                          ? 'translate-y-[8px] rotate-45'
+                          : n === 1
+                            ? 'scale-x-0 opacity-0'
+                            : '-translate-y-[8px] -rotate-45'
+                        : ''
+                    }`}
+                  />
+                ))}
+              </span>
             </button>
           </div>
         </div>

@@ -81,3 +81,41 @@ export function youTubeId(url?: string | null): string | null {
   }
   return null;
 }
+
+// Prague offset ("+02:00") at a given instant.
+function pragueOffset(at: Date) {
+  const tz =
+    new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Prague', timeZoneName: 'longOffset' })
+      .formatToParts(at)
+      .find((p) => p.type === 'timeZoneName')?.value ?? 'GMT+01:00';
+  return tz === 'GMT' ? '+00:00' : tz.replace('GMT', '');
+}
+
+// An instant as Prague local time with its offset: "2026-05-12T14:00:00+02:00".
+function pragueISOAt(at: Date) {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Europe/Prague',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    })
+      .formatToParts(at)
+      .map((p) => [p.type, p.value]),
+  );
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:00${pragueOffset(at)}`;
+}
+
+// Match start in Prague local time with offset, and an end four hours later. Date only when no time is set.
+export function pragueISO(date: string, time?: string | null): { start: string; end?: string } {
+  const t = /^(\d{1,2}):(\d{2})/.exec(time ?? '');
+  if (!t) return { start: date };
+  const hm = `${t[1].padStart(2, '0')}:${t[2]}`;
+  const probe = new Date(`${date}T${hm}:00Z`);
+  if (Number.isNaN(probe.getTime())) return { start: date };
+  const start = `${date}T${hm}:00${pragueOffset(probe)}`;
+  return { start, end: pragueISOAt(new Date(new Date(start).getTime() + 4 * 3600_000)) };
+}

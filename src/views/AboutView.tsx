@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import PageHero from '@/components/ui/PageHero';
+import { ReadingProgress } from '@/components/ScrollExtras';
 import Reveal from '@/components/ui/Reveal';
 import Ticker from '@/components/ui/Ticker';
 import JoinCta from '@/components/JoinCta';
@@ -99,6 +100,8 @@ export default function AboutView({ lang }: { lang: Lang }) {
     <>
       <JsonLd data={{ '@context': 'https://schema.org', ...clubNode(lang) }} />
       <JsonLd data={breadcrumbs(lang, [[tr(lang, { en: 'About', cs: 'O klubu' }), '/about']])} />
+
+      <ReadingProgress />
 
       <PageHero
         eyebrow={tr(lang, { en: `About the club · Prague since ${FOUNDED}`, cs: `O klubu · v Praze od roku ${FOUNDED}` })}

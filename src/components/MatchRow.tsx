@@ -16,11 +16,11 @@ export function ResultChip({ result, live, lang = 'en' }: { result: string; live
   }
   switch (result) {
     case 'win':
-      return <span className="chip bg-cream text-ink">{tr(lang, { en: 'Won', cs: 'Výhra' })}</span>;
+      return <span className="chip chip-pop bg-cream text-ink">{tr(lang, { en: 'Won', cs: 'Výhra' })}</span>;
     case 'loss':
-      return <span className="chip border border-cream/30 text-muted">{tr(lang, { en: 'Lost', cs: 'Prohra' })}</span>;
+      return <span className="chip chip-pop border border-cream/30 text-muted">{tr(lang, { en: 'Lost', cs: 'Prohra' })}</span>;
     case 'draw':
-      return <span className="chip border border-cream/30 text-sand">{tr(lang, { en: 'Draw', cs: 'Remíza' })}</span>;
+      return <span className="chip chip-pop border border-cream/30 text-sand">{tr(lang, { en: 'Draw', cs: 'Remíza' })}</span>;
     default:
       return (
         <span className="chip bg-gold text-ink">

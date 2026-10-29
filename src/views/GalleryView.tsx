@@ -6,6 +6,7 @@ import { localePath, tr, type Lang } from '@/lib/i18n';
 import { pageMeta } from '@/lib/seo';
 import { breadcrumbs, clubRef } from '@/lib/structured';
 import PageHero from '@/components/ui/PageHero';
+import Reveal from '@/components/ui/Reveal';
 import SectionHeading from '@/components/ui/SectionHeading';
 import EmptyState from '@/components/ui/EmptyState';
 import AlbumCard from '@/components/gallery/AlbumCard';
@@ -96,11 +97,11 @@ export default async function GalleryView({ lang }: { lang: Lang }) {
               .
             </EmptyState>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Reveal className="stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {sections.map((s, i) => (
                 <AlbumCard key={s.id} album={s} priority={i < 3} lang={lang} />
               ))}
-            </div>
+            </Reveal>
           )}
         </div>
       </section>

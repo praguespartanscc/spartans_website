@@ -101,11 +101,13 @@ export default async function SquadView({ lang, slug }: { lang: Lang; slug: stri
             <p className="eyebrow rise" style={{ ['--d' as string]: '60ms' }}>
               {division} · 2026
             </p>
-            <h1 className="display rise mt-3 text-[clamp(52px,9vw,120px)]" style={{ ['--d' as string]: '120ms' }}>
+            <h1 className="display mt-3 text-[clamp(52px,9vw,120px)]">
+              <span className="mask-line"><span style={{ ['--d' as string]: '120ms' }}>
               {squad.name}{' '}
               <span className="mt-2 block font-display text-[clamp(18px,2vw,26px)] font-semibold uppercase tracking-[0.14em] text-gold">
                 {tr(lang, { en: 'Prague Spartans cricket squad', cs: 'tým kriketového klubu Prague Spartans' })}
               </span>
+              </span></span>
             </h1>
             <p className="rise h-sub mt-4 text-[clamp(22px,2.6vw,32px)] text-muted" style={{ ['--d' as string]: '200ms' }}>
               {lang === 'cs' ? squad.taglineCs : squad.tagline}
