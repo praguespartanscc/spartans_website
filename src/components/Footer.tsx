@@ -11,6 +11,8 @@ const columns = [
     title: { en: 'Club', cs: 'Klub' },
     links: [
       { href: '/about', label: { en: 'About the club', cs: 'O klubu' } },
+      { href: '/news', label: { en: 'News', cs: 'Novinky' } },
+      { href: '/achievements', label: { en: 'Achievements', cs: 'Úspěchy' } },
       { href: '/committee', label: { en: 'Committee', cs: 'Výbor' } },
       { href: '/sponsors', label: { en: 'Sponsors', cs: 'Sponzoři' } },
       { href: '/join', label: { en: 'Join the club', cs: 'Přidejte se' } },

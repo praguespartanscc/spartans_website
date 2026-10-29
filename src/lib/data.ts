@@ -1,8 +1,8 @@
 import 'server-only';
 import { cache } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import type { CommitteeMember, Match, Player, Practice, Sponsor } from '@/types/supabase';
-import { POSITION_ORDER, SQUADS } from '@/lib/club';
+import type { Achievement, CommitteeMember, Match, NewsPost, Player, Practice, Sponsor } from '@/types/supabase';
+import { HONOURS, POSITION_ORDER, SQUADS } from '@/lib/club';
 import { slugify } from '@/lib/format';
 
 // Server-side reads for the public pages. Pages render this into their HTML
@@ -158,4 +158,35 @@ export const getIndoorMatchBySlug = cache(async (slug: string): Promise<FollowMa
     return null;
   }
   return (data as FollowMatch | null) ?? null;
+});
+
+// Published news, newest first (the table policy hides drafts from the public).
+export const getNews = cache(async (): Promise<NewsPost[]> => {
+  if (!db) return [];
+  const { data, error } = await db.from('news_posts').select('*').eq('status', 'published').order('published_at', { ascending: false });
+  if (error) return [];
+  return (data ?? []) as NewsPost[];
+});
+
+export const getNewsPost = cache(async (slug: string): Promise<NewsPost | null> => (await getNews()).find((p) => p.slug === slug) ?? null);
+
+// Achievements by season (newest first), then the order set in the admin.
+export const getAchievements = cache(async (): Promise<Achievement[]> => {
+  const rows = await readAll<Achievement>('achievements');
+  return rows.sort((a, b) => b.season - a.season || a.sort_order - b.sort_order);
+});
+
+export type Honour = { year: number; en: string; cs: string; team: string | null };
+
+// One line per achievement for the honours lists around the site ("Vanguards: ČMKS T10
+// League winners"). Uses the built-in list until the achievements table has rows.
+export const getHonours = cache(async (): Promise<Honour[]> => {
+  const rows = await getAchievements();
+  if (!rows.length) return HONOURS.map((h) => ({ ...h, team: null }));
+  return rows.map((a) => ({
+    year: a.season,
+    team: a.team,
+    en: a.team ? `${a.team}: ${a.title}` : a.title,
+    cs: a.team ? `${a.team}: ${a.title_cs || a.title}` : a.title_cs || a.title,
+  }));
 });

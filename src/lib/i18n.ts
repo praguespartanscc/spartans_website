@@ -34,7 +34,7 @@ export function splitLangPath(pathname: string): { lang: Lang; path: string } {
 // Pages that exist in both languages. Everything else (admin, dashboard, sign-in) is English only.
 const BILINGUAL = [
   /^\/$/,
-  /^\/(about|join|ground|cricket-in-prague|practices|fixtures|players|committee|sponsors|gallery|live|privacy|safeguarding)(\/.*)?$/,
+  /^\/(about|join|ground|cricket-in-prague|practices|fixtures|players|committee|sponsors|gallery|live|privacy|safeguarding|news|achievements)(\/.*)?$/,
   /^\/squads\/[^/]+$/,
   /^\/indoor\/[^/]+$/,
 ];

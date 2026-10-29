@@ -98,6 +98,7 @@ export default function MemberDashboard() {
   const [loading, setLoading] = useState(true);
   const [setupError, setSetupError] = useState(false);
   const [tab, setTab] = useState<Tab>('matches');
+  const [committee, setCommittee] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -109,6 +110,8 @@ export default function MemberDashboard() {
         const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
         if (error) setSetupError(true);
         setProfile(data as Profile | null);
+        const { data: role } = await supabase.rpc('is_committee');
+        setCommittee(role === true);
       }
       setLoading(false);
     })();
@@ -187,13 +190,24 @@ export default function MemberDashboard() {
 
   return (
     <Shell eyebrow="Member dashboard" title={<>Hi {firstName}</>} isAdmin={isAdmin}>
-      <Link href="/score" className="card card-hover -mt-4 mb-8 flex items-center justify-between gap-4 p-4 sm:p-5">
-        <span>
-          <span className="h-sub block text-xl">Indoor scorer</span>
-          <span className="block text-sm text-muted">Score an indoor match ball by ball, with the day&apos;s house rules.</span>
-        </span>
-        <ArrowRight size={20} className="shrink-0 text-gold" />
-      </Link>
+      <div className={`-mt-4 mb-8 grid gap-3 ${committee && !isAdmin ? 'sm:grid-cols-2' : ''}`}>
+        <Link href="/score" className="card card-hover flex items-center justify-between gap-4 p-4 sm:p-5">
+          <span>
+            <span className="h-sub block text-xl">Indoor scorer</span>
+            <span className="block text-sm text-muted">Score an indoor match ball by ball, with the day&apos;s house rules.</span>
+          </span>
+          <ArrowRight size={20} className="shrink-0 text-gold" />
+        </Link>
+        {committee && !isAdmin && (
+          <Link href="/admin/news" className="card card-hover flex items-center justify-between gap-4 p-4 sm:p-5">
+            <span>
+              <span className="h-sub block text-xl">News and achievements</span>
+              <span className="block text-sm text-muted">As a committee member you can post club news and add achievements.</span>
+            </span>
+            <ArrowRight size={20} className="shrink-0 text-gold" />
+          </Link>
+        )}
+      </div>
       <nav aria-label="Dashboard sections" className="-mt-2 mb-8 flex gap-1 overflow-x-auto border-b border-cream/12">
         {TABS.map((t) => (
           <button

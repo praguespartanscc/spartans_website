@@ -2,8 +2,8 @@ import { getSitePhotos } from '@/lib/drive';
 import { PHOTO_SLOT, sitePhotoUrl } from '@/lib/photos';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getMatches, pragueToday } from '@/lib/data';
-import { COMPETITIONS, GOVERNING_BODY, GROUND, HONOURS, SQUADS } from '@/lib/club';
+import { getMatches, pragueToday, getHonours } from '@/lib/data';
+import { COMPETITIONS, GOVERNING_BODY, GROUND, SQUADS } from '@/lib/club';
 import { formatDivision } from '@/lib/format';
 import { localePath, tr, type Lang } from '@/lib/i18n';
 import { pageMeta } from '@/lib/seo';
@@ -19,8 +19,6 @@ import { ArrowUpRight } from '@/components/ui/Icons';
 
 // Shared by /fixtures (English) and /cs/fixtures (Czech).
 
-// The latest season the club has published results for.
-const SEASON = Math.max(...HONOURS.map((h) => h.year));
 
 export function fixturesMeta(lang: Lang): Metadata {
   return pageMeta({
@@ -35,6 +33,9 @@ export function fixturesMeta(lang: Lang): Metadata {
 }
 
 export default async function FixturesView({ lang }: { lang: Lang }) {
+  // The latest season the club has published results for.
+  const honours = await getHonours();
+  const SEASON = Math.max(...honours.map((h) => h.year));
   const photos = await getSitePhotos();
   const matches = await getMatches();
   const label = tr(lang, { en: 'Fixtures & results', cs: 'Zápasy a výsledky' });
@@ -155,7 +156,7 @@ export default async function FixturesView({ lang }: { lang: Lang }) {
           <div>
             <h3 className="h-sub mb-4 text-[28px]">{tr(lang, { en: `${SEASON} honours`, cs: `Úspěchy v sezóně ${SEASON}` })}</h3>
             <ul className="space-y-3 text-lg text-sand">
-              {HONOURS.filter((h) => h.year === SEASON).map((h) => (
+              {honours.filter((h) => h.year === SEASON).map((h) => (
                 <li key={h.en} className="flex gap-3">
                   <span aria-hidden className="mt-2.5 h-2 w-2 shrink-0 bg-gold" />
                   <span>{h[lang]}</span>

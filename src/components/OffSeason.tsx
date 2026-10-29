@@ -1,14 +1,16 @@
 import Link from 'next/link';
 import Reveal from '@/components/ui/Reveal';
 import { ArrowRight, ArrowUpRight } from '@/components/ui/Icons';
-import { COMPETITIONS, HONOURS, TRAINING } from '@/lib/club';
+import { COMPETITIONS, TRAINING } from '@/lib/club';
+import { getHonours } from '@/lib/data';
 import { localePath, tr, type Lang } from '@/lib/i18n';
 
 // Shown instead of an empty fixture list between seasons: what happens next, last season's
 // honours and the official tables, so the page never looks abandoned.
-export default function OffSeason({ lang = 'en' }: { lang?: Lang }) {
-  const season = Math.max(...HONOURS.map((h) => h.year));
-  const honours = HONOURS.filter((h) => h.year === season);
+export default async function OffSeason({ lang = 'en' }: { lang?: Lang }) {
+  const all = await getHonours();
+  const season = Math.max(...all.map((h) => h.year));
+  const honours = all.filter((h) => h.year === season);
   const competitions = COMPETITIONS.filter((c) => c.year === season);
   const { weekly } = TRAINING;
 

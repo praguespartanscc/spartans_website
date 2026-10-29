@@ -1,3 +1,4 @@
+import { getHonours } from '@/lib/data';
 import { getSitePhotos } from '@/lib/drive';
 import { PHOTO_SLOT, sitePhoto, sitePhotoUrl } from '@/lib/photos';
 import SitePhoto from '@/components/ui/SitePhoto';
@@ -17,7 +18,6 @@ import {
   FOUNDED,
   GOVERNING_BODY,
   GROUND,
-  HONOURS,
   SOCIAL,
   SQUADS,
   TRAINING,
@@ -96,7 +96,9 @@ function FactCard({ id, eyebrow, title, children }: { id: string; eyebrow: strin
 export default async function AboutView({ lang }: { lang: Lang }) {
   const photos = await getSitePhotos();
   const weekly = TRAINING.weekly;
-  const honours = HONOURS.filter((h) => h.year === 2026);
+  const allHonours = await getHonours();
+  const honoursYear = Math.max(...allHonours.map((h) => h.year));
+  const honours = allHonours.filter((h) => h.year === honoursYear);
   const winterEn = TRAINING.winter.map((v) => v.name);
 
   return (
@@ -244,7 +246,7 @@ export default async function AboutView({ lang }: { lang: Lang }) {
             <section aria-labelledby="honours-heading">
               <p className="eyebrow mb-3">{tr(lang, { en: '04 · Honours', cs: '04 · Úspěchy' })}</p>
               <h2 id="honours-heading" className="h-section">
-                {tr(lang, { en: 'Honours 2026', cs: 'Úspěchy 2026' })}
+                {tr(lang, { en: `Honours ${honoursYear}`, cs: `Úspěchy ${honoursYear}` })}
               </h2>
               <ul className="mt-8 border-t border-cream/12">
                 {honours.map((h) => (
@@ -254,6 +256,9 @@ export default async function AboutView({ lang }: { lang: Lang }) {
                   </li>
                 ))}
               </ul>
+              <Link href={localePath(lang, '/achievements')} className="link-arrow mt-6">
+                {tr(lang, { en: 'All achievements', cs: 'Všechny úspěchy' })} <ArrowRight size={18} />
+              </Link>
             </section>
           </Reveal>
         </div>

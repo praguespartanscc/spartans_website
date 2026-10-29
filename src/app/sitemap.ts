@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { getMatches, getPlayers } from '@/lib/data';
+import { getMatches, getPlayers, getNews } from '@/lib/data';
 import { SITE_URL, SQUADS } from '@/lib/club';
 import { allAlbums, getGallery } from '@/lib/drive';
 import { photoUrl } from '@/lib/photos';
@@ -27,7 +27,7 @@ function both({ path, lastModified, images }: Page): Entry[] {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [players, matches, gallery] = await Promise.all([getPlayers(), getMatches(), getGallery()]);
+  const [players, matches, gallery, news] = await Promise.all([getPlayers(), getMatches(), getGallery(), getNews()]);
 
   const pages: Page[] = [
     { path: '/' },
@@ -44,6 +44,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/privacy' },
     { path: '/live' },
     { path: '/gallery' },
+    { path: '/news', lastModified: news[0]?.published_at ?? undefined },
+    { path: '/achievements' },
+    ...news.map((p) => ({ path: `/news/${p.slug}`, lastModified: p.updated_at ?? p.published_at ?? undefined, images: p.cover_url ? [p.cover_url] : [] })),
     ...SQUADS.map((s) => ({ path: `/squads/${s.slug}` })),
     ...allAlbums(gallery.sections).map((a) => ({
       path: `/gallery/${a.path.join('/')}`,

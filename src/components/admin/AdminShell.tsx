@@ -12,6 +12,8 @@ const SECTIONS = [
   { href: '/admin/matches', label: 'Matches & selection' },
   { href: '/admin/practices', label: 'Practices' },
   { href: '/admin/players', label: 'Players' },
+  { href: '/admin/news', label: 'News' },
+  { href: '/admin/achievements', label: 'Achievements' },
   { href: '/admin/notices', label: 'Notices' },
   { href: '/admin/committee', label: 'Committee' },
   { href: '/admin/sponsors', label: 'Sponsors' },
@@ -20,6 +22,9 @@ const SECTIONS = [
 
 type Counts = { members: number; applications: number };
 
+// Committee members who are not admins only write news and achievements.
+const WRITER_SECTIONS = ['/admin/news', '/admin/achievements'];
+
 // Admin chrome: brand-black sidebar on desktop, a section picker on phones,
 // and a light panel for the data-entry screens. Access is enforced by middleware.
 export default function AdminShell({ children }: { children: React.ReactNode }) {
@@ -27,21 +32,28 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   const router = useRouter();
   const supabase = useMemo(() => createClientComponentClient(), []);
   const [counts, setCounts] = useState<Counts>({ members: 0, applications: 0 });
+  const [isAdmin, setIsAdmin] = useState(true);
 
   useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setIsAdmin(data.user?.app_metadata?.isAdmin === true));
+  }, [supabase]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
     Promise.all([
       supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       supabase.from('team_applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
     ]).then(([m, a]) => setCounts({ members: m.count ?? 0, applications: a.count ?? 0 }));
-  }, [supabase, pathname]);
+  }, [supabase, pathname, isAdmin]);
 
+  const sections = isAdmin ? SECTIONS : SECTIONS.filter((s) => WRITER_SECTIONS.includes(s.href));
   const active = (href: string) => (href === '/admin' ? pathname === '/admin' : pathname.startsWith(href));
-  const current = SECTIONS.find((s) => active(s.href)) ?? SECTIONS[0];
+  const current = sections.find((s) => active(s.href)) ?? sections[0];
 
   return (
     <div className="container-x py-8 sm:py-10 lg:grid lg:grid-cols-[240px_1fr] lg:gap-10">
       <aside className="mb-6 lg:mb-0">
-        <p className="eyebrow mb-2">Club admin</p>
+        <p className="eyebrow mb-2">{isAdmin ? 'Club admin' : 'Committee'}</p>
         <p className="h-sub mb-6 hidden text-[30px] lg:block">Dashboard</p>
 
         {/* Phones and tablets: one picker instead of a long list */}
@@ -49,7 +61,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           Admin section
         </label>
         <select id="admin-section" className="field lg:hidden" value={current.href} onChange={(e) => router.push(e.target.value)}>
-          {SECTIONS.map((s) => (
+          {sections.map((s) => (
             <option key={s.href} value={s.href}>
               {s.label}
               {'count' in s && counts[s.count] ? ` (${counts[s.count]})` : ''}
@@ -59,7 +71,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
         <nav aria-label="Admin sections" className="hidden lg:block">
           <ul className="flex flex-col border-l border-cream/12">
-            {SECTIONS.map((s) => {
+            {sections.map((s) => {
               const n = 'count' in s ? counts[s.count] : 0;
               return (
                 <li key={s.href}>

@@ -131,3 +131,32 @@ export type Notice = {
 };
 
 export type DirectoryEntry = { id: string; full_name: string; player_id: string | null };
+
+export type NewsPost = {
+  id: number;
+  slug: string;
+  title: string;
+  title_cs: string | null;
+  body: string;
+  body_cs: string | null;
+  category: 'club' | 'match_report';
+  cover_url: string | null;
+  status: 'draft' | 'published';
+  published_at: string | null;
+  author_id?: string | null;
+  created_at: string;
+  updated_at?: string;
+};
+
+export type Achievement = {
+  id: number;
+  season: number;
+  title: string;
+  title_cs: string | null;
+  team: string | null;
+  result: 'winners' | 'runners_up' | 'semi_finals' | 'award' | 'other';
+  photo_url: string | null;
+  note: string | null;
+  note_cs: string | null;
+  sort_order: number;
+};

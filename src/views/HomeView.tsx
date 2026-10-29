@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { getCommittee, getMatches, getPractices, getSponsors, pragueToday } from '@/lib/data';
+import { getCommittee, getHonours, getMatches, getNews, getPractices, getSponsors, pragueToday, type Honour } from '@/lib/data';
 import { getLiveStatus } from '@/lib/youtube';
 import { getSitePhotos } from '@/lib/drive';
 import { PHOTO_SLOT, sitePhoto, sitePhotosFor } from '@/lib/photos';
@@ -10,7 +10,6 @@ import {
   FOUNDED,
   GOVERNING_BODY,
   GROUND,
-  HONOURS,
   MEMBERSHIP,
   SEASON,
   SOCIAL,
@@ -34,6 +33,7 @@ import StorySection from '@/components/StorySection';
 import CommitteeSection from '@/components/CommitteeSection';
 import SponsorsSection from '@/components/SponsorsSection';
 import GallerySection from '@/components/GallerySection';
+import NewsSection from '@/components/NewsSection';
 import JoinCta from '@/components/JoinCta';
 import SectionHeading from '@/components/ui/SectionHeading';
 import Reveal from '@/components/ui/Reveal';
@@ -96,11 +96,12 @@ function Fact({ label, children, wide }: { label: string; children: ReactNode; w
 }
 
 // Plain, server-rendered club facts that search engines and AI assistants can quote.
-function ClubFacts({ lang }: { lang: Lang }) {
+function ClubFacts({ lang, honours: all }: { lang: Lang; honours: Honour[] }) {
   const weekly = TRAINING.weekly;
   const winter = TRAINING.winter.map((v) => v.name);
   const winterEn = `${winter.slice(0, -1).join(', ')} and ${winter[winter.length - 1]}`;
-  const honours = HONOURS.filter((h) => h.year === 2026);
+  const honoursYear = Math.max(...all.map((h) => h.year));
+  const honours = all.filter((h) => h.year === honoursYear);
 
   return (
     <section className="border-t border-cream/12 bg-ink-2 py-20 sm:py-28" aria-labelledby="facts-heading">
@@ -183,7 +184,7 @@ function ClubFacts({ lang }: { lang: Lang }) {
             })}
           </Fact>
 
-          <Fact label={tr(lang, { en: '2026 honours', cs: 'Úspěchy 2026' })}>
+          <Fact label={tr(lang, { en: `${honoursYear} honours`, cs: `Úspěchy ${honoursYear}` })}>
             <ul className="space-y-1">
               {honours.map((h) => (
                 <li key={h.en}>{h[lang]}</li>
@@ -236,15 +237,23 @@ function ClubFacts({ lang }: { lang: Lang }) {
   );
 }
 
+// The latest T10 title, for the hero stat.
+function t10Year(honours: Honour[]): number | null {
+  const years = honours.filter((h) => h.en.includes('T10') && /winners/i.test(h.en)).map((h) => h.year);
+  return years.length ? Math.max(...years) : null;
+}
+
 export default async function HomeView({ lang }: { lang: Lang }) {
   const today = pragueToday();
-  const [matches, practices, committee, sponsors, live, photos] = await Promise.all([
+  const [matches, practices, committee, sponsors, live, photos, honours, news] = await Promise.all([
     getMatches(),
     getPractices(),
     getCommittee(),
     getSponsors(),
     getLiveStatus(),
     getSitePhotos(),
+    getHonours(),
+    getNews(),
   ]);
 
   const upcoming = matches.filter((m) => m.result === 'will be played' && m.date >= today);
@@ -255,17 +264,18 @@ export default async function HomeView({ lang }: { lang: Lang }) {
     <>
       <JsonLd data={homeGraph(lang)} />
       <LiveBar live={live.live} lang={lang} />
-      <HeroSection lang={lang} photos={photos} />
+      <HeroSection lang={lang} photos={photos} t10Year={t10Year(honours)} />
       <NextMatchBar match={next} live={!!next && next.date === today && !!next.stream_url} lang={lang} />
       <ValuesBand lang={lang} />
       {lang === 'cs' && <CricketIntroCs />}
       <SquadsSection lang={lang} />
       <EventsSection upcoming={upcoming.slice(0, 4)} latest={latest} today={today} lang={lang} />
+      <NewsSection posts={news} lang={lang} />
       <SponsorsSection sponsors={sponsors} lang={lang} />
       <QuoteBand lang={lang} photo={sitePhoto(photos, PHOTO_SLOT.quote)} />
       <PracticeSection practices={practices.filter((p) => p.date >= today).slice(0, 3)} photo={sitePhoto(photos, PHOTO_SLOT.practice)} lang={lang} />
       <StorySection lang={lang} photos={sitePhotosFor(photos, [PHOTO_SLOT.story, PHOTO_SLOT.story2])} />
-      <ClubFacts lang={lang} />
+      <ClubFacts lang={lang} honours={honours} />
       <GallerySection photos={photos.slice(0, 8).map((photo) => ({ photo, href: '/gallery' }))} lang={lang} />
       <CommitteeSection members={committee} lang={lang} />
       <JoinCta lang={lang} />

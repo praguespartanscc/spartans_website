@@ -1,10 +1,11 @@
+import { getHonours } from '@/lib/data';
 import { getSitePhotos } from '@/lib/drive';
 import { PHOTO_SLOT, sitePhotoUrl } from '@/lib/photos';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { CLUB_EMAIL, GROUND, HONOURS, MEMBERSHIP, SOCIAL, SQUADS, TRAINING } from '@/lib/club';
+import { CLUB_EMAIL, GROUND, MEMBERSHIP, SOCIAL, SQUADS, TRAINING } from '@/lib/club';
 import PageHero from '@/components/ui/PageHero';
 import Reveal from '@/components/ui/Reveal';
 import JoinForm from '@/components/JoinForm';
@@ -228,7 +229,9 @@ export default async function JoinView({ lang }: { lang: Lang }) {
     ],
   });
 
-  const honours = HONOURS.filter((h) => h.year === 2026);
+  const allHonours = await getHonours();
+  const honoursYear = Math.max(...allHonours.map((h) => h.year));
+  const honours = allHonours.filter((h) => h.year === honoursYear);
 
   return (
     <>
@@ -371,7 +374,7 @@ export default async function JoinView({ lang }: { lang: Lang }) {
                 cs: 'V sezóně 2026 hrály naše tři týmy soutěže Českomoravského kriketového svazu (ČMKS): Vanguards 1. divizi, Mobilizers 2. divizi a Strikers 3. divizi. Klub hraje také ČMKS T10 a ECS Czechia, součást European Cricket Series.',
               })}
             </p>
-            <h3 className="h-sub mt-8 text-[24px]">{tr(lang, { en: '2026 honours', cs: 'Úspěchy v roce 2026' })}</h3>
+            <h3 className="h-sub mt-8 text-[24px]">{tr(lang, { en: `${honoursYear} honours`, cs: `Úspěchy v roce ${honoursYear}` })}</h3>
             <ul className="mt-4 flex flex-col gap-3">
               {honours.map((h) => (
                 <li key={h.en} className="flex items-start gap-3 text-[16px] leading-relaxed">

@@ -47,6 +47,8 @@ export const PHOTO_SLOT = {
   ground: 5,
   auth: 0,
   notFound: 5,
+  news: 2,
+  achievements: 4,
 } as const;
 
 // Several slots at once, without showing the same photo twice when the folder is small.

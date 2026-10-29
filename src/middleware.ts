@@ -5,6 +5,9 @@ import { homeFor } from '@/lib/auth';
 
 // Routes that need a signed-in admin
 const adminRoutes = ['/admin'];
+// Admin screens committee members may also use (each page checks the role itself, and the
+// database policies decide what is saved)
+const writerRoutes = ['/admin/news', '/admin/achievements'];
 // Routes that need any signed-in account (the page itself handles pending approval)
 const memberRoutes = ['/dashboard', '/score'];
 // Routes only for signed-out visitors
@@ -27,7 +30,9 @@ export async function middleware(req: NextRequest) {
 
   const { pathname } = req.nextUrl;
 
-  if (matches(pathname, adminRoutes)) {
+  if (matches(pathname, writerRoutes)) {
+    if (!user) return NextResponse.redirect(new URL(`/login?redirect=${encodeURIComponent(pathname)}`, req.url));
+  } else if (matches(pathname, adminRoutes)) {
     if (!user) {
       return NextResponse.redirect(new URL('/login?redirect=/admin', req.url));
     }

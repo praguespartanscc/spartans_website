@@ -16,8 +16,9 @@ const navLinks = [
   { href: '/players', label: { en: 'Team', cs: 'Tým' } },
   { href: '/fixtures', label: { en: 'Fixtures', cs: 'Zápasy' } },
   { href: '/practices', label: { en: 'Training', cs: 'Tréninky' } },
+  { href: '/news', label: { en: 'News', cs: 'Novinky' } },
+  { href: '/achievements', label: { en: 'Achievements', cs: 'Úspěchy' } },
   { href: '/about', label: { en: 'About', cs: 'O klubu' } },
-  { href: '/committee', label: { en: 'Committee', cs: 'Výbor' } },
   { href: '/gallery', label: { en: 'Gallery', cs: 'Galerie' } },
   { href: '/live', label: { en: 'Live', cs: 'Živě' } },
 ];

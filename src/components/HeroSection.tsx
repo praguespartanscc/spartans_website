@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight } from '@/components/ui/Icons';
 import CountUp from '@/components/ui/CountUp';
-import { FOUNDED, HONOURS } from '@/lib/club';
+import { FOUNDED } from '@/lib/club';
 import { localePath, tr, type Lang } from '@/lib/i18n';
 
 const SLIDE_MS = 6500;
@@ -29,18 +29,20 @@ function toSlides(photos: Photo[]): Slide[] {
   });
 }
 
-// Numeric stats count up on load (from `from`); text stats stay as they are.
-const stats: { value: string; count?: { to: number; from: number }; label: { en: string; cs: string } }[] = [
-  { value: String(FOUNDED), count: { to: FOUNDED, from: FOUNDED - 30 }, label: { en: 'Founded', cs: 'Rok založení' } },
-  { value: '3', count: { to: 3, from: 0 }, label: { en: 'Squads', cs: 'Týmy' } },
-  // The most recent T10 title from the honours list, so the stat never goes stale.
-  ...HONOURS.filter((h) => h.en.includes('T10'))
-    .sort((x, y) => y.year - x.year)
-    .slice(0, 1)
-    .map((h) => ({ value: 'T10', label: { en: `${h.year} ČMKS winners`, cs: `Vítězové ČMKS ${h.year}` } })),
-];
+type Stat = { value: string; count?: { to: number; from: number }; label: { en: string; cs: string } };
 
-const HeroSection = ({ lang = 'en', photos = [] }: { lang?: Lang; photos?: Photo[] }) => {
+// Numeric stats count up on load (from `from`); text stats stay as they are. The T10 stat
+// shows the latest T10 title from the achievements list, so it never goes stale.
+function statsFor(t10Year: number | null): Stat[] {
+  return [
+    { value: String(FOUNDED), count: { to: FOUNDED, from: FOUNDED - 30 }, label: { en: 'Founded', cs: 'Rok založení' } },
+    { value: '3', count: { to: 3, from: 0 }, label: { en: 'Squads', cs: 'Týmy' } },
+    ...(t10Year ? [{ value: 'T10', label: { en: `${t10Year} ČMKS winners`, cs: `Vítězové ČMKS ${t10Year}` } }] : []),
+  ];
+}
+
+const HeroSection = ({ lang = 'en', photos = [], t10Year = null }: { lang?: Lang; photos?: Photo[]; t10Year?: number | null }) => {
+  const stats = statsFor(t10Year);
   const slides = useMemo(() => toSlides(photos), [photos]);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
