@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import toast, { Toaster } from 'react-hot-toast';
-import type { Player, Profile } from '@/types/supabase';
+import type { CommitteeMember, Player, Profile } from '@/types/supabase';
+import { COMMITTEE_POSITIONS } from '@/lib/club';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 
 type Status = Profile['status'];
@@ -17,6 +18,7 @@ const TABS: { id: Status; label: string }[] = [
 // From public.admin_list() (supabase/migrations/08_admin_roles.sql)
 type Admin = { email: string; user_id: string | null; full_name: string | null; signed_up: boolean };
 
+// team '' means the player pool: an admin picks the squad later in Players.
 type LinkChoice = { mode: 'existing'; playerId: string } | { mode: 'new'; team: string; type: string } | { mode: 'none' };
 
 const btn = 'rounded-md px-3 py-1.5 text-sm';
@@ -33,6 +35,7 @@ export default function MembersManagement() {
   const supabase = useMemo(() => createClientComponentClient(), []);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
+  const [committee, setCommittee] = useState<CommitteeMember[]>([]);
   const [tab, setTab] = useState<Tab>('pending');
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [myEmail, setMyEmail] = useState('');
@@ -45,15 +48,17 @@ export default function MembersManagement() {
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    const [{ data: p, error }, { data: pl }, { data: a }, { data: me }] = await Promise.all([
+    const [{ data: p, error }, { data: pl }, { data: a }, { data: me }, { data: c }] = await Promise.all([
       supabase.from('profiles').select('*').order('created_at', { ascending: false }),
       supabase.from('players').select('*').order('name'),
       supabase.rpc('admin_list'),
       supabase.auth.getUser(),
+      supabase.from('committee').select('*'),
     ]);
     if (error) setMissingSetup(true);
     setProfiles((p ?? []) as Profile[]);
     setPlayers((pl ?? []) as Player[]);
+    setCommittee((c ?? []) as CommitteeMember[]);
     setAdmins((a ?? []) as Admin[]);
     setMyEmail(me.user?.email?.toLowerCase() ?? '');
     setLoading(false);
@@ -68,7 +73,7 @@ export default function MembersManagement() {
 
   function openApprove(p: Profile) {
     const s = suggest(p, freePlayers);
-    setChoice(s ? { mode: 'existing', playerId: s.id } : { mode: 'new', team: 'Vanguards', type: 'batsman' });
+    setChoice(s ? { mode: 'existing', playerId: s.id } : { mode: 'new', team: '', type: 'batsman' });
     setApproving(p);
   }
 
@@ -81,7 +86,7 @@ export default function MembersManagement() {
       if (choice.mode === 'new') {
         const { data, error } = await supabase
           .from('players')
-          .insert([{ name: approving.full_name || approving.email, team: choice.team, player_type: choice.type, role: 'player', cricheroes_url: approving.cricheroes_url }])
+          .insert([{ name: approving.full_name || approving.email, team: choice.team || null, player_type: choice.type, role: 'player', cricheroes_url: approving.cricheroes_url }])
           .select()
           .single();
         if (error) throw error;
@@ -117,6 +122,22 @@ export default function MembersManagement() {
     }
   }
 
+  // A committee role belongs to the member: their name and photo show on the Committee page.
+  async function setRole(p: Profile, position: string) {
+    const row = committee.find((c) => c.profile_id === p.id);
+    const name = playerName(p.player_id) || p.full_name || p.email || 'Member';
+    const { error } = !position
+      ? await supabase.from('committee').delete().eq('profile_id', p.id)
+      : row
+        ? await supabase.from('committee').update({ position, name }).eq('id', row.id)
+        : await supabase.from('committee').insert([{ position, name, profile_id: p.id, sort_order: 100 }]);
+    if (error) toast.error(error.message.includes('profile_id') ? 'Run supabase/migrations/13_roles_pool_photos.sql first' : error.message);
+    else {
+      toast.success(position ? `${name} is now ${position}` : `${name} no longer has a committee role`);
+      load();
+    }
+  }
+
   async function setAdmin(email: string, makeAdmin: boolean) {
     setBusy(true);
     const { error } = await supabase.rpc('set_admin', { target_email: email, make_admin: makeAdmin });
@@ -132,12 +153,15 @@ export default function MembersManagement() {
 
   if (loading) return <div className="h-40 animate-pulse rounded bg-gray-200" />;
   if (missingSetup)
-    return <p className="text-gray-700">Member accounts aren&apos;t switched on yet. Run <code>supabase/migrations/002_members.sql</code> in Supabase first.</p>;
+    return <p className="text-gray-700">Member accounts aren&apos;t switched on yet. Run <code>supabase/migrations/04_members.sql</code> in Supabase first.</p>;
 
   const list = profiles.filter((p) => p.status === tab);
   const adminEmails = new Set(admins.map((a) => a.email.toLowerCase()));
   const isAdminEmail = (email: string | null) => !!email && adminEmails.has(email.toLowerCase());
-  const playerName = (id: string | null) => players.find((pl) => pl.id === id)?.name;
+  function playerName(id: string | null) {
+    return players.find((pl) => pl.id === id)?.name;
+  }
+  const roleOf = (p: Profile) => committee.find((c) => c.profile_id === p.id)?.position ?? '';
 
   return (
     <div className="space-y-5">
@@ -217,6 +241,7 @@ export default function MembersManagement() {
                 <p className="font-medium text-gray-900">
                   {p.full_name || '(no name)'}
                   {isAdminEmail(p.email) && <span className="ml-2 rounded bg-black px-2 py-0.5 text-xs text-white">Admin</span>}
+                  {roleOf(p) && <span className="ml-2 rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-900">{roleOf(p)}</span>}
                 </p>
                 <p className="text-sm text-gray-500">
                   {p.email} · joined {new Date(p.created_at).toLocaleDateString('en-GB')}
@@ -231,6 +256,9 @@ export default function MembersManagement() {
                   )}
                 </p>
                 {tab === 'approved' && (
+                  <RolePicker value={roleOf(p)} onChange={(v) => setRole(p, v)} id={p.id} />
+                )}
+                {tab === 'approved' && (
                   <div className="mt-2 flex items-center gap-2 text-sm">
                     <label htmlFor={`link-${p.id}`} className="text-gray-600">
                       Player:
@@ -240,7 +268,7 @@ export default function MembersManagement() {
                       {p.player_id && <option value={p.player_id}>{playerName(p.player_id)}</option>}
                       {freePlayers.map((pl) => (
                         <option key={pl.id} value={pl.id}>
-                          {pl.name} ({pl.team})
+                          {pl.name} ({pl.team ?? 'player pool'})
                         </option>
                       ))}
                     </select>
@@ -303,7 +331,7 @@ export default function MembersManagement() {
                     <select className={`${input} mt-1`} value={choice.playerId} onChange={(e) => setChoice({ mode: 'existing', playerId: e.target.value })}>
                       {freePlayers.map((pl) => (
                         <option key={pl.id} value={pl.id}>
-                          {pl.name} ({pl.team})
+                          {pl.name} ({pl.team ?? 'player pool'})
                         </option>
                       ))}
                     </select>
@@ -311,12 +339,13 @@ export default function MembersManagement() {
                 </span>
               </label>
               <label className="flex items-start gap-2">
-                <input type="radio" checked={choice.mode === 'new'} onChange={() => setChoice({ mode: 'new', team: 'Vanguards', type: 'batsman' })} />
+                <input type="radio" checked={choice.mode === 'new'} onChange={() => setChoice({ mode: 'new', team: '', type: 'batsman' })} />
                 <span className="flex-1">
                   Create a new player
                   {choice.mode === 'new' && (
                     <span className="mt-1 grid grid-cols-2 gap-2">
                       <select className={input} value={choice.team} onChange={(e) => setChoice({ ...choice, team: e.target.value })}>
+                        <option value="">Player pool (pick a squad later)</option>
                         <option>Vanguards</option>
                         <option>Mobilizers</option>
                         <option>Strikers</option>
@@ -347,6 +376,52 @@ export default function MembersManagement() {
             </div>
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+// None, a standard committee role, or any other role typed in.
+function RolePicker({ value, onChange, id }: { value: string; onChange: (v: string) => void; id: string }) {
+  const standard = value === '' || COMMITTEE_POSITIONS.includes(value);
+  const [other, setOther] = useState(standard ? '' : value);
+  const [typing, setTyping] = useState(!standard);
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+      <label htmlFor={`role-${id}`} className="text-gray-600">
+        Committee role:
+      </label>
+      <select
+        id={`role-${id}`}
+        value={typing ? '__other' : value}
+        onChange={(e) => {
+          if (e.target.value === '__other') return setTyping(true);
+          setTyping(false);
+          onChange(e.target.value);
+        }}
+        className="rounded-md border-gray-300 text-sm"
+      >
+        <option value="">None</option>
+        {COMMITTEE_POSITIONS.map((r) => (
+          <option key={r} value={r}>
+            {r}
+          </option>
+        ))}
+        <option value="__other">Other role…</option>
+      </select>
+      {typing && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (other.trim()) onChange(other.trim());
+          }}
+          className="flex gap-2"
+        >
+          <input value={other} onChange={(e) => setOther(e.target.value)} placeholder="e.g. Social Secretary" className="rounded-md border-gray-300 text-sm" maxLength={40} />
+          <button type="submit" className="rounded-md bg-black px-3 py-1.5 text-sm text-white">
+            Save
+          </button>
+        </form>
       )}
     </div>
   );

@@ -14,7 +14,7 @@ const EMPTY = {
   age: '',
   player_type: 'batsman',
   role: 'player',
-  team: 'Vanguards',
+  team: '', // '' is the player pool: no squad yet
   photo_url: null as string | null,
   jersey_number: '',
   batting_style: '',
@@ -29,6 +29,8 @@ const input =
   'block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black text-sm';
 const label = 'block text-xs sm:text-sm font-medium text-gray-700 mb-1';
 
+const SQUADS = ['Vanguards', 'Mobilizers', 'Strikers'];
+
 const toInt = (v: string) => (v.trim() === '' ? null : Number.parseInt(v, 10));
 const orNull = (v: string) => (v.trim() === '' ? null : v.trim());
 
@@ -42,6 +44,7 @@ export default function TeamManagement() {
   const [search, setSearch] = useState('');
   const [squad, setSquad] = useState('all');
   const [linked, setLinked] = useState<Set<string>>(new Set());
+  const [picked, setPicked] = useState<Set<string>>(new Set());
   const supabase = createClientComponentClient();
 
   const fetchPlayers = useCallback(async () => {
@@ -83,7 +86,7 @@ export default function TeamManagement() {
       age: p.age != null ? String(p.age) : '',
       player_type: p.player_type ?? 'batsman',
       role: p.role ?? 'player',
-      team: p.team ?? 'Vanguards',
+      team: p.team ?? '',
       photo_url: p.photo_url ?? null,
       jersey_number: p.jersey_number != null ? String(p.jersey_number) : '',
       batting_style: p.batting_style ?? '',
@@ -116,7 +119,7 @@ export default function TeamManagement() {
         name: form.name.trim(),
         player_type: form.player_type,
         role: form.role,
-        team: form.team,
+        team: form.team || null,
         photo_url: form.photo_url,
         jersey_number: toInt(form.jersey_number),
         batting_style: orNull(form.batting_style),
@@ -152,6 +155,16 @@ export default function TeamManagement() {
     }
   }
 
+  // Admins place players from the pool (or move them) with one tap.
+  async function assignSquad(ids: string[], team: string) {
+    if (!ids.length) return;
+    const { error } = await supabase.from('players').update({ team }).in('id', ids);
+    if (error) return void toast.error(error.message);
+    toast.success(`${ids.length === 1 ? players.find((p) => String(p.id) === ids[0])?.name ?? 'Player' : `${ids.length} players`} added to ${team}`);
+    setPicked(new Set());
+    fetchPlayers();
+  }
+
   async function remove() {
     if (!toDelete) return;
     setIsSubmitting(true);
@@ -169,6 +182,8 @@ export default function TeamManagement() {
       setToDelete(null);
     }
   }
+
+  const pool = players.filter((p) => !p.team && p.is_active !== false);
 
   if (isLoading) {
     return (
@@ -196,6 +211,7 @@ export default function TeamManagement() {
           <div>
             <label htmlFor="team" className={label}>Squad</label>
             <select id="team" value={form.team} onChange={(e) => set({ team: e.target.value })} className={input}>
+              <option value="">Player pool (no squad yet)</option>
               <option value="Vanguards">Vanguards</option>
               <option value="Mobilizers">Mobilizers</option>
               <option value="Strikers">Strikers</option>
@@ -289,6 +305,58 @@ export default function TeamManagement() {
         </div>
       </form>
 
+      {pool.length > 0 && (
+        <section className="rounded-lg border border-amber-200 bg-amber-50 p-4 sm:p-6" aria-labelledby="pool-heading">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 id="pool-heading" className="text-base font-semibold text-black">
+                Player pool ({pool.length})
+              </h3>
+              <p className="text-sm text-gray-700">New members land here. Pick a squad for each, or tick several and add them together.</p>
+            </div>
+            {picked.size > 0 && (
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="text-gray-700">Add {picked.size} to</span>
+                {SQUADS.map((t) => (
+                  <button key={t} onClick={() => assignSquad([...picked], t)} className="rounded-md bg-black px-3 py-1.5 text-white hover:bg-gray-800">
+                    {t}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <ul className="mt-4 divide-y divide-amber-200">
+            {pool.map((p) => (
+              <li key={p.id} className="flex flex-wrap items-center gap-3 py-2">
+                <input
+                  type="checkbox"
+                  aria-label={`Select ${p.name}`}
+                  checked={picked.has(String(p.id))}
+                  onChange={(e) =>
+                    setPicked((s) => {
+                      const n = new Set(s);
+                      if (e.target.checked) n.add(String(p.id));
+                      else n.delete(String(p.id));
+                      return n;
+                    })
+                  }
+                />
+                <span className="min-w-[10rem] flex-1 font-medium text-gray-900">
+                  {p.name} <span className="text-sm font-normal capitalize text-gray-500">{p.player_type}</span>
+                </span>
+                <span className="flex flex-wrap gap-2">
+                  {SQUADS.map((t) => (
+                    <button key={t} onClick={() => assignSquad([String(p.id)], t)} className="rounded-md px-3 py-1.5 text-sm ring-1 ring-gray-300 hover:bg-white">
+                      {t}
+                    </button>
+                  ))}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <div className="flex flex-wrap gap-3">
         <input
           type="search"
@@ -303,6 +371,7 @@ export default function TeamManagement() {
           <option>Vanguards</option>
           <option>Mobilizers</option>
           <option>Strikers</option>
+          <option value="pool">Player pool</option>
           <option value="hidden">Hidden players</option>
         </select>
       </div>
@@ -310,7 +379,7 @@ export default function TeamManagement() {
       <div className="overflow-hidden rounded-lg bg-white shadow-md">
         <ul className="divide-y divide-gray-200">
           {players
-            .filter((p) => (squad === 'all' ? true : squad === 'hidden' ? p.is_active === false : p.team === squad))
+            .filter((p) => (squad === 'all' ? true : squad === 'hidden' ? p.is_active === false : squad === 'pool' ? !p.team : p.team === squad))
             .filter((p) => p.name.toLowerCase().includes(search.toLowerCase().trim()))
             .map((p) => (
             <li key={p.id} className="flex flex-wrap items-center gap-4 px-4 py-3 sm:px-6">
@@ -331,7 +400,7 @@ export default function TeamManagement() {
                   {linked.has(String(p.id)) && <span className="ml-2 rounded bg-green-100 px-1.5 text-xs text-green-800">member account</span>}
                 </p>
                 <p className="text-sm capitalize text-gray-500">
-                  {p.team ?? 'No squad'} · {p.player_type}
+                  {p.team ?? 'Player pool'} · {p.player_type}
                   {p.email ? ` · ${p.email}` : ''}
                 </p>
               </div>

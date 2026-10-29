@@ -9,6 +9,8 @@ const adminRoutes = ['/admin'];
 const memberRoutes = ['/dashboard', '/score'];
 // Routes only for signed-out visitors
 const authRoutes = ['/login'];
+// Setting a new password needs a session (from the email link, or a signed-in member)
+const passwordRoutes = ['/update-password'];
 
 const matches = (pathname: string, routes: string[]) =>
   routes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
@@ -39,6 +41,10 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL(`/login?redirect=${encodeURIComponent(pathname)}`, req.url));
   }
 
+  if (matches(pathname, passwordRoutes) && !user) {
+    return NextResponse.redirect(new URL('/reset-password', req.url));
+  }
+
   if (matches(pathname, authRoutes) && user) {
     return NextResponse.redirect(new URL(homeFor(user), req.url));
   }
@@ -47,5 +53,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/dashboard/:path*', '/score/:path*', '/login', '/auth/callback'],
+  matcher: ['/admin/:path*', '/dashboard/:path*', '/score/:path*', '/login', '/update-password', '/auth/callback'],
 };

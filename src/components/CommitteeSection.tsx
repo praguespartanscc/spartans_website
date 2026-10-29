@@ -1,18 +1,11 @@
 import Link from 'next/link';
+import { POSITION_CS } from '@/lib/club';
 import type { CommitteeMember } from '@/types/supabase';
 import SectionHeading from '@/components/ui/SectionHeading';
 import Reveal from '@/components/ui/Reveal';
 import Avatar from '@/components/ui/Avatar';
 import { ArrowRight } from '@/components/ui/Icons';
 import { localePath, tr, type Lang } from '@/lib/i18n';
-
-const POSITION_CS: Record<string, string> = {
-  President: 'Prezident',
-  Chairman: 'Předseda',
-  Secretary: 'Jednatel',
-  Treasurer: 'Pokladník',
-  Manager: 'Manažer',
-};
 
 export default function CommitteeSection({ members, lang = 'en' }: { members: CommitteeMember[]; lang?: Lang }) {
   if (members.length === 0) return null;

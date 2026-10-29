@@ -187,6 +187,21 @@ export const PLAYER_TYPE_LABEL: Record<string, string> = {
 
 export const POSITION_ORDER = ['President', 'Chairman', 'Secretary', 'Treasurer', 'Manager'];
 
+// Roles an admin can give from the members list or the committee screen (any other role can be typed).
+export const COMMITTEE_POSITIONS = ['President', 'Chairman', 'Vice-President', 'Secretary', 'Treasurer', 'Manager', 'Team Manager', 'Welfare Officer'];
+
+// Czech names for committee roles, shared by the committee page and the home section.
+export const POSITION_CS: Record<string, string> = {
+  President: 'Prezident',
+  Chairman: 'Předseda',
+  'Vice-President': 'Viceprezident',
+  Secretary: 'Jednatel',
+  Treasurer: 'Pokladník',
+  Manager: 'Manažer',
+  'Team Manager': 'Týmový manažer',
+  'Welfare Officer': 'Pověřenec pro ochranu dětí',
+};
+
 export const ROLE_DESCRIPTIONS: Record<string, string> = {
   President: "Serves as the figurehead and leads the club's official functions.",
   Chairman: "Chairs committee meetings and oversees the club's direction.",

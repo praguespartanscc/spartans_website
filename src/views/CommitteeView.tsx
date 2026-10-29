@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { getCommittee } from '@/lib/data';
-import { ROLE_DESCRIPTIONS } from '@/lib/club';
+import { POSITION_CS, ROLE_DESCRIPTIONS } from '@/lib/club';
 import type { CommitteeMember } from '@/types/supabase';
 import PageHero from '@/components/ui/PageHero';
 import Reveal from '@/components/ui/Reveal';
@@ -24,14 +24,6 @@ export function committeeMeta(lang: Lang): Metadata {
     }),
   });
 }
-
-const POSITION_CS: Record<string, string> = {
-  President: 'Prezident',
-  Chairman: 'Předseda',
-  Secretary: 'Jednatel',
-  Treasurer: 'Pokladník',
-  Manager: 'Manažer',
-};
 
 const ROLE_DESCRIPTIONS_CS: Record<string, string> = {
   President: 'Reprezentuje klub navenek a vede jeho oficiální akce.',

@@ -1,12 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { COMMITTEE_POSITIONS } from '@/lib/club';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import toast, { Toaster } from 'react-hot-toast';
 import type { CommitteeMember } from '@/types/supabase';
 import PhotoUpload, { removeClubPhoto } from './PhotoUpload';
 
-const POSITIONS = ['President', 'Chairman', 'Vice-President', 'Secretary', 'Treasurer', 'Manager', 'Team Manager'];
+const POSITIONS = COMMITTEE_POSITIONS;
 
 const EMPTY = { name: '', position: 'President', photo_url: null as string | null, bio: '', contact_email: '', sort_order: '100' };
 
@@ -122,14 +123,19 @@ export default function CommitteeManagement() {
     <div className="space-y-6">
       <Toaster position="top-right" />
       <form onSubmit={save} className="rounded-lg bg-gray-50 p-4 sm:p-6">
-        <h3 className="mb-4 text-base font-semibold text-black sm:text-lg">{editing ? `Edit ${editing.name}` : 'Add committee member'}</h3>
-        <div className="mb-5">
-          <PhotoUpload supabase={supabase} folder="committee" value={form.photo_url} onChange={(url) => set({ photo_url: url })} />
-        </div>
+        <h3 className="mb-1 text-base font-semibold text-black sm:text-lg">{editing ? `Edit ${editing.name}` : 'Add someone without a member account'}</h3>
+        {!editing && <p className="mb-4 text-sm text-gray-600">Members get their committee role in Members, so their own name and photo are used. Add people here only if they have no account.</p>}
+        {editing?.profile_id ? (
+          <p className="mb-4 text-sm text-gray-600">This role belongs to a member account, so the name and photo come from their profile. Change the role in Members.</p>
+        ) : (
+          <div className="mb-5">
+            <PhotoUpload supabase={supabase} folder="committee" value={form.photo_url} onChange={(url) => set({ photo_url: url })} />
+          </div>
+        )}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <label htmlFor="c-name" className={label}>Name</label>
-            <input id="c-name" value={form.name} onChange={(e) => set({ name: e.target.value })} className={input} required />
+            <input id="c-name" value={form.name} onChange={(e) => set({ name: e.target.value })} className={input} required disabled={!!editing?.profile_id} />
           </div>
           <div>
             <label htmlFor="c-position" className={label}>Position</label>
@@ -176,7 +182,10 @@ export default function CommitteeManagement() {
                 <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-200 text-xs text-gray-600">{m.sort_order ?? ''}</span>
               )}
               <div className="min-w-0 flex-1">
-                <p className="font-medium text-gray-900">{m.name}</p>
+                <p className="font-medium text-gray-900">
+                  {m.name}
+                  {m.profile_id && <span className="ml-2 rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600">From members list</span>}
+                </p>
                 <p className="text-sm text-gray-500">
                   {m.position}
                   {m.contact_email ? ` · ${m.contact_email}` : ''}

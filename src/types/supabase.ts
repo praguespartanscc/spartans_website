@@ -79,6 +79,8 @@ export type CommitteeMember = {
   contact_email?: string | null;
   sort_order?: number | null;
   created_at?: string;
+  profile_id?: string | null; // set when the role belongs to a member account
+  linked?: boolean; // from committee_public(): name and photo come from the member
 };
 
 export type TeamApplication = {
@@ -101,6 +103,7 @@ export type Profile = {
   cricheroes_url: string | null;
   status: 'pending' | 'approved' | 'rejected';
   player_id: string | null;
+  photo_url?: string | null;
   created_at: string;
 };
 

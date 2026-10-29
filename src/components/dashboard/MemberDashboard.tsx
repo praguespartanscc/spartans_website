@@ -8,7 +8,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import type { Availability, DirectoryEntry, Match, Notice, Player, Practice, PracticeRsvp, Profile } from '@/types/supabase';
 import { dateParts, formatDivision, formatTime, slugify, titleCase } from '@/lib/format';
 import { CRICHEROES_HELP, isCricHeroesProfile } from '@/lib/auth';
-import { uploadImage } from '@/components/admin/PhotoUpload';
+import { removeClubPhoto, uploadImage } from '@/components/admin/PhotoUpload';
 import Avatar from '@/components/ui/Avatar';
 import { ArrowRight, ArrowUpRight, Check } from '@/components/ui/Icons';
 
@@ -507,11 +507,22 @@ function ProfileTab({ profile, onProfile }: { profile: Profile; onProfile: (p: P
       });
   }, [supabase, profile.player_id]);
 
-  async function pickPhoto(file: File) {
+  // Every approved member can set their own photo, linked to a player or not. It saves straight
+  // away (update_my_photo), and a linked player's photo follows.
+  const photo = profile.photo_url ?? form.photo_url ?? null;
+  async function setPhoto(file: File | null) {
     setBusy(true);
     try {
-      const url = await uploadImage(supabase, file, { folder: `members/${profile.id}` });
+      const url = file ? await uploadImage(supabase, file, { folder: `members/${profile.id}` }) : null;
+      const { error } = await supabase.rpc('update_my_photo', { p_url: url });
+      if (error) {
+        if (url) await removeClubPhoto(supabase, url);
+        throw error;
+      }
+      if (photo && photo !== url && photo.includes(`/members/${profile.id}/`)) await removeClubPhoto(supabase, photo);
       setForm((f) => ({ ...f, photo_url: url }));
+      onProfile({ ...profile, photo_url: url });
+      toast.success(url ? 'Photo saved' : 'Photo removed');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Upload failed');
     } finally {
@@ -523,7 +534,7 @@ function ProfileTab({ profile, onProfile }: { profile: Profile; onProfile: (p: P
     e.preventDefault();
     setBusy(true);
     const { error } = await supabase.rpc('update_my_player_profile', {
-      p_photo_url: form.photo_url,
+      p_photo_url: photo,
       p_bio: form.bio,
       p_batting_style: form.batting_style,
       p_bowling_style: form.bowling_style,
@@ -537,28 +548,36 @@ function ProfileTab({ profile, onProfile }: { profile: Profile; onProfile: (p: P
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
       <div className="card p-6 sm:p-8">
+        <div className="mb-6 flex flex-wrap items-center gap-5 border-b border-cream/12 pb-6">
+          <Avatar name={player?.name ?? profile.full_name ?? 'Member'} src={photo} size={96} tone="gold" />
+          <div className="flex flex-col gap-2">
+            <p className="h-sub text-[26px]">{player?.name ?? profile.full_name ?? 'Your photo'}</p>
+            <div className="flex flex-wrap gap-2">
+              <label className="btn btn-outline min-h-10 cursor-pointer px-4 text-[15px]">
+                {busy ? 'Saving…' : photo ? 'Change photo' : 'Add photo'}
+                <input type="file" accept="image/*" className="sr-only" disabled={busy} onChange={(e) => e.target.files?.[0] && setPhoto(e.target.files[0])} />
+              </label>
+              {photo && (
+                <button type="button" disabled={busy} onClick={() => setPhoto(null)} className="btn btn-outline min-h-10 px-4 text-[15px]">
+                  Remove
+                </button>
+              )}
+            </div>
+            <p className="text-sm text-muted">Shown on your player profile and, if you are on the committee, on the Committee page.</p>
+          </div>
+        </div>
         {loading ? (
           <div className="skeleton h-64" />
         ) : !player ? (
           <>
-            <p className="h-sub text-[26px]">Player profile not linked yet</p>
+            <p className="h-sub text-[22px]">Player profile not linked yet</p>
             <p className="mt-3 text-sand">
-              Once a committee member links your account to your player profile, you&apos;ll be able to add your photo, bio and playing style
-              here.
+              New members join the player pool first. Once an admin places you in a squad and links your account, you can add your bio and
+              playing style here.
             </p>
           </>
         ) : (
           <form onSubmit={save} className="flex flex-col gap-5">
-            <div className="flex flex-wrap items-center gap-5">
-              <Avatar name={player.name} src={form.photo_url} size={96} tone="gold" />
-              <div className="flex flex-col gap-2">
-                <p className="h-sub text-[26px]">{player.name}</p>
-                <label className="btn btn-outline min-h-10 cursor-pointer px-4 text-[15px]">
-                  {busy ? 'Uploading…' : form.photo_url ? 'Change photo' : 'Add photo'}
-                  <input type="file" accept="image/*" className="sr-only" onChange={(e) => e.target.files?.[0] && pickPhoto(e.target.files[0])} />
-                </label>
-              </div>
-            </div>
             <div className="grid gap-4 sm:grid-cols-3">
               <div>
                 <label htmlFor="p-bat" className="field-label">Batting style</label>
@@ -595,6 +614,10 @@ function ProfileTab({ profile, onProfile }: { profile: Profile; onProfile: (p: P
           Your CricHeroes profile <ArrowUpRight size={16} />
         </a>
         <CricHeroesForm current={profile.cricheroes_url} onSaved={(url) => onProfile({ ...profile, cricheroes_url: url })} />
+        <p className="eyebrow mb-3 mt-8">Account</p>
+        <Link href="/update-password" className="link-arrow text-[16px]">
+          Change password <ArrowRight size={16} />
+        </Link>
       </div>
     </div>
   );

@@ -89,7 +89,11 @@ export const getCommittee = cache(async (): Promise<CommitteeMember[]> => {
     const i = POSITION_ORDER.indexOf(p);
     return i === -1 ? POSITION_ORDER.length : i;
   };
-  const rows = await readAll<CommitteeMember>('committee');
+  // Linked members show their current name and photo (committee_public, migration 13).
+  let rows: CommitteeMember[] = [];
+  const res = db ? await db.rpc('committee_public') : null;
+  if (res && !res.error && Array.isArray(res.data)) rows = res.data as CommitteeMember[];
+  else rows = await readAll<CommitteeMember>('committee');
   return rows.sort((a, b) => (a.sort_order ?? 100) - (b.sort_order ?? 100) || rank(a.position) - rank(b.position));
 });
 
