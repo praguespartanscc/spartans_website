@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { signUpWithEmail } from '@/services/authService';
-import AuthShell, { SuccessNote } from '@/components/AuthShell';
-import { CRICHEROES_HELP, isCricHeroesProfile } from '@/lib/auth';
+import AuthShell, { ResendEmail, SuccessNote } from '@/components/AuthShell';
+import { CRICHEROES_HELP } from '@/lib/auth';
+import { resolveCricHeroes } from '@/lib/cricheroes';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
@@ -18,13 +19,20 @@ export default function SignUp() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!isCricHeroesProfile(cricheroes)) {
-      setError('Please paste your CricHeroes player profile link. It looks like https://cricheroes.com/player-profile/12345/your-name');
+    setIsLoading(true);
+    // Any form of CricHeroes link works: the app's Share link, the web page, or the player ID.
+    const link = await resolveCricHeroes(cricheroes, fullName);
+    if ('error' in link) {
+      setError(link.error);
+      setIsLoading(false);
       return;
     }
-    setIsLoading(true);
+    setCricheroes(link.url);
     try {
-      const { error } = await signUpWithEmail(email, password, fullName, cricheroes);
+      const { user, error } = await signUpWithEmail(email, password, fullName, link.url);
+      if (!error && user && user.identities && user.identities.length === 0) {
+        throw new Error('There is already an account with this email. Sign in, or use Forgot password to set a new one.');
+      }
       if (error) {
         if (error.message === 'Email not confirmed') {
           setSuccess(true); // Show success message even though email needs confirmation
@@ -59,6 +67,13 @@ export default function SignUp() {
             We sent a confirmation email to {email}. Click the link inside to activate your account. A committee member
             will then approve you as a club member, and your member dashboard will open up.
           </p>
+          <div className="mt-4 border-t border-cream/12 pt-4">
+            <p className="mb-3 text-sm">No email after a few minutes? Check your spam folder, or send it again.</p>
+            <ResendEmail email={email} />
+            <button type="button" onClick={() => setSuccess(false)} className="mt-3 text-sm font-semibold text-gold hover:text-gold-hi">
+              Wrong email address? Go back
+            </button>
+          </div>
         </SuccessNote>
       ) : (
         <form className="flex flex-col gap-5" onSubmit={handleSubmit}>

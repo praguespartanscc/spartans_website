@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { PHOTO_SLOT } from '@/lib/photos';
+import { resendConfirmation } from '@/services/authService';
 import type { ReactNode } from 'react';
 
 type AuthShellProps = {
@@ -57,6 +59,52 @@ export function SuccessNote({ title, children }: { title: string; children: Reac
       </span>
       <h2 className="font-display text-2xl font-extrabold uppercase">{title}</h2>
       <div className="text-muted">{children}</div>
+    </div>
+  );
+}
+
+// "Didn't get the email?" Sends the confirmation again, then waits a minute before the next try.
+export function ResendEmail({ email }: { email: string }) {
+  const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [message, setMessage] = useState('');
+  const [wait, setWait] = useState(0);
+
+  useEffect(() => {
+    if (wait <= 0) return;
+    const t = window.setTimeout(() => setWait((w) => w - 1), 1000);
+    return () => window.clearTimeout(t);
+  }, [wait]);
+
+  async function send() {
+    if (!email.trim()) {
+      setState('error');
+      setMessage('Type your email address above first.');
+      return;
+    }
+    setState('sending');
+    try {
+      await resendConfirmation(email);
+      setState('sent');
+      setMessage(`Sent again to ${email.trim()}. It can take a few minutes. Check your spam or promotions folder too.`);
+      setWait(60);
+    } catch (err) {
+      const text = err instanceof Error ? err.message : '';
+      setState('error');
+      setMessage(/rate|seconds|security purposes/i.test(text) ? 'Please wait a minute before asking again.' : text || 'Could not send the email. Try again in a minute.');
+      setWait(30);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <button type="button" onClick={send} disabled={state === 'sending' || wait > 0} className="btn btn-outline w-full">
+        {state === 'sending' ? 'Sending…' : wait > 0 ? `Send again in ${wait}s` : 'Resend the confirmation email'}
+      </button>
+      {message && (
+        <p role="status" className={`text-sm ${state === 'error' ? 'text-gold' : 'text-muted'}`}>
+          {message}
+        </p>
+      )}
     </div>
   );
 }

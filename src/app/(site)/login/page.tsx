@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { signInWithEmail } from '@/services/authService';
 import { homeFor, safeRedirect } from '@/lib/auth';
 import { useSearchParams } from 'next/navigation';
-import AuthShell from '@/components/AuthShell';
+import AuthShell, { ResendEmail } from '@/components/AuthShell';
 
 function LoginForm() {
   const [email, setEmail] = useState('');
@@ -14,16 +14,27 @@ function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
   const redirectPath = safeRedirect(searchParams.get('redirect'));
+  const expired = searchParams.get('link') === 'expired';
+  const [unconfirmed, setUnconfirmed] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setUnconfirmed(false);
     setIsLoading(true);
     try {
       const { user } = await signInWithEmail(email, password);
       window.location.href = redirectPath ?? homeFor(user);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'An error occurred during sign in');
+      const message = error instanceof Error ? error.message : '';
+      if (/email not confirmed/i.test(message)) {
+        setUnconfirmed(true);
+        setError('Your email address is not confirmed yet. Click the link in the email we sent you, or send it again below.');
+      } else if (/invalid login credentials/i.test(message)) {
+        setError('That email and password do not match. Check them, or use Forgot password.');
+      } else {
+        setError(message || 'An error occurred during sign in');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -31,6 +42,11 @@ function LoginForm() {
 
   return (
     <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+      {expired && !error && (
+        <div className="alert-error" role="alert">
+          That email link has expired or was already used. Sign in below. If your account is not confirmed yet, type your email and send a new link.
+        </div>
+      )}
       {error && <div className="alert-error" role="alert">{error}</div>}
       <div>
         <label htmlFor="email" className="field-label">
@@ -52,6 +68,7 @@ function LoginForm() {
       <button type="submit" disabled={isLoading} className="btn btn-gold btn-lg mt-2 w-full">
         {isLoading ? 'Signing in...' : 'Sign in'}
       </button>
+      {(unconfirmed || expired) && <ResendEmail email={email} />}
     </form>
   );
 }

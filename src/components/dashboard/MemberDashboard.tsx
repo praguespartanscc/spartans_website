@@ -7,7 +7,8 @@ import type { User } from '@supabase/supabase-js';
 import toast, { Toaster } from 'react-hot-toast';
 import type { Availability, DirectoryEntry, Match, Notice, Player, Practice, PracticeRsvp, Profile } from '@/types/supabase';
 import { dateParts, formatDivision, formatTime, slugify, titleCase } from '@/lib/format';
-import { CRICHEROES_HELP, isCricHeroesProfile } from '@/lib/auth';
+import { CRICHEROES_HELP } from '@/lib/auth';
+import { resolveCricHeroes } from '@/lib/cricheroes';
 import { removeClubPhoto, uploadImage } from '@/components/admin/PhotoUpload';
 import Avatar from '@/components/ui/Avatar';
 import { ArrowRight, ArrowUpRight, Check } from '@/components/ui/Icons';
@@ -53,17 +54,20 @@ function CricHeroesForm({ current, onSaved }: { current: string | null; onSaved:
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    if (!isCricHeroesProfile(url)) {
-      toast.error('That doesn’t look like a CricHeroes player profile link');
+    setBusy(true);
+    const link = await resolveCricHeroes(url);
+    if ('error' in link) {
+      setBusy(false);
+      toast.error(link.error);
       return;
     }
-    setBusy(true);
-    const { error } = await supabase.rpc('update_my_cricheroes', { p_url: url.trim() });
+    const { error } = await supabase.rpc('update_my_cricheroes', { p_url: link.url });
     setBusy(false);
     if (error) toast.error(error.message);
     else {
+      setUrl(link.url);
       toast.success('CricHeroes profile saved');
-      onSaved(url.trim());
+      onSaved(link.url);
     }
   }
 

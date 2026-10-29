@@ -144,6 +144,17 @@ export async function signUpWithEmail(email: string, password: string, fullName:
   }
 }
 
+// Sends the sign-up confirmation email again (Supabase allows one about every minute).
+export async function resendConfirmation(email: string) {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email: email.trim(),
+    options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+  });
+  if (error) throw error;
+}
+
 export async function resetPassword(email: string) {
   try {
     const supabase = getSupabaseClient();
