@@ -40,6 +40,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/cricket-in-prague', lastModified: '2026-10-28' },
     { path: '/committee' },
     { path: '/sponsors' },
+    { path: '/safeguarding' },
+    { path: '/privacy' },
     { path: '/live' },
     { path: '/gallery' },
     ...SQUADS.map((s) => ({ path: `/squads/${s.slug}` })),

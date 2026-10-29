@@ -3,7 +3,7 @@ import type { Match } from '@/types/supabase';
 import MatchRow from '@/components/MatchRow';
 import SectionHeading from '@/components/ui/SectionHeading';
 import Reveal from '@/components/ui/Reveal';
-import EmptyState from '@/components/ui/EmptyState';
+import OffSeason from '@/components/OffSeason';
 import { ArrowRight } from '@/components/ui/Icons';
 import { localePath, tr, type Lang } from '@/lib/i18n';
 
@@ -29,19 +29,7 @@ export default function EventsSection({ upcoming, latest, today, lang = 'en' }: 
         />
 
         {upcoming.length === 0 ? (
-          <EmptyState
-            title={tr(lang, { en: 'No matches scheduled yet', cs: 'Zatím nejsou naplánované žádné zápasy' })}
-            action={
-              <Link href={localePath(lang, '/fixtures')} className="link-arrow">
-                {tr(lang, { en: 'See past results', cs: 'Předchozí výsledky' })} <ArrowRight size={18} />
-              </Link>
-            }
-          >
-            {tr(lang, {
-              en: 'The new fixture list is on its way. Follow us on Instagram for the latest.',
-              cs: 'Nový rozpis zápasů připravujeme. Novinky najdete na našem Instagramu.',
-            })}
-          </EmptyState>
+          <OffSeason lang={lang} />
         ) : (
           <div className="border-t border-cream/20">
             {upcoming.map((match, i) => (

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowRight } from '@/components/ui/Icons';
 import CountUp from '@/components/ui/CountUp';
-import { FOUNDED } from '@/lib/club';
+import { FOUNDED, HONOURS } from '@/lib/club';
 import { localePath, tr, type Lang } from '@/lib/i18n';
 
 const SLIDE_MS = 6500;
@@ -38,7 +38,11 @@ const slides = [
 const stats: { value: string; count?: { to: number; from: number }; label: { en: string; cs: string } }[] = [
   { value: String(FOUNDED), count: { to: FOUNDED, from: FOUNDED - 30 }, label: { en: 'Founded', cs: 'Rok založení' } },
   { value: '3', count: { to: 3, from: 0 }, label: { en: 'Squads', cs: 'Týmy' } },
-  { value: 'T10', label: { en: '2026 ČMKS winners', cs: 'Vítězové ČMKS 2026' } },
+  // The most recent T10 title from the honours list, so the stat never goes stale.
+  ...HONOURS.filter((h) => h.en.includes('T10'))
+    .sort((x, y) => y.year - x.year)
+    .slice(0, 1)
+    .map((h) => ({ value: 'T10', label: { en: `${h.year} ČMKS winners`, cs: `Vítězové ČMKS ${h.year}` } })),
 ];
 
 const HeroSection = ({ lang = 'en' }: { lang?: Lang }) => {

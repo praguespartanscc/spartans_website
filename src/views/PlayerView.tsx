@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getPlayerBySlug, getPlayers, type PublicPlayer } from '@/lib/data';
-import { PLAYER_TYPE_LABEL, PLAYER_TYPE_LABEL_CS, ROLE_LABEL, SITE_URL, squadByName, squadId } from '@/lib/club';
+import { PLAYER_TYPE_LABEL, PLAYER_TYPE_LABEL_CS, ROLE_LABEL, SEASON, SITE_URL, squadByName, squadId } from '@/lib/club';
 import { initials } from '@/lib/format';
 import { isOptimisable } from '@/lib/images';
 import PlayerCard from '@/components/PlayerCard';
@@ -94,7 +94,7 @@ export default async function PlayerView({ lang, slug }: { lang: Lang; slug: str
   const facts = [
     { label: tr(lang, { en: 'Squad', cs: 'Tým' }), value: player.team },
     {
-      label: tr(lang, { en: 'League 2026', cs: 'Soutěž 2026' }),
+      label: tr(lang, { en: `League ${SEASON}`, cs: `Soutěž ${SEASON}` }),
       value: squad ? divisionLabel(squad.division, lang) : null,
     },
     { label: tr(lang, { en: 'Role', cs: 'Role' }), value: role },

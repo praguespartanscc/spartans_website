@@ -10,6 +10,7 @@ import PageHero from '@/components/ui/PageHero';
 import FixturesBoard from '@/components/FixturesBoard';
 import JoinCta from '@/components/JoinCta';
 import JsonLd from '@/components/JsonLd';
+import OffSeason from '@/components/OffSeason';
 import Reveal from '@/components/ui/Reveal';
 import SectionHeading from '@/components/ui/SectionHeading';
 import { ArrowUpRight } from '@/components/ui/Icons';
@@ -84,7 +85,11 @@ export default async function FixturesView({ lang }: { lang: Lang }) {
 
       <section className="py-12 sm:py-16">
         <div className="container-x">
-          <FixturesBoard matches={matches} today={pragueToday()} squads={SQUADS.map((s) => s.name)} lang={lang} />
+          {matches.length === 0 ? (
+            <OffSeason lang={lang} />
+          ) : (
+            <FixturesBoard matches={matches} today={pragueToday()} squads={SQUADS.map((s) => s.name)} lang={lang} />
+          )}
         </div>
       </section>
 

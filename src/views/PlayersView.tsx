@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getPlayers } from '@/lib/data';
-import { SQUADS } from '@/lib/club';
+import { SEASON, SQUADS } from '@/lib/club';
 import PageHero from '@/components/ui/PageHero';
 import Reveal from '@/components/ui/Reveal';
 import PlayerCard, { sortLeadersFirst } from '@/components/PlayerCard';
@@ -48,8 +48,8 @@ export function playersMeta(lang: Lang): Metadata {
     path: '/players',
     title: tr(lang, { en: 'Squads & Players', cs: 'Týmy a hráči' }),
     description: tr(lang, {
-      en: 'Prague Spartans Cricket Club squads and players in 2026: Vanguards (Division 1), Mobilizers (Division 2) and Strikers (Division 3) of the Czech Cricket Union leagues.',
-      cs: 'Týmy a hráči kriketového klubu Prague Spartans v sezóně 2026: Vanguards (1. divize), Mobilizers (2. divize) a Strikers (3. divize) v soutěžích Českomoravského kriketového svazu.',
+      en: `Prague Spartans Cricket Club squads and players in ${SEASON}: Vanguards (Division 1), Mobilizers (Division 2) and Strikers (Division 3) of the Czech Cricket Union leagues.`,
+      cs: `Týmy a hráči kriketového klubu Prague Spartans v sezóně ${SEASON}: Vanguards (1. divize), Mobilizers (2. divize) a Strikers (3. divize) v soutěžích Českomoravského kriketového svazu.`,
     }),
   });
 }
@@ -79,8 +79,8 @@ export default async function PlayersView({ lang }: { lang: Lang }) {
           ),
         })}
         intro={tr(lang, {
-          en: 'Prague Spartans Cricket Club fields three squads in the 2026 Czech Cricket Union leagues: Vanguards in Division 1, Mobilizers in Division 2 and Strikers in Division 3. Tap a player for their profile, or open a squad for the full line-up.',
-          cs: 'Kriketový klub Prague Spartans má v sezóně 2026 v soutěžích Českomoravského kriketového svazu tři týmy: Vanguards hrají 1. divizi, Mobilizers 2. divizi a Strikers 3. divizi. Kliknutím na hráče zobrazíte jeho profil, celou soupisku najdete na stránce týmu.',
+          en: `Prague Spartans Cricket Club fields three squads in the ${SEASON} Czech Cricket Union leagues: Vanguards in Division 1, Mobilizers in Division 2 and Strikers in Division 3. Tap a player for their profile, or open a squad for the full line-up.`,
+          cs: `Kriketový klub Prague Spartans má v sezóně ${SEASON} v soutěžích Českomoravského kriketového svazu tři týmy: Vanguards hrají 1. divizi, Mobilizers 2. divizi a Strikers 3. divizi. Kliknutím na hráče zobrazíte jeho profil, celou soupisku najdete na stránce týmu.`,
         })}
         image="/spartan_team.PNG"
       >
@@ -115,7 +115,7 @@ export default async function PlayersView({ lang }: { lang: Lang }) {
                   />
                   <div>
                     <p className="eyebrow">
-                      {divisionLabel(squad.division, lang)} · 2026
+                      {divisionLabel(squad.division, lang)} · {SEASON}
                     </p>
                     <h2 id={`${squad.slug}-heading`} className="h-section mt-1">
                       {squad.name}

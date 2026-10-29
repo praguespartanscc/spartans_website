@@ -11,6 +11,7 @@ import {
   GROUND,
   HONOURS,
   MEMBERSHIP,
+  SEASON,
   SOCIAL,
   SQUADS,
   TRAINING,
@@ -124,7 +125,7 @@ function ClubFacts({ lang }: { lang: Lang }) {
             ({GROUND.pitch}), {GROUND.streetAddress}, {GROUND.postalCode} {GROUND.locality}
           </Fact>
 
-          <Fact label={tr(lang, { en: 'Leagues in 2026', cs: 'Soutěže v roce 2026' })}>
+          <Fact label={tr(lang, { en: `Leagues in ${SEASON}`, cs: `Soutěže v roce ${SEASON}` })}>
             <ul className="space-y-1">
               {SQUADS.map((s) => (
                 <li key={s.slug}>

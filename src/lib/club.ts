@@ -4,6 +4,8 @@ export const SITE_URL = 'https://praguespartanscc.com';
 export const CLUB_NAME = 'Prague Spartans Cricket Club';
 export const CLUB_EMAIL = 'praguespartanscc@gmail.com';
 export const FOUNDED = 2019;
+// The season the squads' divisions and COMPETITIONS describe. Update both together each spring.
+export const SEASON = 2026;
 
 export const ALT_NAMES = ['Prague Spartans CC', 'Prague Spartans', 'PSCC'];
 

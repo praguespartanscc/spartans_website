@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import PhotoUpload from './PhotoUpload';
 import toast, { Toaster } from 'react-hot-toast';
 
 type Match = {
@@ -16,6 +17,7 @@ type Match = {
   division: string;
   url: string;
   stream_url: string | null;
+  image_url: string | null;
   summary: string | null;
   created_at: string;
 };
@@ -31,6 +33,7 @@ type NewMatch = {
   division: string;
   url: string;
   stream_url: string;
+  image_url: string;
   summary: string;
 };
 
@@ -48,6 +51,7 @@ export default function MatchesManagement() {
     division: 'division1',
     url: '',
     stream_url: '',
+    image_url: '',
     summary: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -90,7 +94,7 @@ export default function MatchesManagement() {
     try {
       const { data, error } = await supabase
         .from('matches')
-        .insert([{ ...newMatch, url: newMatch.url || null, stream_url: newMatch.stream_url || null, summary: newMatch.summary || null }])
+        .insert([{ ...newMatch, url: newMatch.url || null, stream_url: newMatch.stream_url || null, image_url: newMatch.image_url || null, summary: newMatch.summary || null }])
         .select();
 
       if (error) throw error;
@@ -107,6 +111,7 @@ export default function MatchesManagement() {
         division: 'division1',
         url: '',
         stream_url: '',
+    image_url: '',
         summary: ''
       });
       toast.success('Match added successfully!');
@@ -160,6 +165,7 @@ export default function MatchesManagement() {
       division: match.division,
       url: match.url ?? '',
       stream_url: match.stream_url ?? '',
+      image_url: match.image_url ?? '',
       summary: match.summary ?? ''
     });
   }
@@ -182,6 +188,7 @@ export default function MatchesManagement() {
           division: newMatch.division,
           url: newMatch.url || null,
           stream_url: newMatch.stream_url || null,
+          image_url: newMatch.image_url || null,
           summary: newMatch.summary || null
         })
         .eq('id', editMatchId)
@@ -200,6 +207,7 @@ export default function MatchesManagement() {
         division: 'division1',
         url: '',
         stream_url: '',
+    image_url: '',
         summary: ''
       });
       toast.success('Match updated successfully!');
@@ -224,6 +232,7 @@ export default function MatchesManagement() {
       division: 'division1',
       url: '',
       stream_url: '',
+    image_url: '',
       summary: ''
     });
   }
@@ -382,6 +391,15 @@ export default function MatchesManagement() {
               onChange={(e) => setNewMatch({ ...newMatch, stream_url: e.target.value })}
               className="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#000000] focus:ring-[#000000] text-sm"
               placeholder="https://youtube.com/live/…"
+            />
+          </div>
+          <div className="sm:col-span-2 lg:col-span-3">
+            <PhotoUpload
+              supabase={supabase}
+              folder="matches"
+              label="Match photo (shown when the match is shared, optional)"
+              value={newMatch.image_url || null}
+              onChange={(url) => setNewMatch({ ...newMatch, image_url: url ?? '' })}
             />
           </div>
           <div className="sm:col-span-2 lg:col-span-3">

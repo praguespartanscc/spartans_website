@@ -26,6 +26,7 @@ export default function FixturesBoard({ matches, today, squads, lang = 'en' }: P
   const [result, setResult] = useState<ResultFilter>('all');
   const [team, setTeam] = useState('all');
   const [page, setPage] = useState(1);
+  const [season, setSeason] = useState('all');
 
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
@@ -35,20 +36,25 @@ export default function FixturesBoard({ matches, today, squads, lang = 'en' }: P
     if (t) setTeam(t);
     const p = Number(q.get('page'));
     if (p > 1) setPage(p);
+    const s = q.get('season');
+    if (s && /^\d{4}$/.test(s)) setSeason(s);
   }, []);
 
-  const update = (next: { result?: ResultFilter; team?: string; page?: number }) => {
+  const update = (next: { result?: ResultFilter; team?: string; page?: number; season?: string }) => {
     const r = next.result ?? result;
     const t = next.team ?? team;
     const p = next.page ?? 1;
+    const s = next.season ?? season;
     setResult(r);
     setTeam(t);
     setPage(p);
+    setSeason(s);
     const url = new URL(window.location.href);
     const set = (k: string, v: string | null) => (v ? url.searchParams.set(k, v) : url.searchParams.delete(k));
     set('result', r === 'all' ? null : r);
     set('team', t === 'all' ? null : t);
     set('page', p > 1 ? String(p) : null);
+    set('season', s === 'all' ? null : s);
     window.history.replaceState(null, '', url);
   };
 
@@ -58,11 +64,16 @@ export default function FixturesBoard({ matches, today, squads, lang = 'en' }: P
     return Array.from(names).sort((a, b) => Number(!squads.includes(a)) - Number(!squads.includes(b)) || a.localeCompare(b));
   }, [matches, squads]);
 
+  // Seasons are calendar years (the Czech season runs spring to autumn), newest first.
+  const seasons = useMemo(() => Array.from(new Set(matches.map((m) => m.date.slice(0, 4)))).sort().reverse(), [matches]);
+
   const byTeam = useMemo(() => {
-    if (team === 'all') return matches;
+    const inSeason = season === 'all' ? matches : matches.filter((m) => m.date.startsWith(season));
+    if (team === 'all') return inSeason;
     const needle = team.toLowerCase();
-    return matches.filter((m) => `${m.team1} ${m.team2}`.toLowerCase().includes(needle));
-  }, [matches, team]);
+    return inSeason.filter((m) => `${m.team1} ${m.team2}`.toLowerCase().includes(needle));
+  }, [matches, team, season]);
+  const filtered = team !== 'all' || season !== 'all' || result !== 'all';
 
   const upcoming = byTeam.filter((m) => m.result === 'will be played' && m.date >= today);
   const results = byTeam
@@ -103,6 +114,22 @@ export default function FixturesBoard({ matches, today, squads, lang = 'en' }: P
             );
           })}
         </div>
+        <div className="flex w-full flex-wrap gap-4 sm:w-auto">
+        {seasons.length > 1 && (
+          <div className="w-full sm:w-40">
+            <label htmlFor="season-filter" className="field-label">
+              {tr(lang, { en: 'Season', cs: 'Sezóna' })}
+            </label>
+            <select id="season-filter" value={season} onChange={(e) => update({ season: e.target.value })} className="field">
+              <option value="all">{tr(lang, { en: 'All seasons', cs: 'Všechny sezóny' })}</option>
+              {seasons.map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="w-full sm:w-64">
           <label htmlFor="team-filter" className="field-label">
             {tr(lang, { en: 'Team', cs: 'Tým' })}
@@ -116,9 +143,10 @@ export default function FixturesBoard({ matches, today, squads, lang = 'en' }: P
             ))}
           </select>
         </div>
+        </div>
       </div>
 
-      <div aria-live="polite" key={`${result}-${team}`} className="page-enter">
+      <div aria-live="polite" key={`${result}-${team}-${season}`} className="page-enter">
         {showUpcoming && (
           <section aria-labelledby="upcoming" className="mb-14">
             <h2 id="upcoming" className="h-sub mb-2 text-[30px]">
@@ -148,10 +176,15 @@ export default function FixturesBoard({ matches, today, squads, lang = 'en' }: P
             </h2>
             {results.length === 0 ? (
               <EmptyState title={tr(lang, { en: 'No results here', cs: 'Žádné výsledky' })}>
-                {tr(lang, {
-                  en: 'Nothing matches these filters. Try another team or result.',
-                  cs: 'Těmto filtrům neodpovídá žádný zápas. Zkuste jiný tým nebo výsledek.',
-                })}
+                {filtered
+                  ? tr(lang, {
+                      en: 'Nothing matches these filters. Try another season, team or result.',
+                      cs: 'Těmto filtrům neodpovídá žádný zápas. Zkuste jinou sezónu, tým nebo výsledek.',
+                    })
+                  : tr(lang, {
+                      en: 'No results yet this season. They appear here as soon as matches are played.',
+                      cs: 'V této sezóně zatím nejsou žádné výsledky. Objeví se tu hned po odehraných zápasech.',
+                    })}
               </EmptyState>
             ) : (
               <div className="border-t border-cream/12">
