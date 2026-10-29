@@ -35,6 +35,20 @@ export function useScorer(id: string) {
     setLm(next);
   }, []);
 
+  // Server copy merged with the phone copy (anything not uploaded yet wins).
+  const pull = useCallback(async (): Promise<boolean> => {
+    const remote = await fetchMatch(supabase, id);
+    if (!remote) return false;
+    const current = ref.current;
+    store({
+      match: current?.matchPending ? { ...remote.match, ...current.match } : remote.match,
+      events: mergeEvents(current, remote.events),
+      pending: current?.pending ?? [],
+      matchPending: current?.matchPending ?? false,
+    });
+    return true;
+  }, [id, supabase, store]);
+
   // Phone copy first (instant, works offline), then the server copy.
   useEffect(() => {
     let cancelled = false;
@@ -44,21 +58,9 @@ export function useScorer(id: string) {
       setLm(local);
       setLoading(false);
     }
-    fetchMatch(supabase, id)
-      .then((remote) => {
-        if (cancelled) return;
-        const current = ref.current;
-        if (!remote) {
-          if (!current) setMissing(true);
-          return;
-        }
-        const merged: LocalMatch = {
-          match: current?.matchPending ? { ...remote.match, ...current.match } : remote.match,
-          events: mergeEvents(current, remote.events),
-          pending: current?.pending ?? [],
-          matchPending: current?.matchPending ?? false,
-        };
-        store(merged);
+    pull()
+      .then((found) => {
+        if (!cancelled && !found && !ref.current) setMissing(true);
       })
       .catch(() => {
         if (!cancelled && !ref.current) setMissing(true);
@@ -67,7 +69,7 @@ export function useScorer(id: string) {
     return () => {
       cancelled = true;
     };
-  }, [id, supabase, store]);
+  }, [id, pull]);
 
   const flush = useCallback(async () => {
     const current = ref.current;
@@ -213,5 +215,22 @@ export function useScorer(id: string) {
     [store],
   );
 
-  return { lm, state, loading, missing, sync, add, remove, undo, restore, setStatus, flush };
+  // Gives scoring to another member. Returns an error message, or null when done.
+  const handOver = useCallback(
+    async (userId: string): Promise<string | null> => {
+      await flush();
+      const current = ref.current;
+      if (!current) return 'The match is not loaded.';
+      if (current.matchPending) return 'The match has not uploaded yet. Try again when the phone has a connection.';
+      const { data, error } = await supabase.from('indoor_matches').update({ scorer_id: userId }).eq('id', id).select('id');
+      if (error) return error.message;
+      if (!data?.length) return 'Only the scorer, the member who started the match or an admin can hand it over.';
+      const latest = ref.current!;
+      store({ ...latest, match: { ...latest.match, scorer_id: userId } });
+      return null;
+    },
+    [flush, id, store, supabase],
+  );
+
+  return { lm, state, loading, missing, sync, add, remove, undo, restore, setStatus, flush, pull, handOver };
 }

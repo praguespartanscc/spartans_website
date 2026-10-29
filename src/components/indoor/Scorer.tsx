@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import toast, { Toaster } from 'react-hot-toast';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import type { BallRecord, EventData, InningsState, MatchState, TeamIndex } from '@/lib/indoor/engine';
 import { bowlerChoices, needs, oversText, target, teamTotal } from '@/lib/indoor/engine';
 import type { BallInput, End, ExtraKind, WicketInput } from '@/lib/indoor/scoring';
@@ -20,7 +21,7 @@ import Sheet from './Sheet';
 import RulesEditor, { Stepper } from './RulesEditor';
 import { ArrowLeft, Share, Undo } from '@/components/ui/Icons';
 
-type SheetName = 'wicket' | 'bowler' | 'more' | 'ball' | 'history' | 'rules' | 'penalty' | 'player' | 'overs' | 'retire' | 'next' | 'end' | 'info' | null;
+type SheetName = 'wicket' | 'bowler' | 'more' | 'ball' | 'history' | 'rules' | 'penalty' | 'player' | 'overs' | 'retire' | 'next' | 'end' | 'info' | 'handover' | null;
 
 const EXTRAS: { id: ExtraKind; label: string }[] = [
   { id: 'wide', label: 'Wide' },
@@ -207,7 +208,7 @@ function Board({ s, state, canScore }: { s: ScorerApi; state: MatchState; canSco
       {done ? (
         <Finished state={state} slug={lm.match.share_slug} id={lm.match.id} />
       ) : !canScore ? (
-        <ReadOnly state={state} id={lm.match.id} />
+        <ReadOnly state={state} id={lm.match.id} pull={s.pull} />
       ) : atBreak ? (
         <Break state={state} inn={inn} onStart={(evs) => commit(evs, 'Second innings started')} />
       ) : (
@@ -426,10 +427,11 @@ function Board({ s, state, canScore }: { s: ScorerApi; state: MatchState; canSco
             <MoreBtn onClick={() => setSheet('overs')}>Change overs</MoreBtn>
             <MoreBtn onClick={() => setSheet('rules')}>Change rules</MoreBtn>
             <MoreBtn onClick={() => setSheet('end')}>End innings</MoreBtn>
+            <MoreBtn onClick={() => setSheet('handover')}>Hand over scoring</MoreBtn>
             <Link href={`/score/${lm.match.id}/card`} className="btn btn-outline min-h-14 justify-center">
               Scorecard
             </Link>
-            <ShareButton slug={lm.match.share_slug} />
+            <ShareButton slug={lm.match.share_slug} uploaded={!lm.matchPending} />
           </div>
           <p className="mt-5 border-t border-cream/12 pt-4 text-sm text-muted">Umpire call: {announceText(state)}</p>
         </Sheet>
@@ -481,6 +483,7 @@ function Board({ s, state, canScore }: { s: ScorerApi; state: MatchState; canSco
         />
       )}
       {sheet === 'rules' && <RulesSheet rules={rules} onClose={close} onSave={(patch) => (commit({ type: 'rulesChange', data: { patch } }, 'Rules changed from here on'), close())} />}
+      {sheet === 'handover' && <HandoverSheet current={lm.match.scorer_id ?? null} onClose={close} onPick={s.handOver} />}
       {sheet === 'end' && (
         <Sheet title="End this innings?" onClose={close}>
           <p className="text-sand">Use this if the innings stops early. You can undo it.</p>
@@ -580,8 +583,12 @@ function MoreBtn({ onClick, children }: { onClick: () => void; children: React.R
   );
 }
 
-function ShareButton({ slug }: { slug: string }) {
+function ShareButton({ slug, uploaded = true }: { slug: string; uploaded?: boolean }) {
   const share = async () => {
+    if (!uploaded) {
+      toast('The match is still only on this phone. The link works once it says Synced.');
+      return;
+    }
     const url = `${window.location.origin}/indoor/${slug}`;
     try {
       if (navigator.share) await navigator.share({ title: 'Live indoor score', url });
@@ -880,15 +887,79 @@ function Finished({ state, slug, id }: { state: MatchState; slug: string; id: st
   );
 }
 
-function ReadOnly({ state, id }: { state: MatchState; id: string }) {
+function ReadOnly({ state, id, pull }: { state: MatchState; id: string; pull: () => Promise<boolean> }) {
   const inn = state.innings[state.current];
+  // Another member is scoring: keep this copy fresh.
+  useEffect(() => {
+    if (state.status === 'complete') return;
+    const t = window.setInterval(() => {
+      if (document.visibilityState === 'visible') void pull().catch(() => {});
+    }, 5000);
+    return () => window.clearInterval(t);
+  }, [pull, state.status]);
   return (
     <section className="mx-4 mt-6 space-y-4">
-      <p className="text-sand">Another member is scoring this match. You can follow it here.</p>
+      <p className="text-sand">Another member is scoring this match. This screen updates on its own.</p>
       <OverStrip over={inn.overs[inn.overs.length - 1]?.balls ?? []} onPick={() => {}} />
       <Link href={`/score/${id}/card`} className="btn btn-gold btn-lg w-full">
         Scorecard
       </Link>
     </section>
+  );
+}
+
+type DirectoryEntry = { id: string; full_name: string | null };
+
+// Approved members the match can be handed to. The new scorer finds it under My matches.
+function HandoverSheet({ current, onClose, onPick }: { current: string | null; onClose: () => void; onPick: (userId: string) => Promise<string | null> }) {
+  const [people, setPeople] = useState<DirectoryEntry[] | null>(null);
+  const [query, setQuery] = useState('');
+  const [busy, setBusy] = useState<string | null>(null);
+
+  useEffect(() => {
+    createClientComponentClient()
+      .rpc('member_directory')
+      .then(({ data }) => setPeople(((data ?? []) as DirectoryEntry[]).sort((a, b) => (a.full_name ?? '').localeCompare(b.full_name ?? ''))));
+  }, []);
+
+  const list = (people ?? []).filter((p) => p.id !== current && (p.full_name ?? '').toLowerCase().includes(query.trim().toLowerCase()));
+
+  const pick = async (p: DirectoryEntry) => {
+    setBusy(p.id);
+    const error = await onPick(p.id);
+    setBusy(null);
+    if (error) toast.error(error);
+    else {
+      toast.success(`${p.full_name ?? 'The member'} can score this match now`);
+      onClose();
+    }
+  };
+
+  return (
+    <Sheet title="Hand over scoring" onClose={onClose}>
+      <p className="text-sand">
+        The member you pick can score this match from their own phone, under My matches. The member who started the match and admins can always score too.
+      </p>
+      <label htmlFor="handover-search" className="field-label mt-4">
+        Find a member
+      </label>
+      <input id="handover-search" className="field" value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" />
+      <div className="mt-3 grid gap-2">
+        {people === null && <div className="skeleton h-12" role="status" aria-label="Loading members" />}
+        {people !== null && list.length === 0 && <p className="text-muted">No members found.</p>}
+        {list.slice(0, 30).map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            disabled={busy !== null}
+            onClick={() => pick(p)}
+            className="flex min-h-12 items-center justify-between border border-cream/22 px-3 text-left text-cream disabled:opacity-50"
+          >
+            {p.full_name ?? 'Member'}
+            {busy === p.id && <span className="text-sm text-muted">Handing over</span>}
+          </button>
+        ))}
+      </div>
+    </Sheet>
   );
 }

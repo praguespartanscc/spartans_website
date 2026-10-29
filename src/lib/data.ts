@@ -131,3 +131,27 @@ export async function getSelection(matchId: number): Promise<SelectedPlayer[]> {
     .filter((row): row is SelectedPlayer & { player: PublicPlayer } => !!row.player)
     .map(({ player, slot, is_captain, is_keeper }) => ({ player, slot, is_captain, is_keeper }));
 }
+
+// An indoor match for its public follow page, by share link. Never cached: the score is live.
+export type FollowMatch = {
+  id: string;
+  team_a: string;
+  team_b: string;
+  setup: unknown;
+  status: 'live' | 'complete' | 'abandoned';
+  played_on: string;
+  updated_at: string;
+  events: unknown[];
+};
+
+export const isShareSlug = (slug: string) => /^[a-z0-9]{8,32}$/.test(slug);
+
+export const getIndoorMatchBySlug = cache(async (slug: string): Promise<FollowMatch | null> => {
+  if (!db || !isShareSlug(slug)) return null;
+  const { data, error } = await db.rpc('indoor_match_by_slug', { p_slug: slug });
+  if (error) {
+    console.error('Could not load indoor match:', error.message);
+    return null;
+  }
+  return (data as FollowMatch | null) ?? null;
+});
