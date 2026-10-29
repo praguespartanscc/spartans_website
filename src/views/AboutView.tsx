@@ -395,8 +395,8 @@ export default function AboutView({ lang }: { lang: Lang }) {
               </ol>
               <p className="mt-5 text-[16px] leading-relaxed text-muted">
                 {tr(lang, {
-                  en: 'Beginners and experienced players are welcome, and there is no minimum age. Membership includes free nets, club kit and student discounts.',
-                  cs: 'Vítáme začátečníky i zkušené hráče a minimální věk není stanoven. Členství zahrnuje tréninky v sítích zdarma, klubové oblečení a slevy pro studenty.',
+                  en: 'Beginners and experienced players are welcome, and there is no minimum age. Membership includes free nets, use of the club\'s cricket equipment and student discounts.',
+                  cs: 'Vítáme začátečníky i zkušené hráče a minimální věk není stanoven. Členství zahrnuje tréninky v sítích zdarma, klubové kriketové vybavení a slevy pro studenty.',
                 })}
               </p>
               <Link href={localePath(lang, '/join')} className="link-arrow mt-6">

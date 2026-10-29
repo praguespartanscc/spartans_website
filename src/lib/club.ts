@@ -71,8 +71,8 @@ export const TRAINING = {
 // What membership includes. The club does not publish a fee.
 export const MEMBERSHIP = {
   includes: {
-    en: ['Free nets sessions', 'Club kit: full- and half-sleeve shirts, track pants and a jumper', 'Student discounts'],
-    cs: ['Tréninky v sítích zdarma', 'Klubové oblečení: trička s dlouhým i krátkým rukávem, sportovní kalhoty a svetr', 'Slevy pro studenty'],
+    en: ['Free nets sessions', 'Club cricket equipment: helmets, gloves, pads, elbow and thigh guards, bats and balls', 'Student discounts'],
+    cs: ['Tréninky v sítích zdarma', 'Klubové kriketové vybavení: helmy, rukavice, chrániče nohou, loktů a stehen, pálky a míčky', 'Slevy pro studenty'],
   },
   minimumAge: null as number | null,
 };

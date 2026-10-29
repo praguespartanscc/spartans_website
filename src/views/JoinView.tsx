@@ -70,7 +70,7 @@ function questions(lang: Lang): { q: string; a: ReactNode }[] {
       },
       {
         q: 'Do I need my own kit?',
-        a: 'Membership includes free nets sessions and club kit: full- and half-sleeve shirts, track pants and a jumper. If you are new and have no equipment, say so in your application and ask us what to bring to your first session.',
+        a: 'No. Membership includes free nets sessions and the club\'s cricket equipment: helmets, gloves, pads, elbow and thigh guards, bats and balls. Just bring comfortable sports clothes and trainers. The club playing shirt is not included in membership.',
       },
       {
         q: 'When and where do you train?',
@@ -95,7 +95,7 @@ function questions(lang: Lang): { q: string; a: ReactNode }[] {
       },
       {
         q: 'How much does membership cost?',
-        a: 'Ask us about membership when you apply. It includes free nets sessions, club kit and student discounts.',
+        a: 'Ask us about membership when you apply. It includes free nets sessions, use of the club\'s cricket equipment and student discounts.',
       },
       {
         q: 'Can I come and watch a match?',
@@ -125,7 +125,7 @@ function questions(lang: Lang): { q: string; a: ReactNode }[] {
       },
       {
         q: 'Potřebuji vlastní vybavení?',
-        a: 'Členství zahrnuje tréninky v sítích zdarma a klubové oblečení: trička s dlouhým i krátkým rukávem, sportovní kalhoty a svetr. Pokud s kriketem začínáte a vybavení nemáte, uveďte to v přihlášce a zeptejte se nás, co si vzít na první trénink.',
+        a: 'Ne. Členství zahrnuje tréninky v sítích zdarma a klubové kriketové vybavení: helmy, rukavice, chrániče nohou, loktů a stehen, pálky a míčky. Stačí si vzít pohodlné sportovní oblečení a obuv. Klubový dres v členství zahrnut není.',
       },
       {
         q: 'Kdy a kde trénujete?',
@@ -150,7 +150,7 @@ function questions(lang: Lang): { q: string; a: ReactNode }[] {
       },
       {
         q: 'Kolik stojí členství?',
-        a: 'Na podmínky členství se nás zeptejte v přihlášce. Členství zahrnuje tréninky v sítích zdarma, klubové oblečení a slevy pro studenty.',
+        a: 'Na podmínky členství se nás zeptejte v přihlášce. Členství zahrnuje tréninky v sítích zdarma, klubové kriketové vybavení a slevy pro studenty.',
       },
       {
         q: 'Mohu se přijít podívat na zápas?',
