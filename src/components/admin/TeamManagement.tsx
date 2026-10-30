@@ -7,6 +7,8 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import toast, { Toaster } from 'react-hot-toast';
 import type { Player, PlayerPrivate } from '@/types/supabase';
 import PhotoUpload, { removeClubPhoto } from './PhotoUpload';
+import StyleSelect from '@/components/StyleSelect';
+import { normaliseStyle } from '@/lib/playerStyles';
 
 type Row = Player & { email: string | null; age: number | null };
 
@@ -91,8 +93,8 @@ export default function TeamManagement() {
       team: p.team ?? '',
       photo_url: p.photo_url ?? null,
       jersey_number: p.jersey_number != null ? String(p.jersey_number) : '',
-      batting_style: p.batting_style ?? '',
-      bowling_style: p.bowling_style ?? '',
+      batting_style: normaliseStyle(p.batting_style),
+      bowling_style: normaliseStyle(p.bowling_style),
       joined_year: p.joined_year != null ? String(p.joined_year) : '',
       cricheroes_url: p.cricheroes_url ?? '',
       bio: p.bio ?? '',
@@ -249,25 +251,11 @@ export default function TeamManagement() {
           </div>
           <div>
             <label htmlFor="batting" className={label}>Batting style</label>
-            <input id="batting" list="batting-styles" value={form.batting_style} onChange={(e) => set({ batting_style: e.target.value })} className={input} placeholder="Right-hand bat" />
-            <datalist id="batting-styles">
-              <option value="Right-hand bat" />
-              <option value="Left-hand bat" />
-            </datalist>
+            <StyleSelect kind="batting" id="batting" value={form.batting_style} onChange={(v) => set({ batting_style: v })} className={input} />
           </div>
           <div>
             <label htmlFor="bowling" className={label}>Bowling style</label>
-            <input id="bowling" list="bowling-styles" value={form.bowling_style} onChange={(e) => set({ bowling_style: e.target.value })} className={input} placeholder="Right-arm medium" />
-            <datalist id="bowling-styles">
-              <option value="Right-arm fast" />
-              <option value="Right-arm medium" />
-              <option value="Right-arm off-spin" />
-              <option value="Right-arm leg-spin" />
-              <option value="Left-arm fast" />
-              <option value="Left-arm medium" />
-              <option value="Left-arm orthodox" />
-              <option value="Left-arm wrist-spin" />
-            </datalist>
+            <StyleSelect kind="bowling" id="bowling" value={form.bowling_style} onChange={(v) => set({ bowling_style: v })} className={input} />
           </div>
           <div>
             <label htmlFor="cricheroes" className={label}>CricHeroes profile link</label>

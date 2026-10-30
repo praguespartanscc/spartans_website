@@ -12,6 +12,8 @@ import { resolveCricHeroes } from '@/lib/cricheroes';
 import { removeClubPhoto, uploadImage } from '@/components/admin/PhotoUpload';
 import Avatar from '@/components/ui/Avatar';
 import { ArrowRight, ArrowUpRight, Check } from '@/components/ui/Icons';
+import StyleSelect from '@/components/StyleSelect';
+import { normaliseStyle } from '@/lib/playerStyles';
 
 type Tab = 'matches' | 'practices' | 'notices' | 'profile';
 const TABS: { id: Tab; label: string }[] = [
@@ -517,8 +519,8 @@ function ProfileTab({ profile, onProfile }: { profile: Profile; onProfile: (p: P
           setForm({
             photo_url: p.photo_url ?? null,
             bio: p.bio ?? '',
-            batting_style: p.batting_style ?? '',
-            bowling_style: p.bowling_style ?? '',
+            batting_style: normaliseStyle(p.batting_style),
+            bowling_style: normaliseStyle(p.bowling_style),
             jersey_number: p.jersey_number != null ? String(p.jersey_number) : '',
           });
         setLoading(false);
@@ -599,11 +601,11 @@ function ProfileTab({ profile, onProfile }: { profile: Profile; onProfile: (p: P
             <div className="grid gap-4 sm:grid-cols-3">
               <div>
                 <label htmlFor="p-bat" className="field-label">Batting style</label>
-                <input id="p-bat" className="field" value={form.batting_style} placeholder="Right-hand bat" onChange={(e) => setForm({ ...form, batting_style: e.target.value })} />
+                <StyleSelect kind="batting" id="p-bat" className="field" value={form.batting_style} onChange={(v) => setForm({ ...form, batting_style: v })} />
               </div>
               <div>
                 <label htmlFor="p-bowl" className="field-label">Bowling style</label>
-                <input id="p-bowl" className="field" value={form.bowling_style} placeholder="Right-arm medium" onChange={(e) => setForm({ ...form, bowling_style: e.target.value })} />
+                <StyleSelect kind="bowling" id="p-bowl" className="field" value={form.bowling_style} onChange={(v) => setForm({ ...form, bowling_style: v })} />
               </div>
               <div>
                 <label htmlFor="p-num" className="field-label">Shirt number</label>

@@ -12,29 +12,11 @@ import JsonLd from '@/components/JsonLd';
 import { ArrowRight, ArrowUpRight } from '@/components/ui/Icons';
 import { localePath, tr, type Lang } from '@/lib/i18n';
 import { pageMeta } from '@/lib/seo';
+import { styleLabel } from '@/lib/playerStyles';
 import { breadcrumbs, clubRef } from '@/lib/structured';
 import { divisionLabel } from '@/views/PlayersView';
 
 // Shared by /players/[slug] (English) and /cs/players/[slug] (Czech).
-
-// Batting and bowling styles offered in the admin form, in Czech.
-const STYLE_CS: Record<string, string> = {
-  'right-hand bat': 'Pravoruký pálkař',
-  'left-hand bat': 'Levoruký pálkař',
-  'right-arm fast': 'Rychlý nadhoz pravou rukou',
-  'right-arm medium': 'Středně rychlý nadhoz pravou rukou',
-  'right-arm off-spin': 'Off-spin pravou rukou',
-  'right-arm leg-spin': 'Leg-spin pravou rukou',
-  'left-arm fast': 'Rychlý nadhoz levou rukou',
-  'left-arm medium': 'Středně rychlý nadhoz levou rukou',
-  'left-arm orthodox': 'Ortodoxní spin levou rukou',
-  'left-arm wrist-spin': 'Zápěstní spin levou rukou',
-};
-
-function styleLabel(value: string | null | undefined, lang: Lang) {
-  if (!value) return null;
-  return lang === 'cs' ? (STYLE_CS[value.trim().toLowerCase()] ?? value) : value;
-}
 
 function typeLabel(player: PublicPlayer, lang: Lang) {
   const map = lang === 'cs' ? PLAYER_TYPE_LABEL_CS : PLAYER_TYPE_LABEL;
