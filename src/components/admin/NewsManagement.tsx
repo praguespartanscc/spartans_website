@@ -1,5 +1,7 @@
 'use client';
 
+import { refreshSite } from '@/lib/refresh';
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import toast, { Toaster } from 'react-hot-toast';
@@ -78,7 +80,8 @@ export default function NewsManagement() {
     setBusy(false);
     if (error) return void toast.error(error.message);
     if (editing?.cover_url && editing.cover_url !== form.cover_url) await removeClubPhoto(supabase, editing.cover_url);
-    toast.success(status === 'published' ? 'Published. It shows on the website within a minute.' : 'Saved as a draft');
+    toast.success(status === 'published' ? 'Published. It is on the website now.' : 'Saved as a draft');
+    refreshSite();
     reset();
     load();
   }
@@ -91,6 +94,7 @@ export default function NewsManagement() {
     if (error) return void toast.error(error.message);
     await removeClubPhoto(supabase, toDelete.cover_url);
     toast.success('Post deleted');
+    refreshSite();
     setToDelete(null);
     load();
   }

@@ -23,19 +23,22 @@ export function profileUrl(id: string, name?: string | null): string {
   return `https://cricheroes.com/player-profile/${id}/${slugify(name ?? '') || 'player'}`;
 }
 
+// A broken percent sequence in a pasted link must not throw.
+function safeDecode(s: string): string {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
+}
+
 export function parseCricHeroes(input: string, name?: string | null): CricHeroesLink {
   let text = (input ?? '').trim();
   if (!text) return { kind: 'error', message: 'Paste your CricHeroes profile link.' };
   const wrapped = WRAPPED.exec(text);
-  if (wrapped) {
-    try {
-      text = decodeURIComponent(wrapped[1]);
-    } catch {
-      // keep the original text
-    }
-  }
+  if (wrapped) text = safeDecode(wrapped[1]);
   const full = PROFILE.exec(text);
-  if (full) return { kind: 'profile', id: full[1], url: profileUrl(full[1], full[2] ? decodeURIComponent(full[2]) : name) };
+  if (full) return { kind: 'profile', id: full[1], url: profileUrl(full[1], full[2] ? safeDecode(full[2]) : name) };
   const short = SHORT.exec(text);
   if (short) return { kind: 'short', url: short[0] };
   const digits = text.replace(/[\s-]/g, '');

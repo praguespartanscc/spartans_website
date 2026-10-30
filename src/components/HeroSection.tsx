@@ -49,6 +49,26 @@ const HeroSection = ({ lang = 'en', photos = [], t10Year = null }: { lang?: Lang
   // while the outgoing slide keeps its zoom running as it fades out (no jump mid-crossfade).
   const [shown, setShown] = useState<number[]>(() => slides.map(() => 0));
   const firstSlide = useRef(true);
+  // Only the photo on screen, the one fading out and the next one are in the page, so a phone
+  // downloads one or two photos on load instead of all six.
+  const [mounted, setMounted] = useState<number[]>([0]);
+  const lastIndex = useRef(0);
+  useEffect(() => {
+    const n = slides.length;
+    if (n < 2) return;
+    const next = (index + 1) % n;
+    if (lastIndex.current === index) {
+      // First render: fetch the second photo once the first has had a head start.
+      const t = window.setTimeout(() => setMounted([index, next]), 2500);
+      return () => window.clearTimeout(t);
+    }
+    const prev = lastIndex.current;
+    lastIndex.current = index;
+    setMounted([prev, index, next]);
+    // The crossfade takes 1.4s, then the old photo can go.
+    const t = window.setTimeout(() => setMounted([index, next]), 1600);
+    return () => window.clearTimeout(t);
+  }, [index, slides.length]);
 
   useEffect(() => {
     if (firstSlide.current) {
@@ -87,7 +107,8 @@ const HeroSection = ({ lang = 'en', photos = [], t10Year = null }: { lang?: Lang
             i === index ? 'opacity-100' : 'opacity-0'
           }`}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element -- resized by Google's image CDN */}
+          {mounted.includes(i) && (
+          /* eslint-disable-next-line @next/next/no-img-element -- resized by Google's image CDN */
           <img
             key={`${slide.id}-${shown[i]}`}
             src={photoUrl(slide.id, 1920)}
@@ -99,6 +120,7 @@ const HeroSection = ({ lang = 'en', photos = [], t10Year = null }: { lang?: Lang
             decoding="async"
             className="kenburns absolute inset-0 h-full w-full object-cover object-[center_35%]"
           />
+          )}
         </div>
       ))}
       {/* Brand rule: text over photos needs ~80% black behind it. */}

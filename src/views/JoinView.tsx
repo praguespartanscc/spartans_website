@@ -46,7 +46,7 @@ function MapLink({ href, lang }: { href: string; lang: Lang }) {
 
 function InlineLink({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <Link href={href} className="text-gold underline-offset-4 hover:text-gold-hi hover:underline">
+    <Link href={href} className="link-inline">
       {children}
     </Link>
   );
@@ -425,7 +425,7 @@ export default async function JoinView({ lang }: { lang: Lang }) {
               {tr(lang, { en: 'Our squads', cs: 'Naše týmy' })}
             </h2>
           </Reveal>
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
+          <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {SQUADS.map((squad, i) => (
               <Reveal key={squad.slug} delay={i * 90}>
                 {/* Official squad logos always sit on solid black (brand manual). */}

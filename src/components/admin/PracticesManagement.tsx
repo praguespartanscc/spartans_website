@@ -1,5 +1,7 @@
 'use client';
 
+import { refreshSite } from '@/lib/refresh';
+
 import { useState, useEffect, useCallback } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import toast, { Toaster } from 'react-hot-toast';
@@ -118,6 +120,7 @@ export default function PracticesManagement() {
 
       setPractices(practices.filter(practice => practice.id !== practiceToDelete));
       toast.success('Practice removed successfully!');
+      refreshSite();
     } catch (error) {
       console.error('Error removing practice:', error);
       toast.error('Error removing practice');
@@ -168,6 +171,7 @@ export default function PracticesManagement() {
       setEditPracticeId(null);
       setNewPractice({ date: '', time: '', end_time: '', venue: '', type: 'regular', title: '', notes: '', first_team: '', second_team: '' });
       toast.success('Practice updated successfully!');
+      refreshSite();
     } catch (error) {
       console.error('Error updating practice:', error);
       toast.error('Error updating practice');

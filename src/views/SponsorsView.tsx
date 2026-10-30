@@ -8,6 +8,7 @@ import SponsorLogo from '@/components/SponsorLogo';
 import JsonLd from '@/components/JsonLd';
 import { ArrowUpRight, Mail } from '@/components/ui/Icons';
 import { tr, type Lang } from '@/lib/i18n';
+import { sponsorText } from '@/lib/sponsors';
 import { pageMeta } from '@/lib/seo';
 import { breadcrumbs } from '@/lib/structured';
 
@@ -40,7 +41,7 @@ function SponsorCard({ sponsor, large, lang }: { sponsor: Sponsor; large?: boole
       <SponsorLogo sponsor={sponsor} height={large ? 160 : 112} />
       <div className="p-6">
         <h3 className="h-sub text-[26px] transition-colors group-hover:text-gold">{sponsor.name}</h3>
-        {sponsor.description && <p className="mt-2 leading-relaxed text-muted">{sponsor.description}</p>}
+        {sponsorText(sponsor, lang) && <p className="mt-2 leading-relaxed text-muted">{sponsorText(sponsor, lang)}</p>}
         {sponsor.website_url && (
           <span className="mt-4 inline-flex items-center gap-2 font-display text-[16px] font-extrabold uppercase tracking-[0.04em] text-gold">
             {tr(lang, { en: 'Visit website', cs: 'Navštívit web' })} <ArrowUpRight size={15} />

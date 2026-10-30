@@ -1,5 +1,7 @@
 'use client';
 
+import { refreshSite } from '@/lib/refresh';
+
 import { useState, useEffect, useCallback } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import toast, { Toaster } from 'react-hot-toast';
@@ -143,6 +145,7 @@ export default function TeamManagement() {
       if (editing?.photo_url && editing.photo_url !== form.photo_url) await removeClubPhoto(supabase, editing.photo_url);
 
       toast.success(editing ? 'Player updated' : 'Player added');
+      refreshSite();
       setEditing(null);
       setForm(EMPTY);
       fetchPlayers();
@@ -161,6 +164,7 @@ export default function TeamManagement() {
     const { error } = await supabase.from('players').update({ team }).in('id', ids);
     if (error) return void toast.error(error.message);
     toast.success(`${ids.length === 1 ? players.find((p) => String(p.id) === ids[0])?.name ?? 'Player' : `${ids.length} players`} added to ${team}`);
+    refreshSite();
     setPicked(new Set());
     fetchPlayers();
   }
@@ -174,6 +178,7 @@ export default function TeamManagement() {
       await removeClubPhoto(supabase, toDelete.photo_url);
       setPlayers((list) => list.filter((p) => p.id !== toDelete.id));
       toast.success('Player removed');
+      refreshSite();
     } catch (error) {
       console.error('Error removing player:', error);
       toast.error('Could not remove player');

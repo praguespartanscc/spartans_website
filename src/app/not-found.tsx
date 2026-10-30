@@ -16,7 +16,7 @@ export default function NotFound() {
         Skip to content
       </a>
       <Header />
-      <main id="main" className="flex-grow">
+      <main id="main" tabIndex={-1} className="flex-grow outline-none">
         <NotFoundContent lang="en" />
       </main>
       <Footer lang="en" />

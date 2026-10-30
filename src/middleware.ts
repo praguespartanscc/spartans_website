@@ -32,6 +32,10 @@ export async function middleware(req: NextRequest) {
 
   if (matches(pathname, writerRoutes)) {
     if (!user) return NextResponse.redirect(new URL(`/login?redirect=${encodeURIComponent(pathname)}`, req.url));
+    if (user.app_metadata?.isAdmin !== true) {
+      const { data: committee } = await supabase.rpc('is_committee');
+      if (committee !== true) return NextResponse.redirect(new URL('/not-admin', req.url));
+    }
   } else if (matches(pathname, adminRoutes)) {
     if (!user) {
       return NextResponse.redirect(new URL('/login?redirect=/admin', req.url));

@@ -228,7 +228,9 @@ const Header = () => {
       return;
     }
     const pad = parseFloat(getComputedStyle(el).paddingLeft) || 0;
-    setBar((b) => ({ x: el.offsetLeft + pad, w: Math.max(0, el.offsetWidth - pad * 2), ready: b.ready || b.w > 0 }));
+    // Position relative to the nav itself (each link sits in its own wrapper, so offsetLeft is useless).
+    const x = el.getBoundingClientRect().left - nav.getBoundingClientRect().left + pad;
+    setBar((b) => ({ x, w: Math.max(0, el.offsetWidth - pad * 2), ready: b.ready || b.w > 0 }));
   }, [target]);
 
   useEffect(() => {

@@ -13,6 +13,12 @@ const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 // table and id of a new registration or join request. The details are read from the
 // database here and each row is emailed about once, so callers can't send made-up content.
 export async function POST(request: Request) {
+  // The database sends the shared secret (Supabase Vault, "join_hook_secret"). Once it is also
+  // set in Vercel as JOIN_HOOK_SECRET, nobody else can trigger these emails.
+  const secret = process.env.JOIN_HOOK_SECRET;
+  if (secret && request.headers.get('x-hook-secret') !== secret) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   const body = (await request.json().catch(() => null)) as { table?: string; id?: string } | null;
   const table = TABLES.find((t) => t === body?.table) as Table | undefined;
   const id = typeof body?.id === 'string' ? body.id : '';

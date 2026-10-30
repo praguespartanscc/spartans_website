@@ -159,7 +159,7 @@ export default async function LiveView({ lang }: { lang: Lang }) {
                       en: (
                         <>
                           Matches are streamed here when they&apos;re on. Check the{' '}
-                          <Link href={localePath(lang, '/fixtures')} className="text-gold hover:text-gold-hi">
+                          <Link href={localePath(lang, '/fixtures')} className="link-inline">
                             fixtures
                           </Link>{' '}
                           for the next game.
@@ -168,7 +168,7 @@ export default async function LiveView({ lang }: { lang: Lang }) {
                       cs: (
                         <>
                           Zápasy tu vysíláme živě, když se hrají. Kdy je další zápas, zjistíte v{' '}
-                          <Link href={localePath(lang, '/fixtures')} className="text-gold hover:text-gold-hi">
+                          <Link href={localePath(lang, '/fixtures')} className="link-inline">
                             přehledu zápasů
                           </Link>
                           .

@@ -60,3 +60,22 @@ export function sitePhotosFor<T extends Pickable>(list: T[], slots: number[]): T
   }
   return out;
 }
+
+// Drive folder names the site shows as album titles, in the page language. Unknown names are
+// shown as they are (rename the folder in Drive to change a title).
+const ALBUM_NAMES: Record<string, { en: string; cs: string }> = {
+  awards: { en: 'Awards', cs: 'Ocenění' },
+  events: { en: 'Events', cs: 'Události' },
+  gallery: { en: 'Gallery', cs: 'Galerie' },
+  recognition: { en: 'Recognition', cs: 'Uznání' },
+  matches: { en: 'Matches', cs: 'Zápasy' },
+  training: { en: 'Training', cs: 'Tréninky' },
+  nets: { en: 'Nets', cs: 'Tréninky v sítích' },
+  team: { en: 'Team', cs: 'Tým' },
+  indoor: { en: 'Indoor', cs: 'Halový kriket' },
+  tour: { en: 'Tour', cs: 'Zájezd' },
+};
+export function albumName(name: string, lang: 'en' | 'cs' = 'en'): string {
+  const known = ALBUM_NAMES[name.trim().toLowerCase()];
+  return known ? known[lang] : name;
+}

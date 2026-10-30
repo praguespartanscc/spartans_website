@@ -1,5 +1,7 @@
 'use client';
 
+import { refreshSite } from '@/lib/refresh';
+
 import { useState, useEffect, useCallback } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import PhotoUpload from './PhotoUpload';
@@ -115,6 +117,7 @@ export default function MatchesManagement() {
         summary: ''
       });
       toast.success('Match added successfully!');
+      refreshSite();
     } catch (error) {
       console.error('Error adding match:', error);
       toast.error('Error adding match');
@@ -142,6 +145,7 @@ export default function MatchesManagement() {
 
       setMatches(matches.filter(match => match.id !== matchToDelete));
       toast.success('Match removed successfully!');
+      refreshSite();
     } catch (error) {
       console.error('Error removing match:', error);
       toast.error('Error removing match');
@@ -211,6 +215,7 @@ export default function MatchesManagement() {
         summary: ''
       });
       toast.success('Match updated successfully!');
+      refreshSite();
     } catch (error) {
       console.error('Error updating match:', error);
       toast.error('Error updating match');

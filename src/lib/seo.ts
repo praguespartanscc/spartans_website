@@ -28,7 +28,7 @@ export function pageMeta(o: {
   const lang = o.lang ?? 'en';
   const url = localePath(lang, o.path);
   const full = o.absoluteTitle ?? `${o.title} | ${CLUB_NAME}`;
-  const images = o.images ?? [OG_IMAGE];
+  const images = o.images ?? [{ ...OG_IMAGE, alt: lang === 'cs' ? 'Prague Spartans Cricket Club, kriketový klub v Praze' : OG_IMAGE.alt }];
   const bilingual = o.bilingual ?? true;
   return {
     title: o.absoluteTitle ? { absolute: o.absoluteTitle } : o.title,

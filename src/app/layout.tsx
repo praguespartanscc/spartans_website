@@ -55,6 +55,8 @@ export const metadata: Metadata = {
   creator: CLUB_NAME,
   publisher: CLUB_NAME,
   formatDetection: { email: false, telephone: false },
+  icons: { icon: '/favicon.ico', apple: '/apple-touch-icon.png' },
+  manifest: '/manifest.webmanifest',
   openGraph: { type: 'website', siteName: CLUB_NAME, locale: 'en_GB', images: [OG_IMAGE] },
   twitter: { card: 'summary_large_image' },
   robots: {

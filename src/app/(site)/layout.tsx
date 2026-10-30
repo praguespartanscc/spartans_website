@@ -15,7 +15,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
         Skip to content
       </a>
       <Header />
-      <main id="main" className="flex-grow">
+      <main id="main" tabIndex={-1} className="flex-grow outline-none">
         {children}
       </main>
       <Footer lang="en" />

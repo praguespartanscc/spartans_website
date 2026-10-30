@@ -1,5 +1,7 @@
 'use client';
 
+import { refreshSite } from '@/lib/refresh';
+
 import { useCallback, useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import toast, { Toaster } from 'react-hot-toast';
@@ -12,7 +14,7 @@ const TIERS = [
   { value: 'partner', label: 'Club partner' },
 ];
 
-const EMPTY = { name: '', website_url: '', description: '', logo_url: null as string | null, tier: 'partner', sort_order: '100' };
+const EMPTY = { name: '', website_url: '', description: '', description_cs: '', logo_url: null as string | null, tier: 'partner', sort_order: '100' };
 
 const input = 'block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black text-sm';
 const label = 'block text-xs sm:text-sm font-medium text-gray-700 mb-1';
@@ -49,6 +51,7 @@ export default function SponsorsManagement() {
       name: s.name,
       website_url: s.website_url ?? '',
       description: s.description ?? '',
+      description_cs: s.description_cs ?? '',
       logo_url: s.logo_url ?? null,
       tier: s.tier ?? 'partner',
       sort_order: String(s.sort_order ?? 100),
@@ -79,6 +82,7 @@ export default function SponsorsManagement() {
         name: form.name.trim(),
         website_url: form.website_url.trim() || null,
         description: form.description.trim() || null,
+        description_cs: form.description_cs.trim() || null,
         logo_url: form.logo_url,
         tier: form.tier,
         sort_order: Number.parseInt(form.sort_order, 10) || 100,
@@ -90,6 +94,7 @@ export default function SponsorsManagement() {
       if (error) throw error;
       if (editing?.logo_url && editing.logo_url !== form.logo_url) await removeClubPhoto(supabase, editing.logo_url);
       toast.success(editing ? 'Sponsor updated' : 'Sponsor added');
+      refreshSite();
       setEditing(null);
       setForm(EMPTY);
       fetchSponsors();
@@ -112,6 +117,7 @@ export default function SponsorsManagement() {
       await removeClubPhoto(supabase, toDelete.logo_url);
       setSponsors((list) => list.filter((s) => s.id !== toDelete.id));
       toast.success('Sponsor removed');
+      refreshSite();
     }
     setIsSubmitting(false);
     setToDelete(null);
@@ -167,6 +173,10 @@ export default function SponsorsManagement() {
           <div className="sm:col-span-2 lg:col-span-4">
             <label htmlFor="s-desc" className={label}>Description (shown on the sponsors page)</label>
             <textarea id="s-desc" rows={3} value={form.description} onChange={(e) => set({ description: e.target.value })} className={input} />
+          </div>
+          <div className="sm:col-span-2 lg:col-span-4">
+            <label htmlFor="s-desc-cs" className={label}>Description in Czech (for /cs, optional)</label>
+            <textarea id="s-desc-cs" rows={3} value={form.description_cs} onChange={(e) => set({ description_cs: e.target.value })} className={input} />
           </div>
         </div>
         <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">

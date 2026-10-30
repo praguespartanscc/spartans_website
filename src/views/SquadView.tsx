@@ -126,12 +126,12 @@ export default async function SquadView({ lang, slug }: { lang: Lang; slug: stri
                   en: `Club training is usually on ${TRAINING.weekly.day.en}s from ${TRAINING.weekly.time.replace('–', ' to ')} in the cricket nets at ${TRAINING.weekly.venue.name} in Prague 3, and the home ground is `,
                   cs: `Klub trénuje obvykle ve ${TRAINING.weekly.day.cs} od ${TRAINING.weekly.time.replace('–', ' do ')} v kriketových sítích v Tenisovém centru Olšanská v Praze 3. Domácím hřištěm je `,
                 })}
-                <Link href={localePath(lang, '/ground')} className="text-gold underline-offset-4 hover:underline">
+                <Link href={localePath(lang, '/ground')} className="link-inline">
                   {tr(lang, { en: GROUND.name, cs: 'kriketové hřiště ve Vinoři' })}
                 </Link>
                 {'. '}
                 {tr(lang, { en: 'Want to play? ', cs: 'Chcete hrát s námi? ' })}
-                <Link href={localePath(lang, '/join')} className="text-gold underline-offset-4 hover:underline">
+                <Link href={localePath(lang, '/join')} className="link-inline">
                   {tr(lang, { en: 'Apply to join the club', cs: 'Přihlaste se do klubu' })}
                 </Link>
                 .

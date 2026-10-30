@@ -1,5 +1,7 @@
 'use client';
 
+import { refreshSite } from '@/lib/refresh';
+
 import { useCallback, useEffect, useState } from 'react';
 import { COMMITTEE_POSITIONS } from '@/lib/club';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -84,6 +86,7 @@ export default function CommitteeManagement() {
       if (error) throw error;
       if (editing?.photo_url && editing.photo_url !== form.photo_url) await removeClubPhoto(supabase, editing.photo_url);
       toast.success(editing ? 'Committee member updated' : 'Committee member added');
+      refreshSite();
       setEditing(null);
       setForm(EMPTY);
       fetchMembers();
@@ -106,6 +109,7 @@ export default function CommitteeManagement() {
       await removeClubPhoto(supabase, toDelete.photo_url);
       setMembers((list) => list.filter((m) => m.id !== toDelete.id));
       toast.success('Committee member removed');
+      refreshSite();
     }
     setIsSubmitting(false);
     setToDelete(null);

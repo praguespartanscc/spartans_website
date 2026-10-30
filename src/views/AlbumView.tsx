@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Reveal from '@/components/ui/Reveal';
 import { notFound } from 'next/navigation';
 import { findAlbum } from '@/lib/drive';
-import { photoUrl } from '@/lib/photos';
+import { photoUrl, albumName } from '@/lib/photos';
 import { CLUB_NAME, SITE_URL, WEBSITE_ID } from '@/lib/club';
 import { localePath, tr, type Lang } from '@/lib/i18n';
 import { pageMeta } from '@/lib/seo';
@@ -22,16 +22,17 @@ export async function albumMeta(lang: Lang, path: string[]): Promise<Metadata> {
   const found = await findAlbum(path);
   if (!found) return { title: tr(lang, { en: 'Album not found', cs: 'Album nenalezeno' }), robots: { index: false } };
   const { album, trail } = found;
-  const where = trail.length > 1 ? `${trail[0].name}: ` : '';
+  const name = albumName(album.name, lang);
+  const where = trail.length > 1 ? `${albumName(trail[0].name, lang)}: ` : '';
   return pageMeta({
     lang,
     path: albumPath(path),
-    title: `${album.name} · ${tr(lang, { en: 'Photos', cs: 'Fotky' })}`,
+    title: `${name} · ${tr(lang, { en: 'Photos', cs: 'Fotky' })}`,
     description: tr(lang, {
-      en: `${where}${album.name}. ${photoCount(album.total, 'en')} from Prague Spartans Cricket Club in Prague.`,
-      cs: `${where}${album.name}. ${photoCount(album.total, 'cs')} z kriketového klubu Prague Spartans v Praze.`,
+      en: `${where}${name}. ${photoCount(album.total, 'en')} from Prague Spartans Cricket Club in Prague.`,
+      cs: `${where}${name}. ${photoCount(album.total, 'cs')} z kriketového klubu Prague Spartans v Praze.`,
     }),
-    ...(album.cover ? { images: [{ url: photoUrl(album.cover.id, 1200), alt: album.name }] } : {}),
+    ...(album.cover ? { images: [{ url: photoUrl(album.cover.id, 1200), alt: name }] } : {}),
   });
 }
 
@@ -39,18 +40,19 @@ export default async function AlbumView({ lang, path }: { lang: Lang; path: stri
   const found = await findAlbum(path);
   if (!found) notFound();
   const { album, trail } = found;
+  const name = albumName(album.name, lang);
 
   // One list drives both the visible breadcrumb and the BreadcrumbList; the current album
   // is the last item (shown as the H1, not as a link).
   const crumbs: [string, string][] = [
     [tr(lang, { en: 'Gallery', cs: 'Fotogalerie' }), '/gallery'],
-    ...trail.map((a): [string, string] => [a.name, albumPath(a.path)]),
+    ...trail.map((a): [string, string] => [albumName(a.name, lang), albumPath(a.path)]),
   ];
 
   const galleryLd = {
     '@context': 'https://schema.org',
     '@type': 'ImageGallery',
-    name: album.name,
+    name,
     description: tr(lang, {
       en: `${photoCount(album.total, 'en')} from ${CLUB_NAME} in Prague.`,
       cs: `${photoCount(album.total, 'cs')} z kriketového klubu Prague Spartans v Praze.`,
@@ -72,7 +74,7 @@ export default async function AlbumView({ lang, path }: { lang: Lang; path: stri
       ? {
           hasPart: album.albums.map((a) => ({
             '@type': 'ImageGallery',
-            name: a.name,
+            name: albumName(a.name, lang),
             url: `${SITE_URL}${localePath(lang, albumPath(a.path))}`,
           })),
         }
@@ -100,7 +102,7 @@ export default async function AlbumView({ lang, path }: { lang: Lang; path: stri
           </nav>
           <h1 className="display max-w-4xl text-[clamp(44px,8vw,96px)]">
             <span className="mask-line"><span style={{ ['--d' as string]: '80ms' }}>
-            {album.name}{' '}
+            {name}{' '}
             <span className="h-sub mt-3 block text-[clamp(20px,2.6vw,28px)] text-gold">
               {tr(lang, { en: 'Prague Spartans photo album', cs: 'Fotoalbum Prague Spartans' })}
             </span>
@@ -115,7 +117,7 @@ export default async function AlbumView({ lang, path }: { lang: Lang; path: stri
       {album.albums.length > 0 && (
         <section className="py-14 sm:py-16">
           <div className="container-x">
-            {album.photos.length > 0 && <SectionHeading eyebrow={album.name} title={tr(lang, { en: 'Albums', cs: 'Alba' })} />}
+            {album.photos.length > 0 && <SectionHeading eyebrow={name} title={tr(lang, { en: 'Albums', cs: 'Alba' })} />}
             <Reveal className="stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {album.albums.map((a, i) => (
                 <AlbumCard key={a.id} album={a} priority={i < 3} lang={lang} />
@@ -128,8 +130,8 @@ export default async function AlbumView({ lang, path }: { lang: Lang; path: stri
       {album.photos.length > 0 && (
         <section className={album.albums.length > 0 ? 'border-t border-cream/12 py-14 sm:py-16' : 'py-10 sm:py-14'}>
           <div className="container-x">
-            {album.albums.length > 0 && <SectionHeading eyebrow={album.name} title={tr(lang, { en: 'Photos', cs: 'Fotky' })} />}
-            <PhotoGrid title={album.name} photos={album.photos} lang={lang} />
+            {album.albums.length > 0 && <SectionHeading eyebrow={name} title={tr(lang, { en: 'Photos', cs: 'Fotky' })} />}
+            <PhotoGrid title={name} photos={album.photos} lang={lang} />
           </div>
         </section>
       )}

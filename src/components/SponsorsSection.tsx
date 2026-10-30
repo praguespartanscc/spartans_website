@@ -5,6 +5,7 @@ import Reveal from '@/components/ui/Reveal';
 import SponsorLogo from '@/components/SponsorLogo';
 import { ArrowRight, ArrowUpRight } from '@/components/ui/Icons';
 import { localePath, tr, type Lang } from '@/lib/i18n';
+import { sponsorText } from '@/lib/sponsors';
 
 const SponsorsSection = ({ sponsors, lang = 'en' }: { sponsors: Sponsor[]; lang?: Lang }) => {
   return (
@@ -45,7 +46,7 @@ const SponsorsSection = ({ sponsors, lang = 'en' }: { sponsors: Sponsor[]; lang?
                     <SponsorLogo sponsor={sponsor} height={140} />
                     <span className="flex flex-1 flex-col items-center gap-2 p-5">
                       <span className="h-sub text-[24px] transition-colors group-hover:text-gold">{sponsor.name}</span>
-                      {sponsor.description && <span className="text-[15px] leading-relaxed text-muted">{sponsor.description}</span>}
+                      {sponsorText(sponsor, lang) && <span className="text-[15px] leading-relaxed text-muted">{sponsorText(sponsor, lang)}</span>}
                       {sponsor.website_url && (
                         <span className="mt-auto inline-flex items-center gap-1.5 pt-2 font-display text-[15px] font-extrabold uppercase tracking-[0.04em] text-gold">
                           {tr(lang, { en: 'Visit website', cs: 'Navštívit web' })} <ArrowUpRight size={14} />

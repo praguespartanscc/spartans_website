@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { Album } from '@/lib/drive';
-import { photoSrcSet, photoUrl } from '@/lib/photos';
+import { albumName, photoSrcSet, photoUrl } from '@/lib/photos';
 import { localePath, type Lang } from '@/lib/i18n';
 
 // Czech counts take three forms: 1 fotka, 2–4 fotky, 5+ (and 0) fotek.
@@ -39,7 +39,7 @@ export default function AlbumCard({ album, priority, lang = 'en' }: { album: Alb
         )}
         <span className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/10 to-transparent" />
         <span className="absolute inset-x-0 bottom-0 p-5">
-          <span className="h-sub block text-[28px] leading-tight text-cream group-hover:text-gold">{album.name}</span>
+          <span className="h-sub block text-[28px] leading-tight text-cream group-hover:text-gold">{albumName(album.name, lang)}</span>
           <span className="mt-1 block text-[14px] text-sand">
             {photoCount(album.total, lang)}
             {album.albums.length > 0 && ` · ${albumCount(album.albums.length, lang)}`}

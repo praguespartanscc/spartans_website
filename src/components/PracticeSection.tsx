@@ -49,7 +49,7 @@ const PracticeSection = ({ practices, photo = null, lang = 'en' }: { practices: 
                   en: (
                     <>
                       No extra sessions on the calendar right now.{' '}
-                      <Link href={localePath(lang, '/join')} className="font-semibold text-gold hover:text-gold-hi">
+                      <Link href={localePath(lang, '/join')} className="link-inline font-semibold">
                         Get in touch
                       </Link>{' '}
                       and we&apos;ll tell you when the next one is.
@@ -58,7 +58,7 @@ const PracticeSection = ({ practices, photo = null, lang = 'en' }: { practices: 
                   cs: (
                     <>
                       V kalendáři teď nejsou žádné další tréninky.{' '}
-                      <Link href={localePath(lang, '/join')} className="font-semibold text-gold hover:text-gold-hi">
+                      <Link href={localePath(lang, '/join')} className="link-inline font-semibold">
                         Ozvěte se nám
                       </Link>{' '}
                       a dáme vám vědět, kdy bude ten příští.

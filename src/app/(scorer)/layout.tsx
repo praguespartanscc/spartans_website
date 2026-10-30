@@ -11,7 +11,7 @@ export default function ScorerLayout({ children }: { children: React.ReactNode }
       >
         Skip to content
       </a>
-      <main id="main" className="flex-grow">
+      <main id="main" tabIndex={-1} className="flex-grow outline-none">
         {children}
       </main>
     </>

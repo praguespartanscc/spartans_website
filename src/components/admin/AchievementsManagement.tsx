@@ -1,5 +1,7 @@
 'use client';
 
+import { refreshSite } from '@/lib/refresh';
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import toast, { Toaster } from 'react-hot-toast';
@@ -78,6 +80,7 @@ export default function AchievementsManagement() {
     if (error) return void toast.error(error.message);
     if (editing?.photo_url && editing.photo_url !== form.photo_url) await removeClubPhoto(supabase, editing.photo_url);
     toast.success(editing ? 'Achievement updated' : 'Achievement added');
+    refreshSite();
     reset();
     load();
   }
@@ -90,6 +93,7 @@ export default function AchievementsManagement() {
     if (error) return void toast.error(error.message);
     await removeClubPhoto(supabase, toDelete.photo_url);
     toast.success('Achievement deleted');
+    refreshSite();
     setToDelete(null);
     load();
   }

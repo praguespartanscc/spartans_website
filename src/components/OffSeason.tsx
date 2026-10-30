@@ -18,9 +18,9 @@ export default async function OffSeason({ lang = 'en' }: { lang?: Lang }) {
     <Reveal className="card grid gap-10 p-6 sm:p-10 lg:grid-cols-[1.1fr_1fr]">
       <div>
         <p className="eyebrow">{tr(lang, { en: 'Between seasons', cs: 'Mezi sezónami' })}</p>
-        <h3 className="h-sub mt-3 text-[clamp(28px,3.4vw,40px)]">
+        <h2 className="h-sub mt-3 text-[clamp(28px,3.4vw,40px)]">
           {tr(lang, { en: 'New fixtures are on their way', cs: 'Nový rozpis zápasů připravujeme' })}
-        </h3>
+        </h2>
         <p className="mt-4 max-w-xl text-lg leading-relaxed text-sand">
           {tr(lang, {
             en: `The union publishes the new season's fixtures before it starts, and they will appear here. Until then we keep training every ${weekly.day.en} from ${weekly.time.replace('–', ' to ')} in the cricket nets at ${weekly.venue.name}, and indoors through the winter.`,

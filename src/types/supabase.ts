@@ -66,6 +66,7 @@ export type Sponsor = {
   logo_url: string | null;
   website_url: string | null;
   description: string | null;
+  description_cs?: string | null; // shown on /cs when set
   tier?: string | null; // principal | gold | partner
   sort_order?: number | null;
   created_at?: string;

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { getGallery, latestPhotos } from '@/lib/drive';
-import { photoUrl } from '@/lib/photos';
+import { photoUrl, albumName } from '@/lib/photos';
 import { SITE_URL, SOCIAL, WEBSITE_ID } from '@/lib/club';
 import { localePath, tr, type Lang } from '@/lib/i18n';
 import { pageMeta } from '@/lib/seo';
@@ -53,7 +53,7 @@ export default async function GalleryView({ lang }: { lang: Lang }) {
     publisher: clubRef,
     hasPart: sections.map((s) => ({
       '@type': 'ImageGallery',
-      name: s.name,
+      name: albumName(s.name, lang),
       url: `${SITE_URL}${localePath(lang, `/gallery/${s.path.join('/')}`)}`,
       ...(s.cover ? { thumbnailUrl: photoUrl(s.cover.id, 800) } : {}),
     })),

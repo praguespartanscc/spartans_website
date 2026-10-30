@@ -7,6 +7,9 @@ import HtmlLang from '@/components/HtmlLang';
 export default function CzechLayout({ children }: { children: React.ReactNode }) {
   return (
     <div lang="cs" className="flex flex-grow flex-col">
+      {/* Runs while the HTML is still parsing, so the page is Czech before anything renders
+          (the shared root layout sends lang="en"). HtmlLang keeps it right on client navigation. */}
+      <script dangerouslySetInnerHTML={{ __html: "document.documentElement.lang='cs'" }} />
       <HtmlLang lang="cs" />
       <a
         href="#main"
@@ -15,7 +18,7 @@ export default function CzechLayout({ children }: { children: React.ReactNode })
         Přeskočit na obsah
       </a>
       <Header />
-      <main id="main" className="flex-grow">
+      <main id="main" tabIndex={-1} className="flex-grow outline-none">
         {children}
       </main>
       <Footer lang="cs" />

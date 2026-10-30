@@ -1,5 +1,7 @@
 'use client';
 
+import { refreshSite } from '@/lib/refresh';
+
 import { useEffect, useMemo, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import toast, { Toaster } from 'react-hot-toast';
@@ -42,7 +44,10 @@ export default function SettingsManagement() {
     const { error } = await supabase.from('site_settings').upsert(rows);
     setBusy(false);
     if (error) toast.error(error.message);
-    else toast.success('Settings saved. The website updates within a minute.');
+    else {
+      toast.success('Settings saved and published.');
+      refreshSite();
+    }
   }
 
   if (loading) return <div className="h-40 animate-pulse rounded bg-gray-200" />;

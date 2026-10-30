@@ -32,28 +32,29 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   const router = useRouter();
   const supabase = useMemo(() => createClientComponentClient(), []);
   const [counts, setCounts] = useState<Counts>({ members: 0, applications: 0 });
-  const [isAdmin, setIsAdmin] = useState(true);
+  // Unknown until the session is read, so committee members never see the admin-only links flash.
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setIsAdmin(data.user?.app_metadata?.isAdmin === true));
   }, [supabase]);
 
   useEffect(() => {
-    if (!isAdmin) return;
+    if (isAdmin !== true) return;
     Promise.all([
       supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       supabase.from('team_applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
     ]).then(([m, a]) => setCounts({ members: m.count ?? 0, applications: a.count ?? 0 }));
   }, [supabase, pathname, isAdmin]);
 
-  const sections = isAdmin ? SECTIONS : SECTIONS.filter((s) => WRITER_SECTIONS.includes(s.href));
+  const sections = isAdmin === null ? [] : isAdmin ? SECTIONS : SECTIONS.filter((s) => WRITER_SECTIONS.includes(s.href));
   const active = (href: string) => (href === '/admin' ? pathname === '/admin' : pathname.startsWith(href));
-  const current = sections.find((s) => active(s.href)) ?? sections[0];
+  const current = SECTIONS.find((s) => active(s.href)) ?? SECTIONS[0];
 
   return (
     <div className="container-x py-8 sm:py-10 lg:grid lg:grid-cols-[240px_1fr] lg:gap-10">
       <aside className="mb-6 lg:mb-0">
-        <p className="eyebrow mb-2">{isAdmin ? 'Club admin' : 'Committee'}</p>
+        <p className="eyebrow mb-2">{isAdmin === false ? 'Committee' : 'Club admin'}</p>
         <p className="h-sub mb-6 hidden text-[30px] lg:block">Dashboard</p>
 
         {/* Phones and tablets: one picker instead of a long list */}

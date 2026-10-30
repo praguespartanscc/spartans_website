@@ -220,6 +220,18 @@ body {
     color: var(--color-cream);
   }
 
+  /* A gold link inside running text. Underlined by default, so it never relies on colour alone. */
+  .link-inline {
+    color: var(--color-gold);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--color-gold) 55%, transparent);
+    text-underline-offset: 4px;
+    transition: color 0.2s var(--ease-out-quart), text-decoration-color 0.2s var(--ease-out-quart);
+  }
+  .link-inline:hover {
+    color: var(--color-gold-hi);
+    text-decoration-color: currentColor;
+  }
   .link-arrow {
     display: inline-flex;
     align-items: center;

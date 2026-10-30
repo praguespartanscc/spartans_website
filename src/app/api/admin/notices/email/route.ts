@@ -3,12 +3,14 @@ import { cookies } from 'next/headers';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { emailConfigured, escapeHtml, sendEmail } from '@/lib/email';
 import { SITE_URL } from '@/lib/club';
+import { sameOrigin } from '@/lib/request';
 
 export const dynamic = 'force-dynamic';
 
 // Emails a notice to every approved member. Runs as the signed-in admin, so the
 // database's own rules decide what they can read.
 export async function POST(request: Request) {
+  if (!sameOrigin(request)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   const cookieStore = cookies();
   const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
   const {
