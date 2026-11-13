@@ -9,7 +9,8 @@ import type { LocalMatch } from '@/lib/indoor/store';
 import { loadLocal, mergeEvents, newId, removeLocal, saveLocal } from '@/lib/indoor/store';
 import { fetchMatch, push, type PushResult } from '@/lib/indoor/sync';
 
-export type SyncState = 'idle' | 'saving' | 'synced' | 'offline' | 'refused';
+// rejected: the database would not take an event (it stays on the phone, the rest uploads).
+export type SyncState = 'idle' | 'saving' | 'synced' | 'offline' | 'refused' | 'rejected';
 
 // Where the next event goes: at the end, in place of an old one, or just before one.
 export type Placement = { mode: 'append' } | { mode: 'replace'; id: string } | { mode: 'before'; id: string };
@@ -58,6 +59,7 @@ export function useScorer(id: string) {
       pending: current?.pending ?? [],
       matchPending: current?.matchPending ?? false,
       uploaded: true,
+      rejected: current?.rejected ?? [],
     });
     return true;
   }, [id, supabase, store, forget]);
@@ -84,7 +86,8 @@ export function useScorer(id: string) {
     };
   }, [id, pull]);
 
-  const flush = useCallback(async () => {
+  // retryRejected: also resend events the database refused earlier (on open and now and then).
+  const flush = useCallback(async (retryRejected = false) => {
     const current = ref.current;
     if (!current || pushing.current) return;
     if (current.pending.length === 0 && !current.matchPending) {
@@ -96,7 +99,7 @@ export function useScorer(id: string) {
     // Remember what was sent, so an event changed again while uploading stays pending.
     const sent = new Map(current.events.filter((e) => current.pending.includes(e.id)).map((e) => [e.id, JSON.stringify(e)]));
     const sentMatch = JSON.stringify(current.match);
-    const res: PushResult = await push(supabase, current).catch((e: unknown) => ({ pending: current.pending, matchPending: current.matchPending, error: String(e) }));
+    const res: PushResult = await push(supabase, current, { retryRejected }).catch((e: unknown) => ({ pending: current.pending, matchPending: current.matchPending, error: String(e) }));
     pushing.current = false;
     if (res.code === 'gone') return forget();
     const latest = ref.current;
@@ -109,25 +112,55 @@ export function useScorer(id: string) {
       return true;
     });
     const matchPending = latest.matchPending && (res.matchPending || JSON.stringify(latest.match) !== sentMatch);
-    store({ ...latest, pending: stillPending, matchPending, uploaded: latest.uploaded || !res.matchPending });
+    const uploaded = latest.uploaded === true || res.uploaded === true || !res.matchPending;
+    const rejected = (res.rejected ?? latest.rejected ?? []).filter((eid) => stillPending.includes(eid));
+    // Saving re-runs the upload effect, so only save when something moved. Otherwise a phone
+    // with no signal (or a rejected event) would retry several times a second.
+    const moved =
+      stillPending.length !== latest.pending.length || matchPending !== latest.matchPending || uploaded !== (latest.uploaded === true) || rejected.length !== (latest.rejected?.length ?? 0);
+    if (moved) store({ ...latest, pending: stillPending, matchPending, uploaded, rejected });
+    const again = (ms: number, withRejected: boolean) => {
+      if (retry.current) clearTimeout(retry.current);
+      retry.current = setTimeout(() => void flush(withRejected), ms);
+    };
+    const waitingToSend = stillPending.some((eid) => !rejected.includes(eid));
     if (res.code === 'refused') {
       setSync('refused'); // retrying cannot help: this account may not score the match
-    } else if (res.error) {
+    } else if (res.error && res.code !== 'rejected') {
       setSync('offline');
-      if (retry.current) clearTimeout(retry.current);
-      retry.current = setTimeout(() => void flush(), 8000);
-    } else if (stillPending.length || matchPending) {
-      void flush();
+      again(8000, false);
+    } else if (waitingToSend || (matchPending && !res.matchPending)) {
+      void flush(); // more was scored while this upload was in the air
+    } else if (rejected.length) {
+      // The database will not store these. A fix on the server clears it, so try now and then.
+      setSync('rejected');
+      again(30000, true);
+    } else if (matchPending) {
+      setSync('offline');
+      again(8000, false);
     } else {
       setSync('synced');
     }
   }, [supabase, store, forget]);
 
+  // On opening a match, give rejected events another go straight away.
+  const opened = useRef(false);
   useEffect(() => {
     if (!lm) return;
-    const t = setTimeout(() => void flush(), 250);
+    const first = !opened.current;
+    opened.current = true;
+    const t = setTimeout(() => void flush(first), 250);
     return () => clearTimeout(t);
   }, [lm, flush]);
+
+  // Balls that have waited two minutes to upload deserve more than a small dot.
+  const waiting = (lm?.pending.length ?? 0) > 0 || lm?.matchPending === true;
+  const [stale, setStale] = useState(false);
+  useEffect(() => {
+    if (!waiting) return setStale(false);
+    const t = setTimeout(() => setStale(true), 120000);
+    return () => clearTimeout(t);
+  }, [waiting]);
 
   useEffect(() => {
     const online = () => void flush();
@@ -265,5 +298,5 @@ export function useScorer(id: string) {
     [flush, id, store, supabase],
   );
 
-  return { lm, state, loading, missing, gone, sync, add, remove, undo, restore, restoreMany, restart, deleteMatch, setStatus, flush, pull, handOver };
+  return { lm, state, loading, missing, gone, sync, stale, add, remove, undo, restore, restoreMany, restart, deleteMatch, setStatus, flush, pull, handOver };
 }

@@ -82,3 +82,15 @@ export function summaryOf(state: MatchState): MatchSummary {
     result: resultText(state),
   };
 }
+
+// A finished match whose stored score is not what its uploaded balls add up to: the last balls
+// never left the scorer's phone. Returns the stored score to show instead, or null when all is well.
+export function storedAhead(status: string | undefined, summary: MatchSummary | null | undefined, state: MatchState): MatchSummary | null {
+  if (status !== 'complete' || !summary?.innings?.length) return null;
+  const now = summaryOf(state);
+  const same =
+    state.status === 'complete' &&
+    now.innings.length === summary.innings.length &&
+    now.innings.every((i, k) => i.total === summary.innings[k].total && i.wickets === summary.innings[k].wickets && i.overs === summary.innings[k].overs);
+  return same ? null : summary;
+}

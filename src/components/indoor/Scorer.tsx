@@ -212,6 +212,15 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
         </button>
       </div>
 
+      {/* Loud enough to notice: a small dot was missed for a whole match. */}
+      {(s.sync === 'rejected' || (s.stale && s.sync === 'offline')) && (
+        <p role="alert" className="mx-4 mt-1 border border-crimson-hi bg-crimson/30 px-3 py-2 text-sm text-cream">
+          {s.sync === 'rejected'
+            ? 'Upload problem. Keep scoring, every ball is saved on this phone. Tell an admin after the match.'
+            : 'No connection for a while. Keep scoring, every ball is saved on this phone and uploads when the signal is back.'}
+        </p>
+      )}
+
       {/* Score */}
       <header className="px-4 pt-2">
         <div className="flex items-end justify-between gap-3">
@@ -622,8 +631,16 @@ function useWakeLock(on: boolean) {
 
 function SyncDot({ sync, pending }: { sync: SyncState; pending: number }) {
   const text =
-    sync === 'refused' ? 'Upload refused, ask an admin' : sync === 'offline' ? `Saved on this phone${pending ? `, ${pending} to upload` : ''}` : sync === 'saving' ? 'Saving' : 'Synced';
-  const tone = sync === 'offline' || sync === 'refused' ? 'bg-crimson-hi' : sync === 'saving' ? 'bg-gold' : 'bg-cream/40';
+    sync === 'refused'
+      ? 'Upload refused, ask an admin'
+      : sync === 'rejected'
+        ? 'Upload problem'
+        : sync === 'offline'
+          ? `Saved on this phone${pending ? `, ${pending} to upload` : ''}`
+          : sync === 'saving'
+            ? 'Saving'
+            : 'Synced';
+  const tone = sync === 'offline' || sync === 'refused' || sync === 'rejected' ? 'bg-crimson-hi' : sync === 'saving' ? 'bg-gold' : 'bg-cream/40';
   return (
     <span className="flex h-11 items-center gap-1.5 pr-2 text-xs text-muted" role="status">
       <span className={`h-2 w-2 rounded-full ${tone}`} />

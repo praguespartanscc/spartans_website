@@ -30,6 +30,7 @@ export type LocalMatch = {
   pending: string[]; // event ids not yet on the server
   matchPending: boolean; // match row (new, summary or status) not yet on the server
   uploaded?: boolean; // the server has had this match, so if it disappears there it was deleted
+  rejected?: string[]; // pending events the database would not take (retried now and then)
 };
 
 const KEY = (id: string) => `indoor:match:${id}`;

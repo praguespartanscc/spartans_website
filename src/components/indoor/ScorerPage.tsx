@@ -8,7 +8,7 @@ import MatchList from './MatchList';
 import ScorerBar from './ScorerBar';
 import SetupWizard from './SetupWizard';
 import { useScorer } from './useScorer';
-import { resultText } from '@/lib/indoor/format';
+import { resultText, storedAhead } from '@/lib/indoor/format';
 import { ArrowLeft } from '@/components/ui/Icons';
 
 // Client wrapper so the route files stay server components with metadata.
@@ -33,6 +33,7 @@ function Card({ id }: { id: string }) {
   const { state, loading, lm } = useScorer(id);
   if (loading && !state) return <div className="skeleton mx-4 mt-8 h-64" role="status" aria-label="Loading" />;
   if (!state || !lm) return <p className="px-4 py-20 text-center text-sand">Match not found.</p>;
+  const ahead = storedAhead(lm.match.status, lm.match.summary, state);
   return (
     <div className="mx-auto max-w-2xl px-4 pb-16 pt-2">
       <Link href={`/score/${id}`} className="-ml-2 inline-grid h-11 w-11 place-items-center text-muted hover:text-cream" aria-label="Back to the match">
@@ -42,7 +43,13 @@ function Card({ id }: { id: string }) {
       <h1 className="h-sub mt-2 text-3xl">
         {state.teams[0].name} v {state.teams[1].name}
       </h1>
-      {resultText(state) && <p className="mt-2 text-lg text-gold">{resultText(state)}</p>}
+      {(ahead?.result ?? resultText(state)) && <p className="mt-2 text-lg text-gold">{ahead?.result ?? resultText(state)}</p>}
+      {ahead && (
+        <p className="mt-2 text-sm text-muted">
+          Final score: {ahead.innings.map((i) => `${i.team} ${i.total}/${i.wickets} (${i.overs})`).join(', ')}. The last balls were not uploaded from the scorer&apos;s phone, so the card below stops
+          early. Opening the Scorer page on that phone uploads them.
+        </p>
+      )}
       <div className="mt-8">
         <Scorecard state={state} />
       </div>

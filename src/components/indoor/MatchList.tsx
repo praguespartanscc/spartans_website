@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import type { MatchRecord } from '@/lib/indoor/store';
 import { listLocal, removeLocal } from '@/lib/indoor/store';
+import { uploadWaiting } from '@/lib/indoor/sync';
 import toast, { Toaster } from 'react-hot-toast';
 import { ConfirmButton } from './RulesEditor';
 import type { Member } from './MemberGate';
@@ -16,17 +17,17 @@ type Row = MatchRecord & { local: boolean; unsynced: boolean };
 export default function MatchList({ member }: { member: Member }) {
   const [rows, setRows] = useState<Row[] | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     const local = listLocal().map((lm) => ({ ...lm.match, local: true, unsynced: lm.pending.length > 0 || lm.matchPending }));
-    setRows(local);
+    setRows((prev) => prev ?? local);
     const supabase = createClientComponentClient();
-    supabase
+    return supabase
       .from('indoor_matches')
       .select('id, team_a, team_b, setup, summary, status, share_slug, played_on, created_by, scorer_id, updated_at')
       .order('updated_at', { ascending: false })
       .limit(40)
       .then(({ data, error }) => {
-        if (error || !data) return;
+        if (error || !data) return void setRows(local);
         const byId = new Map<string, Row>();
         for (const m of data as MatchRecord[]) byId.set(m.id, { ...m, local: false, unsynced: false });
         for (const l of local) {
@@ -36,6 +37,25 @@ export default function MatchList({ member }: { member: Member }) {
         setRows([...byId.values()].sort((a, b) => (b.played_on ?? '').localeCompare(a.played_on ?? '') || (b.updated_at ?? '').localeCompare(a.updated_at ?? '')));
       });
   }, []);
+
+  // Show the list, then quietly upload anything this phone still holds (a match scored with no
+  // signal, or one whose upload failed) and show the list again if that changed anything.
+  useEffect(() => {
+    let stopped = false;
+    void load();
+    if (listLocal().some((lm) => lm.pending.length > 0 || lm.matchPending)) {
+      uploadWaiting(createClientComponentClient())
+        .then((done) => {
+          if (stopped || !done) return;
+          toast.success(done === 1 ? 'A waiting match has uploaded' : `${done} waiting matches have uploaded`);
+          return load();
+        })
+        .catch(() => {});
+    }
+    return () => {
+      stopped = true;
+    };
+  }, [load]);
 
   // Started on this phone and not uploaded yet, or started by or handed to this member.
   const mine = (r: Row) => (r.local && !r.created_by) || r.created_by === member.user.id || r.scorer_id === member.user.id;

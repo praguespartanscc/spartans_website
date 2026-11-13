@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import type { IndoorEvent, MatchSetup, MatchState } from '@/lib/indoor/engine';
 import { oversText, replay, target, teamTotal } from '@/lib/indoor/engine';
-import { ballLabel, ballTone } from '@/lib/indoor/format';
+import { ballLabel, ballTone, storedAhead } from '@/lib/indoor/format';
+import type { MatchSummary } from '@/lib/indoor/store';
 import { LOCALE, tr, type Lang } from '@/lib/i18n';
 import Scorecard from './Scorecard';
 
@@ -15,6 +16,7 @@ export type FollowData = {
   status: 'live' | 'complete' | 'abandoned';
   played_on: string;
   updated_at: string;
+  summary?: MatchSummary | null;
   events: IndoorEvent[];
 };
 
@@ -32,6 +34,16 @@ function resultLine(lang: Lang, s: MatchState): string | null {
   const name = s.teams[r.winner].name;
   const spare = r.byChase && r.ballsLeft > 0 ? tr(lang, { en: `, with ${balls(lang, r.ballsLeft)} to spare`, cs: `, zbývalo ${balls(lang, r.ballsLeft)}` }) : '';
   return tr(lang, { en: `${name} won by ${runs(lang, r.margin)}${spare}`, cs: `${name} vyhrál o ${runs(lang, r.margin)}${spare}` });
+}
+
+// The same line from a stored score (used when the last balls never reached the server).
+function storedResultLine(lang: Lang, innings: MatchSummary['innings']): string | null {
+  if (innings.length < 2) return null;
+  const [a, b] = innings;
+  if (a.total === b.total) return tr(lang, { en: 'Match tied', cs: 'Zápas skončil remízou' });
+  const winner = a.total > b.total ? a : b;
+  const margin = Math.abs(a.total - b.total);
+  return tr(lang, { en: `${winner.team} won by ${runs(lang, margin)}`, cs: `${winner.team} vyhrál o ${runs(lang, margin)}` });
 }
 
 function chaseLine(lang: Lang, s: MatchState): string | null {
@@ -83,7 +95,9 @@ export default function IndoorFollow({ initial, slug, lang }: { initial: FollowD
   const inn = state.innings[state.current];
   const bpo = state.rules.match.ballsPerOver;
   const live = data.status === 'live' && state.status !== 'complete';
-  const result = resultLine(lang, state);
+  // Finished, but the last balls never left the scorer's phone: trust the stored score.
+  const ahead = storedAhead(data.status, data.summary, state);
+  const result = ahead ? storedResultLine(lang, ahead.innings) : resultLine(lang, state);
   const chase = chaseLine(lang, state);
   const overIndex = Math.floor(inn.legalBalls / bpo);
   const over = inn.overs.find((o) => o.index === overIndex) ?? inn.overs[inn.overs.length - 1];
@@ -110,7 +124,20 @@ export default function IndoorFollow({ initial, slug, lang }: { initial: FollowD
 
       {/* Score of each innings so far */}
       <div className="mt-8 grid gap-3 sm:grid-cols-2" aria-live="polite">
-        {state.innings
+        {ahead
+          ? ahead.innings.map((i, k) => (
+              <div key={k} className="card p-5">
+                <p className="h-sub truncate text-xl">{i.team}</p>
+                <p className="mt-2 font-varsity text-[clamp(40px,9vw,56px)] leading-none">
+                  {i.total}
+                  <span className="text-muted">/{i.wickets}</span>
+                </p>
+                <p className="mt-2 text-sm text-muted">
+                  {i.overs} {tr(lang, { en: 'overs', cs: 'overů' })}
+                </p>
+              </div>
+            ))
+          : state.innings
           .filter((i) => i.index === 0 || i.overs.some((o) => o.balls.length) || i.complete)
           .map((i) => (
             <div key={i.index} className={`card p-5 ${i.index === state.current && live ? 'border-gold' : ''}`}>
@@ -127,6 +154,14 @@ export default function IndoorFollow({ initial, slug, lang }: { initial: FollowD
       </div>
 
       {result && <p className="h-sub mt-6 text-2xl text-gold">{result}</p>}
+      {ahead && (
+        <p className="mt-3 max-w-2xl text-sm text-muted">
+          {tr(lang, {
+            en: "The last balls of this match were not uploaded from the scorer's phone, so the ball by ball record below stops early. The result above is the final one.",
+            cs: 'Poslední míčky tohoto zápasu se z telefonu zapisovatele nenahrály, proto záznam míček po míčku níže končí dřív. Výsledek nahoře je konečný.',
+          })}
+        </p>
+      )}
       {chase && <p className="mt-6 text-lg text-sand">{chase}</p>}
       {state.current === 1 && live && (
         <p className="mt-1 text-sm text-muted">
