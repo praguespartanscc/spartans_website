@@ -35,7 +35,7 @@ export default function PageHero({ eyebrow, title, intro, image, imagePosition =
           {/* Brand rule: text over photos needs ~80% black behind it. Desktop keeps that behind
               the copy on the left and lets more of the photo show on the right. */}
           <div className="absolute inset-0 -z-10 bg-ink/80 lg:hidden" />
-          <div className="absolute inset-0 -z-10 hidden bg-gradient-to-r from-ink/90 via-ink/80 via-60% to-ink/45 lg:block" />
+          <div className="absolute inset-0 -z-10 hidden bg-gradient-to-r from-ink/90 via-ink/80 via-65% to-ink/50 lg:block" />
         </>
       )}
       <div className="container-x w-full pb-14 pt-20 sm:pb-20 sm:pt-28">
