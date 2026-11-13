@@ -109,12 +109,16 @@ Use these before writing new utility soup:
 
 ## UI primitives (`src/components/ui/`)
 
-- `PageHero` opens every inner page: eyebrow, H1, intro, optional image with Ken Burns zoom
-  and an 80% black scrim. `compact` gives smaller type for long titles.
+- `PageHero` opens every inner page: eyebrow, H1, intro, optional image with Ken Burns zoom,
+  the film look and scroll drift. The scrim is 80% black on phones and a left-to-right gradient
+  on desktop (80% behind the copy). `compact` gives smaller type for long titles.
 - `SectionHeading`: eyebrow + `.h-section` + intro + optional action, wrapped in `Reveal`.
 - `Reveal`: scroll-in animation driven by one shared IntersectionObserver. `delay` (ms) staggers siblings.
 - `Skeleton` (`SkeletonList`, `SkeletonGrid`) for loading. `EmptyState` for empty lists. Use these, not spinners.
 - `Icons.tsx`: the icon set (see below). `Avatar`, `Ticker`.
+
+`QuoteBand` (`src/components/QuoteBand.tsx`) is the full-bleed "scene": a two-line brand statement
+over a wide photo with the film look. Pass `label`, `eyebrow` and `lines` for a new scene.
 
 Section components (`src/components/*Section.tsx`) are server components unless they need state.
 Mark client components with `'use client'` and keep them small (HeroSection, Header, forms).
@@ -142,6 +146,11 @@ All motion lives in globals.css. Animate **only `transform` and `opacity`** (GPU
 | `.lightbox-in/-out`, `.photo-in/-next/-prev` | gallery viewer open/close and direction-aware photo change |
 | `.btn-gold` sheen | light sweep across gold buttons on hover |
 | `.sheet-in`, `.scrim-in` | scorer bottom sheet slides up over a fading scrim |
+| `.film` | film look for a box holding a photo or video: soft vignette (`::before`) and static grain (`::after`). In an `isolate` section add `[--film-z:-5]` so both sit above the scrim and below the text |
+| `.film-grade` | one gentle colour grade on the photo or video itself |
+| `.letterbox-bar.top` / `.bottom` | home hero opening: two black bars slide away from the photo (1.1s) |
+| `.parallax` | scroll drift on a wrapper around a photo (CSS scroll timeline, no JS). Ancestors must use `overflow-clip`, not `overflow-hidden` |
+| `.mask-rise > span` | a heading rises from behind a mask when its `Reveal` scrolls in (`SectionHeading`, `QuoteBand`) |
 
 Motion components: `ui/CountUp` (numbers count up; the server renders the final value),
 `Countdown` (next-match timer), `ScrollExtras` (`ReadingProgress` gold bar for long pages,

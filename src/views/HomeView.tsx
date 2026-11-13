@@ -271,6 +271,13 @@ export default async function HomeView({ lang }: { lang: Lang }) {
       <QuickLinks lang={lang} />
       <ValuesBand lang={lang} />
       {lang === 'cs' && <CricketIntroCs />}
+      <QuoteBand
+        lang={lang}
+        photo={sitePhoto(photos, PHOTO_SLOT.scene)}
+        label={tr(lang, { en: 'The club', cs: 'Klub' })}
+        eyebrow={tr(lang, { en: `Since ${FOUNDED}`, cs: `Od roku ${FOUNDED}` })}
+        lines={[tr(lang, { en: 'Three squads.', cs: 'Tři týmy.' }), tr(lang, { en: 'One club.', cs: 'Jeden klub.' })]}
+      />
       <SquadsSection lang={lang} />
       <EventsSection upcoming={upcoming.slice(0, 4)} latest={latest} today={today} lang={lang} />
       <NewsSection posts={news} lang={lang} />

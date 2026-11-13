@@ -97,13 +97,15 @@ const HeroSection = ({ lang = 'en', photos = [], t10Year = null }: { lang?: Lang
     {/* The crest sits in the header bar on solid black (never over the photo), so the photo starts at once. */}
     <section
       aria-label={tr(lang, { en: 'Welcome', cs: 'Úvod' })}
-      className="relative isolate flex min-h-[78svh] items-end overflow-hidden lg:min-h-[calc(100svh-152px)]"
+      className="film relative isolate flex min-h-[78svh] items-end overflow-clip [--film-z:-5] lg:min-h-[calc(100svh-152px)]"
     >
+      {/* The wrapper drifts with the scroll while each photo inside runs its slow zoom. */}
+      <div className="parallax absolute inset-0 -z-20">
       {slides.map((slide, i) => (
         <div
           key={slide.id}
           aria-hidden={i !== index}
-          className={`absolute inset-0 -z-20 transition-opacity duration-[1400ms] ease-[var(--ease-out-quart)] ${
+          className={`absolute inset-0 transition-opacity duration-[1400ms] ease-[var(--ease-out-quart)] ${
             i === index ? 'opacity-100' : 'opacity-0'
           }`}
         >
@@ -118,15 +120,19 @@ const HeroSection = ({ lang = 'en', photos = [], t10Year = null }: { lang?: Lang
             fetchPriority={i === 0 ? 'high' : 'auto'}
             loading={i === 0 ? 'eager' : 'lazy'}
             decoding="async"
-            className="kenburns absolute inset-0 h-full w-full object-cover object-[center_35%]"
+            className="kenburns film-grade absolute inset-0 h-full w-full object-cover object-[center_35%]"
           />
           )}
         </div>
       ))}
+      </div>
       {/* Brand rule: text over photos needs ~80% black behind it. */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-ink/40 via-ink/80 to-ink lg:hidden" />
       <div className="absolute inset-0 -z-10 hidden bg-gradient-to-r from-ink/90 via-ink/80 to-ink/30 lg:block" />
       <div className="absolute inset-x-0 bottom-0 -z-10 hidden h-1/3 bg-gradient-to-t from-ink to-transparent lg:block" />
+      {/* Opening: the photo starts in a wide cinema frame and the bars slide away. */}
+      <div aria-hidden="true" className="letterbox-bar top -z-[4]" />
+      <div aria-hidden="true" className="letterbox-bar bottom -z-[4]" />
 
       <div className="container-x pb-12 pt-32 sm:pb-16">
         <p className="eyebrow rise mb-4" style={{ ['--d' as string]: '100ms' }}>

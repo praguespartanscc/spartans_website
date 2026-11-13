@@ -385,6 +385,23 @@ body {
     transform: scale(1) translate3d(0, 0, 0);
   }
 }
+@keyframes ps-bar-open {
+  from {
+    transform: scaleY(1);
+  }
+  to {
+    transform: scaleY(0);
+  }
+}
+/* Driven by scroll position (animation-timeline), not by time. */
+@keyframes ps-parallax {
+  from {
+    transform: translate3d(0, -6%, 0) scale(1.14);
+  }
+  to {
+    transform: translate3d(0, 6%, 0) scale(1.14);
+  }
+}
 @keyframes ps-shimmer {
   from {
     transform: translateX(-100%);
@@ -485,7 +502,7 @@ body {
 
 /* Route change: each page eases in */
 .page-enter {
-  animation: ps-fade-in 0.5s var(--ease-out-quart) both;
+  animation: ps-fade-in 0.7s var(--ease-out-quart) both;
 }
 
 /* Staggered entrance for hero copy */
@@ -697,6 +714,84 @@ body {
   }
 }
 
+/* ---- Film look ------------------------------------------------------------------------ */
+
+/* Any box that holds a photo or video: a soft vignette (::before) and fine static grain
+   (::after) over it. Inside an "isolate" section whose photo sits at a negative z-index, set
+   --film-z (e.g. class "[--film-z:-5]") so both land above the scrim and below the text. */
+.film {
+  position: relative;
+}
+.film::before,
+.film::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: var(--film-z, 1);
+  pointer-events: none;
+}
+.film::before {
+  background: radial-gradient(ellipse at center, transparent 52%, rgb(0 0 0 / 0.5) 100%);
+}
+.film::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  opacity: 0.11;
+}
+
+/* One gentle grade for photos and video, so pictures from different days look like one film. */
+.film-grade {
+  filter: saturate(0.88) contrast(1.06);
+}
+
+/* Home page opening: two black bars over the top and bottom of the photo slide away. */
+.letterbox-bar {
+  position: absolute;
+  inset-inline: 0;
+  height: 13%;
+  background: var(--color-ink);
+  pointer-events: none;
+  animation: ps-bar-open 1.1s var(--ease-out-expo) 0.3s both;
+}
+.letterbox-bar.top {
+  top: 0;
+  transform-origin: top center;
+}
+.letterbox-bar.bottom {
+  bottom: 0;
+  transform-origin: bottom center;
+}
+
+/* Depth while scrolling: the photo drifts a little slower than the page. Put it on a wrapper
+   around the photo (the photo itself may already run .kenburns). Ancestors between it and the
+   page must use overflow-clip, not overflow-hidden, or the scroll timeline has nothing to follow. */
+@supports (animation-timeline: view()) {
+  .parallax {
+    animation: ps-parallax linear both;
+    animation-timeline: view();
+    animation-range: cover 0% cover 100%;
+  }
+}
+
+/* A heading that rises from behind a mask when its <Reveal> scrolls in:
+   <span class="mask-rise"><span>Text</span></span> */
+.mask-rise {
+  display: block;
+  overflow: hidden;
+  padding-block: 0.06em;
+  margin-block: -0.06em;
+}
+.mask-rise > span {
+  display: block;
+}
+.js .reveal .mask-rise > span {
+  transform: translate3d(0, 105%, 0);
+  transition: transform 1s var(--ease-out-expo) calc(var(--d, 0ms) + 80ms);
+}
+.js .reveal.is-visible .mask-rise > span {
+  transform: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -723,7 +818,14 @@ body {
   .heading-rule {
     transform: none !important;
   }
-  .ticker-track {
+  .ticker-track,
+  .parallax {
     animation: none !important;
+  }
+  .letterbox-bar {
+    display: none;
+  }
+  .js .reveal .mask-rise > span {
+    transform: none !important;
   }
 }

@@ -8,8 +8,8 @@ import { localePath, tr, type Lang } from '@/lib/i18n';
 export default async function NotFoundContent({ lang }: { lang: Lang }) {
   const photos = await getSitePhotos();
   return (
-    <section className="relative isolate flex min-h-[calc(100svh-64px)] items-center overflow-hidden lg:min-h-[calc(100svh-152px)]">
-      <SitePhoto photo={sitePhoto(photos, PHOTO_SLOT.notFound)} sizes="100vw" decorative eager className="kenburns -z-20" />
+    <section className="film relative isolate flex min-h-[calc(100svh-64px)] items-center overflow-clip [--film-z:-5] lg:min-h-[calc(100svh-152px)]">
+      <SitePhoto photo={sitePhoto(photos, PHOTO_SLOT.notFound)} sizes="100vw" decorative eager className="kenburns film-grade -z-20" />
       <div className="absolute inset-0 -z-10 bg-ink/85" />
       <div className="container-x py-20">
         <p className="eyebrow rise mb-4" style={{ ['--d' as string]: '60ms' }}>

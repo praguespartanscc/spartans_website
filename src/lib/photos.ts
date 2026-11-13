@@ -34,6 +34,7 @@ export function photoCaption(name: string): string | null {
 // Which site photo each spot uses, so neighbouring sections and pages differ.
 export const PHOTO_SLOT = {
   quote: 1,
+  scene: 5,
   story: 2,
   story2: 3,
   practice: 4,

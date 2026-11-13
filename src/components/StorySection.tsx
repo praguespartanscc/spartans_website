@@ -68,7 +68,7 @@ export default function StorySection({ lang = 'en', photos = [] }: { lang?: Lang
               return (
                 <Reveal key={`${photo.id}-${i}`} delay={100 + i * 80} as="figure" className="col-span-2 m-0">
                   <Reveal delay={150 + i * 110} className="wipe zoom-frame relative aspect-[16/9]">
-                    <SitePhoto photo={photo} lang={lang} sizes="(min-width: 1024px) 55vw, 100vw" />
+                    <SitePhoto photo={photo} lang={lang} sizes="(min-width: 1024px) 55vw, 100vw" className="film-grade" />
                   </Reveal>
                   {caption && <figcaption className="mt-2 text-[14px] text-muted">{caption}</figcaption>}
                 </Reveal>

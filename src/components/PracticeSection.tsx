@@ -83,8 +83,8 @@ const PracticeSection = ({ practices, photo = null, lang = 'en' }: { practices: 
         </div>
 
         {photo && (
-          <Reveal delay={120} className="zoom-frame relative aspect-[4/5] overflow-hidden sm:aspect-[4/3] lg:aspect-[4/5]">
-            <SitePhoto photo={photo} lang={lang} sizes="(min-width: 1024px) 50vw, 100vw" />
+          <Reveal delay={120} className="film zoom-frame relative aspect-[4/5] overflow-hidden sm:aspect-[4/3] lg:aspect-[4/5]">
+            <SitePhoto photo={photo} lang={lang} sizes="(min-width: 1024px) 50vw, 100vw" className="film-grade" />
           </Reveal>
         )}
       </div>
