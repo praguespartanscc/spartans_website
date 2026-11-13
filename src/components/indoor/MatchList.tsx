@@ -6,7 +6,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import type { MatchRecord } from '@/lib/indoor/store';
 import { listLocal, removeLocal } from '@/lib/indoor/store';
 import { uploadWaiting } from '@/lib/indoor/sync';
-import { seriesLines } from '@/lib/indoor/format';
+import { matchWhen, seriesLines } from '@/lib/indoor/format';
 import toast, { Toaster } from 'react-hot-toast';
 import { ConfirmButton } from './RulesEditor';
 import type { Member } from './MemberGate';
@@ -24,7 +24,7 @@ export default function MatchList({ member }: { member: Member }) {
     const supabase = createClientComponentClient();
     return supabase
       .from('indoor_matches')
-      .select('id, team_a, team_b, setup, summary, status, share_slug, played_on, created_by, scorer_id, updated_at')
+      .select('id, team_a, team_b, setup, summary, status, share_slug, played_on, created_by, scorer_id, created_at, updated_at')
       .order('updated_at', { ascending: false })
       .limit(40)
       .then(({ data, error }) => {
@@ -33,9 +33,9 @@ export default function MatchList({ member }: { member: Member }) {
         for (const m of data as MatchRecord[]) byId.set(m.id, { ...m, local: false, unsynced: false });
         for (const l of local) {
           const server = byId.get(l.id);
-          byId.set(l.id, server && !l.unsynced ? { ...server, local: true, unsynced: false } : l);
+          byId.set(l.id, server && !l.unsynced ? { ...server, local: true, unsynced: false } : { ...l, created_at: l.created_at ?? server?.created_at });
         }
-        setRows([...byId.values()].sort((a, b) => (b.played_on ?? '').localeCompare(a.played_on ?? '') || (b.updated_at ?? '').localeCompare(a.updated_at ?? '')));
+        setRows([...byId.values()].sort((a, b) => (b.played_on ?? '').localeCompare(a.played_on ?? '') || (b.created_at ?? b.updated_at ?? '').localeCompare(a.created_at ?? a.updated_at ?? '')));
       });
   }, []);
 
@@ -113,7 +113,7 @@ function List({ title, rows, mine, onDelete, series }: { title: string; rows: Ro
           <li key={r.id}>
             <Link href={`/score/${r.id}`} className="card card-hover block p-4">
               <div className="flex items-center justify-between gap-3 text-xs text-muted">
-                <span>{new Date(`${r.played_on}T12:00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                <span>{matchWhen(r.played_on, r.created_at)}</span>
                 <span className="flex gap-2">
                   {r.status === 'live' && <span className="chip border-crimson-hi text-cream">Live</span>}
                   {mine(r) && <span className="chip">Yours</span>}

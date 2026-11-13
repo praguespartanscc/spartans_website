@@ -21,6 +21,7 @@ export type MatchRecord = {
   played_on: string;
   created_by?: string | null;
   scorer_id?: string | null;
+  created_at?: string; // when the match was started (set on the phone, then by the server)
   updated_at?: string;
 };
 

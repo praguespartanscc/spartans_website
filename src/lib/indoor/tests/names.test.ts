@@ -37,3 +37,12 @@ test('a day with several matches between the same teams shows the series', () =>
   assert.equal(lines['5'], 'KASI 2, Vicky 2');
   assert.equal(lines['6'], undefined);
 });
+
+import { matchWhen } from '../format.ts';
+
+test('match cards show the start time in Prague time', () => {
+  assert.equal(matchWhen('2026-11-07', '2026-11-07T14:06:41.747241+00:00'), '7 Nov 2026, 15:06');
+  assert.equal(matchWhen('2026-07-04', '2026-07-04T12:20:00Z'), '4 Jul 2026, 14:20');
+  assert.equal(matchWhen('2026-11-07', null), '7 Nov 2026');
+  assert.equal(matchWhen('2026-11-07', 'not a date'), '7 Nov 2026');
+});

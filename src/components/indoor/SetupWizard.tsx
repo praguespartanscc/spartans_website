@@ -140,7 +140,7 @@ export default function SetupWizard() {
       const events = data.map((d, i) => ({ id: newId(), seq: i + 1, ...d }) as IndoorEvent);
       const id = newId();
       const lm: LocalMatch = {
-        match: { id, team_a: setup.teams[0].name, team_b: setup.teams[1].name, setup, summary: null, status: 'live', share_slug: newSlug(), played_on: todayInPrague() },
+        match: { id, team_a: setup.teams[0].name, team_b: setup.teams[1].name, setup, summary: null, status: 'live', share_slug: newSlug(), played_on: todayInPrague(), created_at: new Date().toISOString() },
         events,
         pending: events.map((e) => e.id),
         matchPending: true,

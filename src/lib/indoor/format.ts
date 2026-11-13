@@ -123,3 +123,12 @@ export function seriesLines(rows: SeriesRow[]): Record<string, string> {
   }
   return out;
 }
+
+// "7 Nov 2026, 14:06" in Prague time, so matches on the same day can be told apart. Falls back
+// to the date alone for a match with no start time recorded.
+export function matchWhen(playedOn: string, createdAt?: string | null): string {
+  const day = new Date(`${playedOn}T12:00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const at = createdAt ? new Date(createdAt) : null;
+  if (!at || Number.isNaN(at.getTime())) return day;
+  return `${day}, ${at.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Europe/Prague' })}`;
+}
