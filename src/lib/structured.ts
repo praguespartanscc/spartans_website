@@ -8,6 +8,7 @@ import {
   GROUND_ID,
   ORG_ID,
   SAME_AS,
+  SEASON_FILM,
   SITE_URL,
   SQUADS,
   WEBSITE_ID,
@@ -117,7 +118,29 @@ export function homeGraph(lang: Lang) {
       clubNode(lang),
       groundNode(),
       ...SQUADS.map((s) => squadNode(s.slug)),
+      filmNode(lang),
     ],
+  };
+}
+
+// The season film on the home page, so search engines can show it as a video result.
+function filmNode(lang: Lang) {
+  const m = Math.floor(SEASON_FILM.seconds / 60);
+  const sec = SEASON_FILM.seconds % 60;
+  return {
+    '@type': 'VideoObject',
+    '@id': `${SITE_URL}/#season-film`,
+    name: tr(lang, { en: `${CLUB_NAME}: the ${SEASON_FILM.season} season film`, cs: `${CLUB_NAME}: film o sezóně ${SEASON_FILM.season}` }),
+    description: tr(lang, {
+      en: `The ${SEASON_FILM.season} season of ${CLUB_NAME} in three minutes: the huddles, the trophies and the people behind them.`,
+      cs: `Sezóna ${SEASON_FILM.season} klubu ${CLUB_NAME} ve třech minutách: společné pokřiky, trofeje a lidé, kteří za nimi stojí.`,
+    }),
+    thumbnailUrl: [`${SITE_URL}${SEASON_FILM.poster}`],
+    contentUrl: `${SITE_URL}${SEASON_FILM.src}`,
+    uploadDate: `${SEASON_FILM.published}T12:00:00+01:00`,
+    duration: `PT${m}M${sec}S`,
+    inLanguage: lang,
+    publisher: clubRef,
   };
 }
 

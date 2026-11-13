@@ -117,6 +117,14 @@ Use these before writing new utility soup:
 - `Skeleton` (`SkeletonList`, `SkeletonGrid`) for loading. `EmptyState` for empty lists. Use these, not spinners.
 - `Icons.tsx`: the icon set (see below). `Avatar`, `Ticker`.
 
+**Home page film.** `HeroSection` plays a short silent loop behind the title (`HERO_VIDEO` in
+`src/lib/club.ts`, files in `public/video/`). The poster frame is what the server sends. The loop
+loads after the page is ready, and never for reduced motion, data saving or a 2g connection, where
+the photo slideshow runs instead. It rests while off screen. `FilmButton` (`src/components/FilmPlayer.tsx`)
+opens the full season film (`SEASON_FILM`) in a pop-up player, optionally at a chapter, and
+`FilmSection` is its block on the home page. To change the footage, re-cut with ffmpeg and replace
+the files in `public/video/` (hero loop: 960 and 640 wide H.264 without sound, plus a poster frame).
+
 `QuoteBand` (`src/components/QuoteBand.tsx`) is the full-bleed "scene": a two-line brand statement
 over a wide photo with the film look. Pass `label`, `eyebrow` and `lines` for a new scene.
 
@@ -148,6 +156,7 @@ All motion lives in globals.css. Animate **only `transform` and `opacity`** (GPU
 | `.sheet-in`, `.scrim-in` | scorer bottom sheet slides up over a fading scrim |
 | `.film` | film look for a box holding a photo or video: soft vignette (`::before`) and static grain (`::after`). In an `isolate` section add `[--film-z:-5]` so both sit above the scrim and below the text |
 | `.film-grade` | one gentle colour grade on the photo or video itself |
+| `.film-grade-rich` | the stronger grade for the home page film loop (flat phone footage under a dark scrim) |
 | `.letterbox-bar.top` / `.bottom` | home hero opening: two black bars slide away from the photo (1.1s) |
 | `.parallax` | scroll drift on a wrapper around a photo (CSS scroll timeline, no JS). Ancestors must use `overflow-clip`, not `overflow-hidden` |
 | `.mask-rise > span` | a heading rises from behind a mask when its `Reveal` scrolls in (`SectionHeading`, `QuoteBand`) |
@@ -183,7 +192,7 @@ Do not add an icon library.
 
 ## Assets and images
 
-- Static images are in `public/`. Brand files are in `public/brand/` (club crest, squad logos,
+- Static images are in `public/`, and the home page film files are in `public/video/`. Brand files are in `public/brand/` (club crest, squad logos,
   `spartans-logo-square.png`), the share image is `public/og/`, and sponsor logos are in `public/sponsors/`.
 - Always use `next/image` (`fill` + `sizes`, or width/height), with `priority` only for the
   above-the-fold hero. Images from remote hosts must be allowed in `next.config.ts` `images.remotePatterns`.

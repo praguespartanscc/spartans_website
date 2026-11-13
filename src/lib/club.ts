@@ -9,6 +9,32 @@ export const SEASON = 2026;
 
 export const ALT_NAMES = ['Prague Spartans CC', 'Prague Spartans', 'PSCC'];
 
+// The silent loop behind the home page title (files in public/video/). `scenes` are the
+// seconds where each shot starts, for the progress bars. Set to null to go back to photos.
+export type HeroVideo = { wide: string; small: string; poster: string; seconds: number; scenes: number[] };
+export const HERO_VIDEO: HeroVideo | null = {
+  wide: '/video/hero-960.mp4',
+  small: '/video/hero-640.mp4',
+  poster: '/video/hero-poster.jpg',
+  seconds: 17,
+  scenes: [0, 2.5, 6.5, 9, 13],
+};
+
+// The club's season film, played in a pop-up from the home page. Chapters are start times in seconds.
+export const SEASON_FILM = {
+  src: '/video/film-2026.mp4',
+  poster: '/video/film-poster.jpg',
+  season: 2026,
+  seconds: 178,
+  published: '2026-11-13',
+  chapters: [
+    { at: 0, en: 'The huddle', cs: 'Před zápasem' },
+    { at: 43, en: 'ECS Czechia Challenger winners', cs: 'Vítězové ECS Czechia Challenger' },
+    { at: 68, en: 'We are Spartans', cs: 'My jsme Spartans' },
+    { at: 119, en: 'T10 champions', cs: 'Šampioni T10' },
+  ],
+};
+
 // Stable identifiers for structured data, so every page refers to the same club.
 export const ORG_ID = `${SITE_URL}/#club`;
 export const WEBSITE_ID = `${SITE_URL}/#website`;

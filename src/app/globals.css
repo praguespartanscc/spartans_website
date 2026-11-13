@@ -743,6 +743,10 @@ body {
 .film-grade {
   filter: saturate(0.88) contrast(1.06);
 }
+/* Phone footage is flat and bright: under the dark scrim it needs more colour and contrast, not less. */
+.film-grade-rich {
+  filter: saturate(1.25) contrast(1.16) brightness(0.94);
+}
 
 /* Home page opening: two black bars over the top and bottom of the photo slide away. */
 .letterbox-bar {

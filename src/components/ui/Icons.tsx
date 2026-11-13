@@ -75,6 +75,12 @@ export const Close = (p: IconProps) => (
   </Base>
 );
 
+export const Play = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M8 5.5v13l11-6.5z" fill="currentColor" />
+  </Base>
+);
+
 export const Check = (p: IconProps) => (
   <Base {...p}>
     <path d="m5 12 5 5L20 7" />

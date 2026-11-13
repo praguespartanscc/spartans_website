@@ -7,6 +7,7 @@ import { getSitePhotos } from '@/lib/drive';
 import { PHOTO_SLOT, sitePhoto, sitePhotosFor } from '@/lib/photos';
 import {
   CLUB_EMAIL,
+  CLUB_NAME,
   FOUNDED,
   GOVERNING_BODY,
   GROUND,
@@ -34,6 +35,7 @@ import CommitteeSection from '@/components/CommitteeSection';
 import SponsorsSection from '@/components/SponsorsSection';
 import GallerySection from '@/components/GallerySection';
 import NewsSection from '@/components/NewsSection';
+import FilmSection from '@/components/FilmSection';
 import QuickLinks from '@/components/QuickLinks';
 import JoinCta from '@/components/JoinCta';
 import SectionHeading from '@/components/ui/SectionHeading';
@@ -268,6 +270,21 @@ export default async function HomeView({ lang }: { lang: Lang }) {
       <LiveBar live={live.live} now={liveNow} lang={lang} />
       <HeroSection lang={lang} photos={photos} t10Year={t10Year(honours)} />
       <NextMatchBar match={next} live={!!next && next.date === today && !!next.stream_url} lang={lang} />
+      {/* The club in a paragraph (it used to sit on the hero photo). */}
+      <section className="border-b border-cream/12 py-12 sm:py-16" aria-labelledby="intro-title">
+        <Reveal className="container-x grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
+          <h2 id="intro-title" className="display text-[clamp(30px,3.4vw,44px)] leading-[1.05]">
+            {tr(lang, { en: 'A cricket club in Prague.', cs: 'Kriketový klub v Praze.' })}{' '}
+            <span className="text-gold">{tr(lang, { en: 'Every level welcome.', cs: 'Vítáme všechny úrovně.' })}</span>
+          </h2>
+          <p className="max-w-2xl text-lg leading-relaxed text-sand">
+            {tr(lang, {
+              en: `${CLUB_NAME} is a cricket club in Prague, Czech Republic, founded in ${FOUNDED}. Our three squads (Vanguards, Mobilizers and Strikers) play Divisions 1, 2 and 3 of the Czech Cricket Union leagues, plus ČMKS T10 and ECS Czechia, with home games at Vinoř Cricket Ground. Every level is welcome.`,
+              cs: `${CLUB_NAME} je kriketový klub v Praze, založený v roce ${FOUNDED}. Naše tři týmy (Vanguards, Mobilizers a Strikers) hrají 1., 2. a 3. divizi Českomoravského kriketového svazu a klub hraje také ČMKS T10 a ECS Czechia. Domácí zápasy hrajeme na kriketovém hřišti ve Vinoři. Vítáme hráče všech úrovní.`,
+            })}
+          </p>
+        </Reveal>
+      </section>
       <QuickLinks lang={lang} />
       <ValuesBand lang={lang} />
       {lang === 'cs' && <CricketIntroCs />}
@@ -281,6 +298,7 @@ export default async function HomeView({ lang }: { lang: Lang }) {
       <SquadsSection lang={lang} />
       <EventsSection upcoming={upcoming.slice(0, 4)} latest={latest} today={today} lang={lang} />
       <NewsSection posts={news} lang={lang} />
+      <FilmSection lang={lang} />
       <SponsorsSection sponsors={sponsors} lang={lang} />
       <QuoteBand lang={lang} photo={sitePhoto(photos, PHOTO_SLOT.quote)} />
       <PracticeSection practices={practices.filter((p) => p.date >= today).slice(0, 3)} photo={sitePhoto(photos, PHOTO_SLOT.practice)} lang={lang} />

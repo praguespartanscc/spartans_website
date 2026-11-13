@@ -4,9 +4,11 @@ import type { Photo } from '@/lib/drive';
 import { photoCaption, photoSrcSet, photoUrl } from '@/lib/photos';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight } from '@/components/ui/Icons';
+import { ArrowRight, Play } from '@/components/ui/Icons';
 import CountUp from '@/components/ui/CountUp';
-import { FOUNDED } from '@/lib/club';
+import { FilmButton } from '@/components/FilmPlayer';
+import { filmTime } from '@/lib/format';
+import { FOUNDED, HERO_VIDEO, SEASON_FILM } from '@/lib/club';
 import { localePath, tr, type Lang } from '@/lib/i18n';
 
 const SLIDE_MS = 6500;
@@ -40,11 +42,122 @@ function statsFor(t10Year: number | null): Stat[] {
   ];
 }
 
+// pending: only the poster frame is up (what the server sends). video: the film loop plays over it.
+// photos: the photo slideshow (no film set, reduced motion, data saving, or the film cannot play).
+type Mode = 'pending' | 'video' | 'photos';
+
+type Connection = { saveData?: boolean; effectiveType?: string };
+
+// Progress bars for the film loop: one per shot, filling as it plays. A tap jumps to that shot.
+function SceneBars({ video, lang }: { video: React.RefObject<HTMLVideoElement | null>; lang: Lang }) {
+  const [time, setTime] = useState(0);
+  useEffect(() => {
+    const v = video.current;
+    if (!v) return;
+    const tick = () => setTime(v.currentTime);
+    v.addEventListener('timeupdate', tick);
+    return () => v.removeEventListener('timeupdate', tick);
+  }, [video]);
+  if (!HERO_VIDEO) return null;
+  const { scenes, seconds } = HERO_VIDEO;
+  return (
+    <>
+      {scenes.map((start, i) => {
+        const end = scenes[i + 1] ?? seconds;
+        const fill = Math.min(1, Math.max(0, (time - start) / (end - start)));
+        return (
+          <button
+            key={start}
+            type="button"
+            onClick={() => {
+              if (video.current) video.current.currentTime = start + 0.05;
+            }}
+            aria-label={tr(lang, { en: `Show scene ${i + 1} of ${scenes.length}`, cs: `Zobrazit scénu ${i + 1} z ${scenes.length}` })}
+            aria-current={fill > 0 && fill < 1}
+            className="flex h-11 min-w-8 max-w-56 flex-1 items-center"
+          >
+            <span className="relative h-[3px] w-full overflow-hidden bg-cream/25">
+              <span className="absolute inset-0 origin-left bg-gold transition-transform duration-300 ease-linear" style={{ transform: `scaleX(${fill})` }} />
+            </span>
+          </button>
+        );
+      })}
+    </>
+  );
+}
+
 const HeroSection = ({ lang = 'en', photos = [], t10Year = null }: { lang?: Lang; photos?: Photo[]; t10Year?: number | null }) => {
   const stats = statsFor(t10Year);
   const slides = useMemo(() => toSlides(photos), [photos]);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [mode, setMode] = useState<Mode>(HERO_VIDEO ? 'pending' : 'photos');
+  const showPhotos = mode === 'photos';
+  const sectionRef = useRef<HTMLElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoSrc, setVideoSrc] = useState<string | null>(null);
+  const [videoReady, setVideoReady] = useState(false);
+  const userPaused = useRef(false);
+
+  // The film loads only once the page itself is ready, and not at all for visitors who asked
+  // for less motion or less data, or who are on a very slow connection. Phones get the small file.
+  useEffect(() => {
+    const film = HERO_VIDEO;
+    if (!film) return;
+    const conn = (navigator as Navigator & { connection?: Connection }).connection;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || conn?.saveData || /(^|-)2g$/.test(conn?.effectiveType ?? '')) {
+      setMode('photos');
+      return;
+    }
+    let timer = 0;
+    const start = () => {
+      timer = window.setTimeout(() => {
+        setVideoSrc(window.matchMedia('(max-width: 767px)').matches ? film.small : film.wide);
+        setMode('video');
+      }, 500);
+    };
+    if (document.readyState === 'complete') start();
+    else window.addEventListener('load', start, { once: true });
+    return () => {
+      window.removeEventListener('load', start);
+      window.clearTimeout(timer);
+    };
+  }, []);
+
+  // Play, and rest while the hero is off screen or the tab is hidden (battery and data).
+  useEffect(() => {
+    const v = videoRef.current;
+    const el = sectionRef.current;
+    if (mode !== 'video' || !v || !el) return;
+    let inView = true;
+    const sync = () => {
+      if (inView && !document.hidden && !userPaused.current) {
+        // A browser that refuses to autoplay (low power mode) gets the photos instead.
+        v.play().catch((e: unknown) => (e as { name?: string })?.name === 'NotAllowedError' && setMode('photos'));
+      } else v.pause();
+    };
+    v.muted = true;
+    sync();
+    const io = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      sync();
+    });
+    io.observe(el);
+    document.addEventListener('visibilitychange', sync);
+    return () => {
+      io.disconnect();
+      document.removeEventListener('visibilitychange', sync);
+    };
+  }, [mode, videoSrc]);
+
+  const toggleFilm = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    userPaused.current = !userPaused.current;
+    setPaused(userPaused.current);
+    if (userPaused.current) v.pause();
+    else v.play().catch(() => {});
+  };
   // How many times each slide has been shown: re-keys its image so the slow zoom restarts,
   // while the outgoing slide keeps its zoom running as it fades out (no jump mid-crossfade).
   const [shown, setShown] = useState<number[]>(() => slides.map(() => 0));
@@ -55,7 +168,7 @@ const HeroSection = ({ lang = 'en', photos = [], t10Year = null }: { lang?: Lang
   const lastIndex = useRef(0);
   useEffect(() => {
     const n = slides.length;
-    if (n < 2) return;
+    if (n < 2 || !showPhotos) return;
     const next = (index + 1) % n;
     if (lastIndex.current === index) {
       // First render: fetch the second photo once the first has had a head start.
@@ -68,7 +181,7 @@ const HeroSection = ({ lang = 'en', photos = [], t10Year = null }: { lang?: Lang
     // The crossfade takes 1.4s, then the old photo can go.
     const t = window.setTimeout(() => setMounted([index, next]), 1600);
     return () => window.clearTimeout(t);
-  }, [index, slides.length]);
+  }, [index, slides.length, showPhotos]);
 
   useEffect(() => {
     if (firstSlide.current) {
@@ -79,29 +192,56 @@ const HeroSection = ({ lang = 'en', photos = [], t10Year = null }: { lang?: Lang
   }, [index]);
 
   useEffect(() => {
-    if (paused || slides.length < 2) return;
+    if (paused || slides.length < 2 || !showPhotos) return;
     const timer = window.setTimeout(() => setIndex((i) => (i + 1) % slides.length), SLIDE_MS);
     return () => window.clearTimeout(timer);
-  }, [index, paused, slides.length]);
+  }, [index, paused, slides.length, showPhotos]);
 
   // Respect users who ask the OS for less motion: no auto-advance.
   useEffect(() => {
     const query = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPaused(query.matches);
+    if (query.matches) setPaused(true);
   }, []);
 
   const goTo = useCallback((i: number) => setIndex(i), []);
 
   return (
     <>
-    {/* The crest sits in the header bar on solid black (never over the photo), so the photo starts at once. */}
+    {/* The crest sits in the header bar on solid black (never over the photo), so the film starts at once. */}
     <section
+      ref={sectionRef}
       aria-label={tr(lang, { en: 'Welcome', cs: 'Úvod' })}
-      className="film relative isolate flex min-h-[78svh] items-end overflow-clip [--film-z:-5] lg:min-h-[calc(100svh-152px)]"
+      className="film relative isolate flex min-h-[calc(100svh-64px)] items-end overflow-clip [--film-z:-5] lg:min-h-[calc(100svh-152px)]"
     >
-      {/* The wrapper drifts with the scroll while each photo inside runs its slow zoom. */}
+      {/* The wrapper drifts with the scroll while what is inside plays or zooms. */}
       <div className="parallax absolute inset-0 -z-20">
-      {slides.map((slide, i) => (
+        {HERO_VIDEO && (
+          // The film's first frame: what everyone sees first, and all some visitors need.
+          // eslint-disable-next-line @next/next/no-img-element -- a small local file, shown as it is
+          <img
+            src={HERO_VIDEO.poster}
+            alt={tr(lang, { en: 'Prague Spartans Cricket Club players on the field', cs: 'Hráči kriketového klubu Prague Spartans na hřišti' })}
+            fetchPriority="high"
+            decoding="async"
+            className="kenburns film-grade-rich absolute inset-0 h-full w-full object-cover"
+          />
+        )}
+        {mode === 'video' && videoSrc && (
+          <video
+            ref={videoRef}
+            src={videoSrc}
+            muted
+            loop
+            playsInline
+            preload="auto"
+            aria-hidden="true"
+            tabIndex={-1}
+            onCanPlay={() => setVideoReady(true)}
+            onError={() => setMode('photos')}
+            className={`film-grade-rich absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-out-quart ${videoReady ? 'opacity-100' : 'opacity-0'}`}
+          />
+        )}
+      {showPhotos && slides.map((slide, i) => (
         <div
           key={slide.id}
           aria-hidden={i !== index}
@@ -117,7 +257,7 @@ const HeroSection = ({ lang = 'en', photos = [], t10Year = null }: { lang?: Lang
             srcSet={photoSrcSet(slide.id, [800, 1200, 1600, 1920, 2560])}
             sizes="100vw"
             alt={slide.alt[lang]}
-            fetchPriority={i === 0 ? 'high' : 'auto'}
+            fetchPriority={i === 0 && !HERO_VIDEO ? 'high' : 'auto'}
             loading={i === 0 ? 'eager' : 'lazy'}
             decoding="async"
             className="kenburns film-grade absolute inset-0 h-full w-full object-cover object-[center_35%]"
@@ -134,12 +274,20 @@ const HeroSection = ({ lang = 'en', photos = [], t10Year = null }: { lang?: Lang
       <div aria-hidden="true" className="letterbox-bar top -z-[4]" />
       <div aria-hidden="true" className="letterbox-bar bottom -z-[4]" />
 
-      <div className="container-x pb-12 pt-32 sm:pb-16">
+      {/* Like a recording light: says the moving picture is the club's own film. */}
+      {mode === 'video' && videoReady && (
+        <p className="page-enter container-x absolute inset-x-0 top-5 flex items-center gap-2.5 font-display text-[13px] font-extrabold uppercase italic tracking-[0.22em] text-cream lg:top-8 lg:justify-end">
+          <span className={`h-2 w-2 rounded-full bg-crimson-hi ${paused ? '' : 'live-dot'}`} aria-hidden="true" />
+          {tr(lang, { en: `${SEASON_FILM.season} season film`, cs: `Film o sezóně ${SEASON_FILM.season}` })}
+        </p>
+      )}
+
+      <div className="container-x w-full pb-8 pt-24 sm:pb-12 lg:pt-32">
         <p className="eyebrow rise mb-4" style={{ ['--d' as string]: '100ms' }}>
           {tr(lang, { en: `Est. ${FOUNDED} · Prague, Czech Republic`, cs: `Od roku ${FOUNDED} · Praha, Česká republika` })}
         </p>
         {/* Reads "Prague Spartans Cricket Club Prague, Czech Republic": the spaces between spans are real text. */}
-        <h1 className="display text-[clamp(56px,11vw,160px)] leading-[0.92]">
+        <h1 className="display text-[clamp(56px,11.6vw,168px)] leading-[0.92]">
           <span className="mask-line">
             <span style={{ ['--d' as string]: '150ms' }}>Prague</span>
           </span>{' '}
@@ -162,20 +310,19 @@ const HeroSection = ({ lang = 'en', photos = [], t10Year = null }: { lang?: Lang
             <p className="rise h-sub text-[clamp(26px,3.4vw,46px)]" style={{ ['--d' as string]: '380ms' }}>
               {tr(lang, { en: 'Spartan discipline, Prague heart.', cs: 'Spartánská disciplína, pražské srdce.' })}
             </p>
-            <p className="rise mt-4 text-lg leading-relaxed text-sand" style={{ ['--d' as string]: '440ms' }}>
-              {tr(lang, {
-                en: 'Prague Spartans Cricket Club is a cricket club in Prague, Czech Republic, founded in 2019. Our three squads (Vanguards, Mobilizers and Strikers) play Divisions 1, 2 and 3 of the Czech Cricket Union leagues, plus ČMKS T10 and ECS Czechia, with home games at Vinoř Cricket Ground. Every level is welcome.',
-                cs: 'Prague Spartans Cricket Club je kriketový klub v Praze, založený v roce 2019. Naše tři týmy (Vanguards, Mobilizers a Strikers) hrají 1., 2. a 3. divizi Českomoravského kriketového svazu a klub hraje také ČMKS T10 a ECS Czechia. Domácí zápasy hrajeme na kriketovém hřišti ve Vinoři. Vítáme hráče všech úrovní.',
-              })}
-            </p>
-            <div className="rise mt-7 flex flex-wrap gap-3" style={{ ['--d' as string]: '500ms' }}>
+            <div className="rise mt-7 flex flex-col gap-x-7 gap-y-4 sm:flex-row sm:items-center" style={{ ['--d' as string]: '460ms' }}>
               <Link href={localePath(lang, '/join')} className="btn btn-gold btn-lg">
                 {tr(lang, { en: 'Join the Spartan family', cs: 'Přidejte se ke Spartans' })}
                 <ArrowRight size={18} className="btn-arrow" />
               </Link>
-              <Link href={localePath(lang, '/fixtures')} className="btn btn-outline btn-lg">
-                {tr(lang, { en: 'Upcoming matches', cs: 'Nadcházející zápasy' })}
-              </Link>
+              <FilmButton lang={lang} className="group flex min-h-14 items-center gap-3.5 text-left font-display text-[18px] font-extrabold uppercase italic tracking-[0.06em] text-cream">
+                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full border-2 border-gold text-gold transition-colors duration-200 group-hover:bg-gold group-hover:text-ink group-active:bg-gold group-active:text-ink">
+                  <Play size={22} className="ml-0.5" />
+                </span>
+                <span>
+                  {tr(lang, { en: 'Watch the film', cs: 'Přehrát film' })} <span className="text-muted">· {filmTime(SEASON_FILM.seconds)}</span>
+                </span>
+              </FilmButton>
             </div>
           </div>
 
@@ -191,9 +338,20 @@ const HeroSection = ({ lang = 'en', photos = [], t10Year = null }: { lang?: Lang
           </dl>
         </div>
 
-        {/* Slide controls double as progress bars */}
-        {slides.length > 1 && (
-        <div className="mt-10 flex items-center gap-2" role="group" aria-label={tr(lang, { en: 'Choose photo', cs: 'Vyberte fotku' })}>
+        {/* Film: one bar per shot. Photos: one bar per photo. Either way with Pause and Play. */}
+        {mode === 'video' && videoReady ? (
+          <div className="mt-8 flex items-center gap-2" role="group" aria-label={tr(lang, { en: 'Film scenes', cs: 'Scény filmu' })}>
+            <SceneBars video={videoRef} lang={lang} />
+            <button
+              type="button"
+              onClick={toggleFilm}
+              className="ml-3 min-h-11 font-display text-[15px] font-bold uppercase tracking-[0.14em] text-muted transition-colors hover:text-cream"
+            >
+              {paused ? tr(lang, { en: 'Play', cs: 'Přehrát' }) : tr(lang, { en: 'Pause', cs: 'Pozastavit' })}
+            </button>
+          </div>
+        ) : showPhotos && slides.length > 1 ? (
+        <div className="mt-8 flex items-center gap-2" role="group" aria-label={tr(lang, { en: 'Choose photo', cs: 'Vyberte fotku' })}>
           {slides.map((slide, i) => (
             <button
               key={slide.id}
@@ -223,6 +381,9 @@ const HeroSection = ({ lang = 'en', photos = [], t10Year = null }: { lang?: Lang
             {paused ? tr(lang, { en: 'Play', cs: 'Přehrát' }) : tr(lang, { en: 'Pause', cs: 'Pozastavit' })}
           </button>
         </div>
+        ) : (
+          // Keeps the height steady while the film or the photos get ready.
+          <div className="mt-8 h-11" aria-hidden="true" />
         )}
       </div>
     </section>

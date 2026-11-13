@@ -119,3 +119,6 @@ export function pragueISO(date: string, time?: string | null): { start: string; 
   const start = `${date}T${hm}:00${pragueOffset(probe)}`;
   return { start, end: pragueISOAt(new Date(new Date(start).getTime() + 4 * 3600_000)) };
 }
+
+// "3:00" from seconds (film and chapter times).
+export const filmTime = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.round(seconds % 60)).padStart(2, '0')}`;
