@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import toast, { Toaster } from 'react-hot-toast';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import type { BallRecord, EventData, InningsState, MatchState, TeamIndex } from '@/lib/indoor/engine';
-import { bowlerChoices, needs, oversText, rulesAt, target, teamTotal } from '@/lib/indoor/engine';
+import { bowlerChoices, needs, oversText, rulesAt, sortEvents, target, teamTotal } from '@/lib/indoor/engine';
 import type { BallInput, End, ExtraKind, WicketInput } from '@/lib/indoor/scoring';
 import { findZone, scoreBall, wicketStands } from '@/lib/indoor/scoring';
 import type { DismissalKind, IndoorRules, RulesPatch } from '@/lib/indoor/rules';
@@ -80,6 +80,16 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
   const [swapEnd, setSwapEnd] = useState<End>('striker');
   const lastTap = useRef({ key: '', at: 0 });
 
+  // Batters keep their row for as long as they are in: only the "on strike" marker moves.
+  // (Showing the striker on top made the two names swap places on every tap, and scorers
+  // tapped again and again to "fix" it.)
+  const [rowIds, setRowIds] = useState<(string | null)[]>([null, null]);
+  const atCrease = [inn.striker, inn.nonStriker];
+  const rowsNow = rowIds.map((id) => (id && atCrease.includes(id) ? id : null));
+  for (const id of atCrease) if (id && !rowsNow.includes(id)) rowsNow[rowsNow.indexOf(null)] = id;
+  if (rowsNow[0] !== rowIds[0] || rowsNow[1] !== rowIds[1]) setRowIds(rowsNow);
+  const [armedBowler, setArmedBowler] = useState<string | null>(null);
+
   const overIndex = Math.floor(inn.legalBalls / bpo);
   // Changing or inserting an old ball uses the rules that were in force when it was bowled.
   const editing = place.mode !== 'append' ? inn.overs.flatMap((o) => o.balls).find((b) => b.eventId === place.id) : undefined;
@@ -103,6 +113,9 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
   }, [canScore, need, atBreak, sheet, place.mode, overKey]);
 
   const close = useCallback(() => setSheet(null), []);
+  useEffect(() => {
+    if (sheet !== 'bowler') setArmedBowler(null);
+  }, [sheet]);
 
   // A rule change can remove the chosen wall or extra: drop it rather than score with it.
   useEffect(() => {
@@ -187,6 +200,11 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
   const strikerLine = inn.striker ? inn.batters[inn.striker] : null;
   const nonLine = inn.nonStriker ? inn.batters[inn.nonStriker] : null;
   const bowlerLine = inn.bowler ? inn.bowlers[inn.bowler] : null;
+  const ballsSoFar = inn.overs.flatMap((o) => o.balls);
+  const lastBall = ballsSoFar.length ? ballsSoFar[ballsSoFar.length - 1] : null;
+  // The newest thing recorded. When it is the over's bowler, picking another replaces it.
+  const liveEvents = sortEvents(lm.events);
+  const newest = liveEvents.length ? liveEvents[liveEvents.length - 1] : null;
   const waitingList = upcoming(inn.queue)
     .map((pid) => inn.batters[pid])
     .filter(Boolean)
@@ -259,19 +277,21 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
         <>
           {/* Batters */}
           <section className="mx-4 mt-4 divide-y divide-cream/10 border border-cream/12 bg-panel" aria-label="Batters">
-            {[strikerLine, nonLine].map((b, i) =>
-              b ? (
-                <div key={b.id} className="flex items-center">
+            {rowsNow.map((rowId, i) => {
+              const b = rowId ? (inn.batters[rowId] ?? null) : null;
+              const onStrike = !!b && b.id === inn.striker;
+              return b ? (
+                <div key={b.id} className={`flex items-center border-l-4 ${onStrike ? 'border-gold bg-gold/10' : 'border-transparent'}`}>
                 <button
                   type="button"
-                  disabled={i === 0}
+                  disabled={onStrike}
                   onClick={() => commit({ type: 'swapStrike', data: {} }, 'Strike changed')}
                   className="flex min-h-12 min-w-0 flex-1 items-center gap-3 px-3 py-2 text-left disabled:cursor-default"
-                  aria-label={i === 0 ? `${b.name} on strike` : `Put ${b.name} on strike`}
+                  aria-label={onStrike ? `${b.name} on strike` : `Put ${b.name} on strike`}
                 >
-                  <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${i === 0 ? 'bg-gold' : 'bg-transparent ring-1 ring-cream/30'}`} />
+                  <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${onStrike ? 'bg-gold' : 'bg-transparent ring-1 ring-cream/30'}`} />
                   <span className="min-w-0 flex-1">
-                    <span className={`block truncate ${i === 0 ? 'font-semibold text-cream' : 'text-sand'}`}>{b.name}</span>
+                    <span className={`block truncate ${onStrike ? 'font-semibold text-cream' : 'text-sand'}`}>{b.name}</span>
                     {rules.batting.retireAt != null && (
                       <span className="mt-1 block h-1 w-full bg-cream/10">
                         <span className="block h-1 bg-gold transition-transform duration-500 ease-out-expo origin-left" style={{ transform: `scaleX(${Math.min(1, Math.max(0, b.visitRuns) / rules.batting.retireAt)})` }} />
@@ -284,7 +304,7 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
                 {b.visitBalls === 0 && waitingList.length > 0 && (
                   <button
                     type="button"
-                    onClick={() => (setSwapEnd(i === 0 ? 'striker' : 'nonStriker'), setSheet('swap'))}
+                    onClick={() => (setSwapEnd(onStrike ? 'striker' : 'nonStriker'), setSheet('swap'))}
                     className="min-h-12 shrink-0 px-3 font-display text-sm font-bold uppercase italic text-gold"
                     aria-label={`Send in someone else instead of ${b.name}`}
                   >
@@ -293,11 +313,11 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
                 )}
                 </div>
               ) : (
-                <p key={i} className="px-3 py-3 text-muted">
+                <p key={i} className="border-l-4 border-transparent px-3 py-3 text-muted">
                   No batter
                 </p>
-              ),
-            )}
+              );
+            })}
           </section>
           <p className="mx-4 mt-1.5 flex justify-between gap-3 text-xs text-muted">
             <span>
@@ -317,6 +337,8 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
               ) : (
                 <span className="text-gold">Pick a bowler</span>
               )}
+              {/* Before the over's first ball the choice can simply be changed. */}
+              {bowlerLine && newest?.type === 'overStart' && <span className="float-right font-display text-sm font-bold uppercase italic text-gold">Change</span>}
             </button>
           </section>
           {inn.overs.length > 1 && (
@@ -338,6 +360,23 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
             </div>
           )}
           <OverStrip over={currentOver?.balls ?? []} onPick={(b) => (setPicked(b), setSheet('ball'))} />
+
+          {/* What was just recorded, with a way to fix it (also across an over break) without Undo. */}
+          {lastBall && place.mode === 'append' && (
+            <div className="mx-4 mt-2 flex items-center justify-between gap-3 text-sm">
+              <p className="min-w-0 truncate text-muted">
+                <span className="text-sand">Last ball:</span> {ballText(state, inn, lastBall)}
+              </p>
+              <button
+                type="button"
+                onClick={() => (clearBall(), setPlace({ mode: 'replace', id: lastBall.eventId }))}
+                className="min-h-11 shrink-0 px-2 font-display text-sm font-bold uppercase italic text-gold"
+                aria-label="Edit the last ball"
+              >
+                Edit
+              </button>
+            </div>
+          )}
 
           {place.mode !== 'append' && (
             <div className="mx-4 mt-3 flex items-center justify-between gap-3 border border-gold bg-gold/10 px-3 py-2 text-sm">
@@ -449,13 +488,25 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
                 key={c.id}
                 type="button"
                 onClick={() => {
+                  // Over the limit: ask once before allowing it.
+                  if (c.blocked && armedBowler !== c.id) return setArmedBowler(c.id);
+                  setArmedBowler(null);
                   close();
-                  commit({ type: 'overStart', data: { bowlerId: c.id } });
+                  if (c.id === inn.bowler) return;
+                  if (newest?.type === 'overStart') {
+                    // No ball bowled yet in this over: change the choice instead of adding another.
+                    s.add({ type: 'overStart', data: { bowlerId: c.id } }, { mode: 'replace', id: newest.id });
+                    toast(`${c.name} to bowl`, { id: 'last', duration: 1500 });
+                  } else {
+                    commit({ type: 'overStart', data: { bowlerId: c.id } });
+                  }
                 }}
-                className={`flex min-h-12 items-center justify-between gap-3 border px-3 text-left ${c.id === inn.bowler ? 'border-gold' : 'border-cream/22'} ${c.blocked ? 'opacity-50' : ''}`}
+                className={`flex min-h-12 items-center justify-between gap-3 border px-3 text-left ${c.id === inn.bowler || armedBowler === c.id ? 'border-gold' : 'border-cream/22'} ${c.blocked && armedBowler !== c.id ? 'opacity-50' : ''}`}
               >
                 <span className="text-cream">{c.name}</span>
-                <span className="text-sm text-muted">{c.blocked ?? `${c.overs} ${c.overs === 1 ? 'over' : 'overs'}`}</span>
+                <span className={`text-sm ${armedBowler === c.id ? 'text-gold' : 'text-muted'}`}>
+                  {armedBowler === c.id ? `${c.blocked}. Tap again to bowl anyway` : (c.blocked ?? `${c.overs} ${c.overs === 1 ? 'over' : 'overs'}`)}
+                </span>
               </button>
             ))}
           </div>

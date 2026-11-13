@@ -15,6 +15,7 @@ import { fetchMatch } from '@/lib/indoor/sync';
 import RulesEditor, { ConfirmButton } from './RulesEditor';
 import { rulesSummary } from './Scorer';
 import { ArrowLeft, ArrowRight, Close } from '@/components/ui/Icons';
+import { loadNames, nameKey, nearName, rememberNames } from '@/lib/indoor/names';
 
 const STEPS = ['Teams', 'Rules', 'Start'] as const;
 const OVERS = [5, 6, 8, 10, 12, 15];
@@ -144,6 +145,7 @@ export default function SetupWizard() {
         pending: events.map((e) => e.id),
         matchPending: true,
       };
+      rememberNames(setup.teams.flatMap((t) => t.players.map((p) => p.name)));
       try {
         localStorage.setItem(LAST_RULES, JSON.stringify({ ...setup.rules, presetId: 'last', name: 'My last rules' }));
       } catch {
@@ -380,6 +382,11 @@ function Squads({ names, squads, setSquads, minPlayers }: { names: [string, stri
   const [typed, setTyped] = useState('');
   const [query, setQuery] = useState('');
   const [club, setClub] = useState<ClubPlayer[]>([]);
+  // Names used before on this phone, so a player is spelled the same way every week.
+  const [remembered, setRemembered] = useState<string[]>([]);
+  useEffect(() => setRemembered(loadNames()), []);
+  // A typed name that looks like a known one: ask before adding a second spelling.
+  const [ask, setAsk] = useState<{ typed: string; known: string } | null>(null);
 
   useEffect(() => {
     const supabase = createClientComponentClient();
@@ -411,6 +418,21 @@ function Squads({ names, squads, setSquads, minPlayers }: { names: [string, stri
     [next[i], next[j]] = [next[j], next[i]];
     update(next);
   };
+
+  const known = [...remembered, ...club.map((p) => p.name)];
+  // Typed by hand: check it against the names this phone and the club already know.
+  function addTyped(name: string) {
+    const n = name.trim().replace(/\s+/g, ' ');
+    if (!n) return;
+    const near = nearName(n, known);
+    if (near && !taken.has(near.toLowerCase())) return setAsk({ typed: n, known: near });
+    addName(n);
+  }
+  const typedKey = nameKey(typed);
+  const hints =
+    typedKey.length >= 2
+      ? known.filter((n, i) => known.findIndex((x) => nameKey(x) === nameKey(n)) === i && nameKey(n).includes(typedKey) && !taken.has(n.trim().toLowerCase())).slice(0, 8)
+      : [];
 
   const matches = club.filter((p) => !taken.has(p.name.trim().toLowerCase()) && p.name.toLowerCase().includes(query.trim().toLowerCase())).slice(0, 24);
 
@@ -461,7 +483,7 @@ function Squads({ names, squads, setSquads, minPlayers }: { names: [string, stri
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          addName(typed);
+          addTyped(typed);
           setTyped('');
         }}
         className="flex gap-2"
@@ -474,6 +496,31 @@ function Squads({ names, squads, setSquads, minPlayers }: { names: [string, stri
           Add
         </button>
       </form>
+
+      {hints.length > 0 && (
+        <div className="-mt-2 flex flex-wrap gap-2" aria-label="Names used before">
+          {hints.map((n) => (
+            <button key={n} type="button" onClick={() => (addName(n), setTyped(''))} className="min-h-11 border border-cream/22 px-3 text-cream hover:border-gold">
+              + {n}
+            </button>
+          ))}
+        </div>
+      )}
+      {ask && (
+        <div role="alert" className="border border-gold bg-gold/10 p-3">
+          <p className="text-sand">
+            Did you mean <span className="font-semibold text-cream">{ask.known}</span>? One spelling per player keeps the scores together.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" className="btn btn-gold" onClick={() => (addName(ask.known), setAsk(null))}>
+              Use {ask.known}
+            </button>
+            <button type="button" className="btn btn-outline" onClick={() => (addName(ask.typed), setAsk(null))}>
+              Keep {ask.typed}
+            </button>
+          </div>
+        </div>
+      )}
 
       {club.length > 0 && (
         <div>

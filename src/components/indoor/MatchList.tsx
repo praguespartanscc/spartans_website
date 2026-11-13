@@ -6,6 +6,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import type { MatchRecord } from '@/lib/indoor/store';
 import { listLocal, removeLocal } from '@/lib/indoor/store';
 import { uploadWaiting } from '@/lib/indoor/sync';
+import { seriesLines } from '@/lib/indoor/format';
 import toast, { Toaster } from 'react-hot-toast';
 import { ConfirmButton } from './RulesEditor';
 import type { Member } from './MemberGate';
@@ -71,6 +72,7 @@ export default function MatchList({ member }: { member: Member }) {
   const onDelete = member.isAdmin ? remove : undefined;
   const live = (rows ?? []).filter((r) => r.status === 'live');
   const rest = (rows ?? []).filter((r) => r.status !== 'live');
+  const series = seriesLines(rows ?? []);
 
   return (
     <div className="mx-auto max-w-lg px-4 pb-16 pt-8">
@@ -94,15 +96,15 @@ export default function MatchList({ member }: { member: Member }) {
         </div>
       ) : (
         <>
-          {live.length > 0 && <List title="Live now" rows={live} mine={mine} onDelete={onDelete} />}
-          {rest.length > 0 && <List title="Recent" rows={rest} mine={mine} onDelete={onDelete} />}
+          {live.length > 0 && <List title="Live now" rows={live} mine={mine} onDelete={onDelete} series={series} />}
+          {rest.length > 0 && <List title="Recent" rows={rest} mine={mine} onDelete={onDelete} series={series} />}
         </>
       )}
     </div>
   );
 }
 
-function List({ title, rows, mine, onDelete }: { title: string; rows: Row[]; mine: (r: Row) => boolean; onDelete?: (r: Row) => void }) {
+function List({ title, rows, mine, onDelete, series }: { title: string; rows: Row[]; mine: (r: Row) => boolean; onDelete?: (r: Row) => void; series: Record<string, string> }) {
   return (
     <section className="mt-10">
       <h2 className="eyebrow">{title}</h2>
@@ -135,6 +137,7 @@ function List({ title, rows, mine, onDelete }: { title: string; rows: Row[]; min
                 <p className="mt-1 text-sm text-muted">Not started</p>
               )}
               {r.summary?.result && <p className="mt-2 text-sm text-gold">{r.summary.result}</p>}
+              {series[r.id] && <p className="mt-1 text-xs text-muted">Series that day: {series[r.id]}</p>}
               {r.unsynced && <p className="mt-2 text-xs text-muted">Saved on this phone, waiting to upload</p>}
             </Link>
             {(onDelete || r.status === 'complete') && (

@@ -94,3 +94,32 @@ export function storedAhead(status: string | undefined, summary: MatchSummary | 
     now.innings.every((i, k) => i.total === summary.innings[k].total && i.wickets === summary.innings[k].wickets && i.overs === summary.innings[k].overs);
   return same ? null : summary;
 }
+
+type SeriesRow = { id: string; played_on: string; team_a: string; team_b: string; status: string; summary: MatchSummary | null };
+
+// When the same two teams play several matches on one day, the tally for that day, by match id:
+// "KASI 2, Vicky 2". Only finished matches count, and a pair with a single match gets nothing.
+export function seriesLines(rows: SeriesRow[]): Record<string, string> {
+  const low = (n: string) => n.trim().toLowerCase();
+  const groups = new Map<string, { ids: string[]; names: [string, string]; wins: [number, number]; played: number }>();
+  for (const r of rows) {
+    const pair = [low(r.team_a), low(r.team_b)].sort();
+    const key = `${r.played_on}|${pair[0]}|${pair[1]}`;
+    const g = groups.get(key) ?? { ids: [], names: low(r.team_a) === pair[0] ? [r.team_a, r.team_b] : [r.team_b, r.team_a], wins: [0, 0], played: 0 };
+    groups.set(key, g);
+    g.ids.push(r.id);
+    const inn = r.summary?.innings;
+    if (r.status !== 'complete' || !inn || inn.length < 2) continue;
+    g.played += 1;
+    if (inn[0].total === inn[1].total) continue;
+    const winner = low(inn[0].total > inn[1].total ? inn[0].team : inn[1].team);
+    g.wins[winner === pair[0] ? 0 : 1] += 1;
+  }
+  const out: Record<string, string> = {};
+  for (const g of groups.values()) {
+    if (g.played < 2) continue;
+    const line = `${g.names[0]} ${g.wins[0]}, ${g.names[1]} ${g.wins[1]}`;
+    for (const id of g.ids) out[id] = line;
+  }
+  return out;
+}

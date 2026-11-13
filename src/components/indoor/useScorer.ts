@@ -147,9 +147,13 @@ export function useScorer(id: string) {
   const opened = useRef(false);
   useEffect(() => {
     if (!lm) return;
-    const first = !opened.current;
-    opened.current = true;
-    const t = setTimeout(() => void flush(first), 250);
+    // The first upload that really runs retries rejected events (the server copy arriving
+    // re-runs this effect, so the flag is only set when the timer fires).
+    const t = setTimeout(() => {
+      const first = !opened.current;
+      opened.current = true;
+      void flush(first);
+    }, 250);
     return () => clearTimeout(t);
   }, [lm, flush]);
 
