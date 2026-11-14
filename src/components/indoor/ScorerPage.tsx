@@ -9,6 +9,7 @@ import ScorerBar from './ScorerBar';
 import SetupWizard from './SetupWizard';
 import { useScorer } from './useScorer';
 import { resultText, storedAhead } from '@/lib/indoor/format';
+import { tossDetail, tossText } from '@/lib/indoor/toss';
 import { ArrowLeft } from '@/components/ui/Icons';
 
 // Client wrapper so the route files stay server components with metadata.
@@ -43,7 +44,19 @@ function Card({ id }: { id: string }) {
       <h1 className="h-sub mt-2 text-3xl">
         {state.teams[0].name} v {state.teams[1].name}
       </h1>
+      {state.setup.fixture && (
+        <p className="mt-2">
+          <Link href={`/score/t/${state.setup.fixture.tournament.id}`} className="link-arrow">
+            {state.setup.fixture.tournament.name}, {state.setup.fixture.label}
+          </Link>
+        </p>
+      )}
       {(ahead?.result ?? resultText(state)) && <p className="mt-2 text-lg text-gold">{ahead?.result ?? resultText(state)}</p>}
+      {state.setup.toss && (
+        <p className="mt-2 text-sm text-muted">
+          {tossText(state.setup.toss, [state.teams[0].name, state.teams[1].name])} {tossDetail(state.setup.toss, [state.teams[0].name, state.teams[1].name])}
+        </p>
+      )}
       {ahead && (
         <p className="mt-2 text-sm text-muted">
           Final score: {ahead.innings.map((i) => `${i.team} ${i.total}/${i.wickets} (${i.overs})`).join(', ')}. The last balls were not uploaded from the scorer&apos;s phone, so the card below stops

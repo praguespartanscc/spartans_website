@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import type { IndoorEvent, MatchSetup, MatchState } from '@/lib/indoor/engine';
 import { oversText, replay, target, teamTotal } from '@/lib/indoor/engine';
 import { ballLabel, ballTone, storedAhead } from '@/lib/indoor/format';
 import type { MatchSummary } from '@/lib/indoor/store';
-import { LOCALE, tr, type Lang } from '@/lib/i18n';
+import { tossDetail, tossText } from '@/lib/indoor/toss';
+import { LOCALE, localePath, tr, type Lang } from '@/lib/i18n';
 import Scorecard from './Scorecard';
 
 export type FollowData = {
@@ -121,6 +123,18 @@ export default function IndoorFollow({ initial, slug, lang }: { initial: FollowD
       <h1 className="display mt-3 text-[clamp(32px,7vw,56px)]">
         {state.teams[0].name} <span className="text-muted">v</span> {state.teams[1].name}
       </h1>
+      {data.setup.fixture && (
+        <p className="mt-3">
+          <Link href={localePath(lang, `/indoor/t/${data.setup.fixture.tournament.slug}`)} className="link-arrow">
+            {data.setup.fixture.tournament.name}, {data.setup.fixture.label}
+          </Link>
+        </p>
+      )}
+      {data.setup.toss && (
+        <p className="mt-3 text-sm text-muted">
+          {tossText(data.setup.toss, [state.teams[0].name, state.teams[1].name], lang)} {tossDetail(data.setup.toss, [state.teams[0].name, state.teams[1].name], lang)}
+        </p>
+      )}
 
       {/* Score of each innings so far */}
       <div className="mt-8 grid gap-3 sm:grid-cols-2" aria-live="polite">

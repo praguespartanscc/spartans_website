@@ -31,6 +31,15 @@ export type PushResult = {
 
 type DbError = { code?: string; message: string };
 
+// The tournament links are only sent for a tournament match. An ordinary match uploads exactly
+// as it always has, also on a database that has no tournament columns yet.
+export function matchRow(m: MatchRecord): Record<string, unknown> {
+  const row: Record<string, unknown> = { id: m.id, team_a: m.team_a, team_b: m.team_b, setup: m.setup, summary: m.summary, status: m.status, share_slug: m.share_slug, played_on: m.played_on };
+  if (m.tournament_id) row.tournament_id = m.tournament_id;
+  if (m.fixture_id) row.fixture_id = m.fixture_id;
+  return row;
+}
+
 const refused = (e: DbError) => e.code === '42501' || /row-level security|permission denied/i.test(e.message);
 // An answer from the database itself (an SQLSTATE or PostgREST code), as opposed to no signal.
 const fromDatabase = (e: DbError) => /^([0-9A-Z]{5}|PGRST\d+)$/.test(e.code ?? '');
@@ -46,7 +55,7 @@ const CHUNK = 100;
 // unless retryRejected is set, which the scorer does now and then and when a match is opened.
 export async function push(supabase: SupabaseClient, lm: LocalMatch, opts: { retryRejected?: boolean } = {}): Promise<PushResult> {
   const m = lm.match;
-  const row = { id: m.id, team_a: m.team_a, team_b: m.team_b, setup: m.setup, summary: m.summary, status: m.status, share_slug: m.share_slug, played_on: m.played_on };
+  const row = matchRow(m);
   let uploaded = lm.uploaded === true;
   let rowSent = false;
 

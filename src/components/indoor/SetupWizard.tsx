@@ -5,19 +5,29 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import toast from 'react-hot-toast';
-import type { EventData, IndoorEvent, MatchSetup, Player, TeamIndex } from '@/lib/indoor/engine';
+import type { EventData, FixtureLink, IndoorEvent, MatchSetup, Player, TeamIndex } from '@/lib/indoor/engine';
 import type { IndoorRules } from '@/lib/indoor/rules';
 import { cloneRules, normaliseZones } from '@/lib/indoor/rules';
 import { PRESETS, presetById } from '@/lib/indoor/presets';
 import { loadLocal, newId, newSlug, saveLocal } from '@/lib/indoor/store';
 import type { LocalMatch } from '@/lib/indoor/store';
 import { fetchMatch } from '@/lib/indoor/sync';
+import { battingFirstOf } from '@/lib/indoor/toss';
+import type { TournamentData } from '@/lib/indoor/tournament';
+import { cacheTournament, loadTournament } from '@/lib/indoor/tstore';
+import { fetchTournament } from '@/lib/indoor/tsync';
 import RulesEditor, { ConfirmButton } from './RulesEditor';
 import { rulesSummary } from './Scorer';
-import { ArrowLeft, ArrowRight, Close } from '@/components/ui/Icons';
-import { loadNames, nameKey, nearName, rememberNames } from '@/lib/indoor/names';
+import SquadEditor, { PickList } from './SquadEditor';
+import TossStep, { EMPTY_TOSS, tossOf } from './TossStep';
+import type { TossDraft } from './TossStep';
+import { ArrowLeft, ArrowRight } from '@/components/ui/Icons';
+import { rememberNames } from '@/lib/indoor/names';
 
-const STEPS = ['Teams', 'Rules', 'Start'] as const;
+type Step = 'Teams' | 'Players' | 'Rules' | 'Toss' | 'Start';
+const FREE_STEPS: Step[] = ['Teams', 'Rules', 'Toss', 'Start'];
+// A tournament game: the teams and the rules are the tournament's, so only today's players are asked.
+const FIXTURE_STEPS: Step[] = ['Players', 'Toss', 'Start'];
 const OVERS = [5, 6, 8, 10, 12, 15];
 const LAST_RULES = 'indoor:lastRules';
 
@@ -34,6 +44,9 @@ function loadLastRules(): IndoorRules | null {
   }
 }
 
+// What a tournament game brings to the setup: its two teams with their ids and squads.
+type FromFixture = { link: FixtureLink; teamIds: [string, string]; pools: [Player[], Player[]] };
+
 export default function SetupWizard() {
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -43,16 +56,57 @@ export default function SetupWizard() {
   const [rules, setRules] = useState<IndoorRules>(() => presetById('league'));
   const [customise, setCustomise] = useState(false);
   const [last, setLast] = useState<IndoorRules | null>(null);
-  const [tossWinner, setTossWinner] = useState<TeamIndex | null>(null);
-  const [tossChoice, setTossChoice] = useState<'bat' | 'bowl'>('bat');
+  const [toss, setToss] = useState<TossDraft>(EMPTY_TOSS);
   const [openers, setOpeners] = useState<[string | null, string | null]>([null, null]);
   const [bowler, setBowler] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [fixture, setFixture] = useState<FromFixture | null>(null);
+  // A tournament game is being looked up ('loading'), or could not be found ('missing').
+  const [lookup, setLookup] = useState<'none' | 'loading' | 'missing'>('none');
 
-  // "Same teams again": /score/new?from=<match id> copies teams, squads and rules.
+  const steps = fixture || lookup !== 'none' ? FIXTURE_STEPS : FREE_STEPS;
+  const at = steps[step];
+
   useEffect(() => {
     setLast(loadLastRules());
-    const from = new URLSearchParams(window.location.search).get('from');
+    const q = new URLSearchParams(window.location.search);
+
+    // A tournament game: /score/new?t=<tournament>&f=<fixture>&h=<home team>&a=<away team>.
+    const [t, f, h, a] = [q.get('t'), q.get('f'), q.get('h'), q.get('a')];
+    if (t && f && h && a) {
+      const fill = (d: TournamentData): boolean => {
+        const fx = d.fixtures.find((x) => x.id === f);
+        const home = d.teams.find((x) => x.id === h);
+        const away = d.teams.find((x) => x.id === a);
+        if (!fx || !home || !away) return false;
+        setNames([home.name, away.name]);
+        setSquads([home.squad, away.squad]);
+        const r = { ...cloneRules(d.tournament.rules), zones: normaliseZones(d.tournament.rules.zones) };
+        setBase(r);
+        setRules(r);
+        setFixture({
+          link: { id: fx.id, label: fx.label || `Game ${fx.seq}`, tournament: { id: d.tournament.id, name: d.tournament.name, slug: d.tournament.slug } },
+          teamIds: [home.id, away.id],
+          pools: [home.squad, away.squad],
+        });
+        setLookup('none');
+        return true;
+      };
+      // The copy on this phone first, so a game can be started with no signal.
+      const cached = loadTournament(t);
+      if (cached && fill(cached)) return;
+      setLookup('loading');
+      fetchTournament(createClientComponentClient(), t)
+        .then(({ data }) => {
+          if (data) cacheTournament(data);
+          if (!data || !fill(data)) setLookup('missing');
+        })
+        .catch(() => setLookup('missing'));
+      return;
+    }
+
+    // "Same teams again": /score/new?from=<match id> copies teams, squads and rules.
+    const from = q.get('from');
     if (!from) return;
     const fill = (setup: MatchSetup) => {
       setNames([setup.teams[0].name, setup.teams[1].name]);
@@ -69,7 +123,8 @@ export default function SetupWizard() {
   }, []);
 
   const teamName = (t: TeamIndex) => names[t].trim() || (t === 0 ? 'Team A' : 'Team B');
-  const battingFirst: TeamIndex | null = tossWinner == null ? null : tossChoice === 'bat' ? tossWinner : tossWinner === 0 ? 1 : 0;
+  const tossed = tossOf(toss);
+  const battingFirst: TeamIndex | null = tossed ? battingFirstOf(tossed) : null;
   const batSide = battingFirst == null ? [] : squads[battingFirst];
   const bowlSide = battingFirst == null ? [] : squads[battingFirst === 0 ? 1 : 0];
   // Choices left over from a different toss or squad simply fall back to the batting order.
@@ -92,8 +147,12 @@ export default function SetupWizard() {
   const short = squads.map((s) => s.length < rules.match.minPlayers);
 
   function go(to: number) {
-    if (to > 0 && step === 0 && problems.length) {
+    if (to > step && (at === 'Teams' || at === 'Players') && problems.length) {
       toast.error(problems[0]);
+      return;
+    }
+    if (to > step && at === 'Toss' && !tossed) {
+      toast.error(toss.winner == null ? 'Do the toss first.' : 'Pick bat or bowl.');
       return;
     }
     setStep(to);
@@ -102,15 +161,19 @@ export default function SetupWizard() {
 
   function startOver() {
     setStep(0);
-    setNames(['', '']);
-    setSquads([[], []]);
-    setBase(presetById('league'));
-    setRules(presetById('league'));
-    setCustomise(false);
-    setTossWinner(null);
-    setTossChoice('bat');
+    setToss(EMPTY_TOSS);
     setOpeners([null, null]);
     setBowler(null);
+    if (fixture) {
+      // A tournament game goes back to the full squads.
+      setSquads(fixture.pools);
+    } else {
+      setNames(['', '']);
+      setSquads([[], []]);
+      setBase(presetById('league'));
+      setRules(presetById('league'));
+      setCustomise(false);
+    }
     window.scrollTo({ top: 0 });
   }
 
@@ -121,17 +184,19 @@ export default function SetupWizard() {
   }
 
   async function start() {
-    if (battingFirst == null) return void toast.error('Pick who won the toss.');
+    if (!tossed || battingFirst == null) return void toast.error('Do the toss first.');
     if (problems.length || !striker || !nonStriker || striker === nonStriker || !firstBowler) return void toast.error('Pick two opening batters and a bowler.');
     setBusy(true);
     try {
       const setup: MatchSetup = {
         teams: [
-          { name: teamName(0), players: squads[0] },
-          { name: teamName(1), players: squads[1] },
+          { name: teamName(0), players: squads[0], ...(fixture ? { id: fixture.teamIds[0] } : {}) },
+          { name: teamName(1), players: squads[1], ...(fixture ? { id: fixture.teamIds[1] } : {}) },
         ],
         battingFirst,
         rules: { ...cloneRules(rules), zones: normaliseZones(rules.zones) },
+        toss: tossed,
+        ...(fixture ? { fixture: fixture.link } : {}),
       };
       const data: EventData[] = [
         { type: 'openers', data: { strikerId: striker, nonStrikerId: nonStriker } },
@@ -140,16 +205,29 @@ export default function SetupWizard() {
       const events = data.map((d, i) => ({ id: newId(), seq: i + 1, ...d }) as IndoorEvent);
       const id = newId();
       const lm: LocalMatch = {
-        match: { id, team_a: setup.teams[0].name, team_b: setup.teams[1].name, setup, summary: null, status: 'live', share_slug: newSlug(), played_on: todayInPrague(), created_at: new Date().toISOString() },
+        match: {
+          id,
+          team_a: setup.teams[0].name,
+          team_b: setup.teams[1].name,
+          setup,
+          summary: null,
+          status: 'live',
+          share_slug: newSlug(),
+          played_on: todayInPrague(),
+          created_at: new Date().toISOString(),
+          ...(fixture ? { tournament_id: fixture.link.tournament.id, fixture_id: fixture.link.id } : {}),
+        },
         events,
         pending: events.map((e) => e.id),
         matchPending: true,
       };
       rememberNames(setup.teams.flatMap((t) => t.players.map((p) => p.name)));
-      try {
-        localStorage.setItem(LAST_RULES, JSON.stringify({ ...setup.rules, presetId: 'last', name: 'My last rules' }));
-      } catch {
-        // storage blocked: the match still starts
+      if (!fixture) {
+        try {
+          localStorage.setItem(LAST_RULES, JSON.stringify({ ...setup.rules, presetId: 'last', name: 'My last rules' }));
+        } catch {
+          // storage blocked: the match still starts
+        }
       }
       if (!saveLocal(lm)) toast('This phone could not save a copy. Keep the screen open until it says Synced.');
       router.push(`/score/${id}`);
@@ -158,18 +236,41 @@ export default function SetupWizard() {
     }
   }
 
-  return (
-    <div className="mx-auto max-w-lg px-4 pb-32 pt-4">
-      <div className="flex items-center justify-between">
+  const back = fixture ? `/score/t/${fixture.link.tournament.id}` : '/score';
+
+  if (lookup !== 'none') {
+    return (
+      <div className="mx-auto max-w-lg px-4 pb-32 pt-4">
         <Link href="/score" className="-ml-2 grid h-11 w-11 place-items-center text-muted hover:text-cream" aria-label="Back to my matches">
           <ArrowLeft size={22} />
         </Link>
-        <p className="eyebrow">New indoor match</p>
+        {lookup === 'loading' ? (
+          <div className="skeleton mt-8 h-64" role="status" aria-label="Loading the game" />
+        ) : (
+          <div className="mt-16 text-center">
+            <h1 className="h-sub text-3xl">Game not found</h1>
+            <p className="mt-3 text-sand">This phone has no copy of that tournament, and it could not be loaded. Open the tournament once while you are online, then start the game from there.</p>
+            <Link href="/score" className="btn btn-gold mt-6">
+              My matches
+            </Link>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-lg px-4 pb-32 pt-4">
+      <div className="flex items-center justify-between gap-2">
+        <Link href={back} className="-ml-2 grid h-11 w-11 shrink-0 place-items-center text-muted hover:text-cream" aria-label={fixture ? 'Back to the tournament' : 'Back to my matches'}>
+          <ArrowLeft size={22} />
+        </Link>
+        <p className="eyebrow min-w-0 truncate text-center">{fixture ? `${fixture.link.tournament.name}, ${fixture.link.label}` : 'New indoor match'}</p>
         <ConfirmButton label="Start over" confirm="Tap again" onConfirm={startOver} />
       </div>
 
-      <ol className="mt-4 grid grid-cols-3 gap-1" aria-label="Steps">
-        {STEPS.map((s, i) => (
+      <ol className="mt-4 grid gap-1" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }} aria-label="Steps">
+        {steps.map((s, i) => (
           <li key={s}>
             <button type="button" onClick={() => i < step && go(i)} disabled={i >= step} aria-current={i === step ? 'step' : undefined} className="w-full text-left">
               <span className={`block h-1 ${i <= step ? 'bg-gold' : 'bg-cream/15'}`} />
@@ -180,7 +281,7 @@ export default function SetupWizard() {
       </ol>
 
       <div key={step} className="page-enter mt-8">
-        {step === 0 && (
+        {at === 'Teams' && (
           <section className="space-y-6">
             <h1 className="h-sub text-3xl">Who is playing?</h1>
             <div className="grid grid-cols-2 gap-3">
@@ -200,11 +301,31 @@ export default function SetupWizard() {
                 </div>
               ))}
             </div>
-            <Squads names={[teamName(0), teamName(1)]} squads={squads} setSquads={setSquads} minPlayers={rules.match.minPlayers} />
+            <SquadEditor names={[teamName(0), teamName(1)]} squads={squads} setSquads={(s) => setSquads([s[0], s[1]])} minPlayers={rules.match.minPlayers} />
           </section>
         )}
 
-        {step === 1 && (
+        {at === 'Players' && fixture && (
+          <section className="space-y-6">
+            <div>
+              <h1 className="h-sub text-3xl">
+                {teamName(0)} v {teamName(1)}
+              </h1>
+              <p className="mt-2 text-sand">Who is playing today? Take out anyone who is not here and put the rest in batting order.</p>
+            </div>
+            <SquadEditor names={[teamName(0), teamName(1)]} squads={squads} setSquads={(s) => setSquads([s[0], s[1]])} minPlayers={rules.match.minPlayers} pools={fixture.pools} heading="Today's players" />
+            <div className="card p-4">
+              <p className="eyebrow">Tournament rules: {rules.name}</p>
+              <ul className="mt-3 space-y-1 text-sm text-sand">
+                {rulesSummary(rules).map((l) => (
+                  <li key={l}>{l}</li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        )}
+
+        {at === 'Rules' && (
           <section className="space-y-5">
             <h1 className="h-sub text-3xl">Rules for today</h1>
             <div>
@@ -257,40 +378,25 @@ export default function SetupWizard() {
           </section>
         )}
 
-        {step === 2 && (
+        {at === 'Toss' && (
           <section className="space-y-6">
-            <h1 className="h-sub text-3xl">Toss and openers</h1>
+            <h1 className="h-sub text-3xl">The toss</h1>
+            <TossStep names={[teamName(0), teamName(1)]} value={toss} onChange={setToss} />
+          </section>
+        )}
+
+        {at === 'Start' && battingFirst != null && (
+          <section className="space-y-6">
             <div>
-              <p className="field-label">Who won the toss?</p>
-              <div className="grid grid-cols-2 gap-2">
-                {([0, 1] as TeamIndex[]).map((t) => (
-                  <Big key={t} on={tossWinner === t} onClick={() => setTossWinner(t)}>
-                    {teamName(t)}
-                  </Big>
-                ))}
-              </div>
+              <h1 className="h-sub text-3xl">Openers</h1>
+              <p className="mt-2 text-sand">
+                {teamName(battingFirst)} bat first, {teamName(battingFirst === 0 ? 1 : 0)} bowl.
+              </p>
             </div>
-            {tossWinner != null && (
-              <div>
-                <p className="field-label">They chose to</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <Big on={tossChoice === 'bat'} onClick={() => setTossChoice('bat')}>
-                    Bat
-                  </Big>
-                  <Big on={tossChoice === 'bowl'} onClick={() => setTossChoice('bowl')}>
-                    Bowl
-                  </Big>
-                </div>
-              </div>
-            )}
-            {battingFirst != null && (
-              <>
-                <PickList title={`On strike for ${teamName(battingFirst)}`} players={batSide} value={striker} onPick={(id) => setOpeners([id, id === nonStriker ? striker : nonStriker])} />
-                <PickList title="At the other end" players={batSide} value={nonStriker} onPick={(id) => setOpeners([id === striker ? nonStriker : striker, id])} />
-                <PickList title={`Opening bowler for ${teamName(battingFirst === 0 ? 1 : 0)}`} players={bowlSide} value={firstBowler} onPick={setBowler} />
-                {short.some(Boolean) && <p className="text-gold">A side has fewer than {rules.match.minPlayers} players. You can still start.</p>}
-              </>
-            )}
+            <PickList title={`On strike for ${teamName(battingFirst)}`} players={batSide} value={striker} onPick={(id) => setOpeners([id, id === nonStriker ? striker : nonStriker])} />
+            <PickList title="At the other end" players={batSide} value={nonStriker} onPick={(id) => setOpeners([id === striker ? nonStriker : striker, id])} />
+            <PickList title={`Opening bowler for ${teamName(battingFirst === 0 ? 1 : 0)}`} players={bowlSide} value={firstBowler} onPick={setBowler} />
+            {short.some(Boolean) && <p className="text-gold">A side has fewer than {rules.match.minPlayers} players. You can still start.</p>}
           </section>
         )}
       </div>
@@ -302,7 +408,7 @@ export default function SetupWizard() {
               Back
             </button>
           )}
-          {step < STEPS.length - 1 ? (
+          {step < steps.length - 1 ? (
             <button type="button" onClick={() => go(step + 1)} className="btn btn-gold btn-lg flex-1">
               Next
               <ArrowRight size={18} className="btn-arrow" />
@@ -347,196 +453,5 @@ function OversInput({ value, onChange }: { value: number; onChange: (v: number) 
         className="field h-12 w-20 text-center"
       />
     </label>
-  );
-}
-
-function Big({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button type="button" aria-pressed={on} onClick={onClick} className={`min-h-14 px-3 font-display text-lg font-bold uppercase italic ${on ? 'bg-gold text-ink' : 'border border-cream/22 text-cream'}`}>
-      {children}
-    </button>
-  );
-}
-
-function PickList({ title, players, value, onPick }: { title: string; players: Player[]; value: string | null; onPick: (id: string) => void }) {
-  return (
-    <div>
-      <p className="field-label">{title}</p>
-      <div className="flex flex-wrap gap-2">
-        {players.map((p) => (
-          <button key={p.id} type="button" aria-pressed={value === p.id} onClick={() => onPick(p.id)} className={`min-h-11 px-4 ${value === p.id ? 'bg-gold font-semibold text-ink' : 'border border-cream/22 text-cream'}`}>
-            {p.name}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-type ClubPlayer = { id: string; name: string };
-
-// Names can come from the club's player list or be typed. Either way the match keeps a
-// plain copy of the name: indoor stats never touch the website's player records.
-function Squads({ names, squads, setSquads, minPlayers }: { names: [string, string]; squads: [Player[], Player[]]; setSquads: (s: [Player[], Player[]]) => void; minPlayers: number }) {
-  const [team, setTeam] = useState<TeamIndex>(0);
-  const [typed, setTyped] = useState('');
-  const [query, setQuery] = useState('');
-  const [club, setClub] = useState<ClubPlayer[]>([]);
-  // Names used before on this phone, so a player is spelled the same way every week.
-  const [remembered, setRemembered] = useState<string[]>([]);
-  useEffect(() => setRemembered(loadNames()), []);
-  // A typed name that looks like a known one: ask before adding a second spelling.
-  const [ask, setAsk] = useState<{ typed: string; known: string } | null>(null);
-
-  useEffect(() => {
-    const supabase = createClientComponentClient();
-    supabase
-      .from('players')
-      .select('id, name, is_active')
-      .order('name')
-      .then(({ data }) => setClub(((data ?? []) as (ClubPlayer & { is_active?: boolean | null })[]).filter((p) => p.is_active !== false)));
-  }, []);
-
-  const taken = new Set([...squads[0], ...squads[1]].map((p) => p.name.trim().toLowerCase()));
-  const list = squads[team];
-  const update = (next: Player[]) => setSquads(team === 0 ? [next, squads[1]] : [squads[0], next]);
-
-  function addName(name: string) {
-    const n = name.trim().replace(/\s+/g, ' ');
-    if (!n) return;
-    if (taken.has(n.toLowerCase())) {
-      toast.error(`${n} is already in a squad`);
-      return;
-    }
-    update([...list, { id: newId(), name: n.slice(0, 40) }]);
-  }
-
-  const move = (i: number, d: -1 | 1) => {
-    const j = i + d;
-    if (j < 0 || j >= list.length) return;
-    const next = [...list];
-    [next[i], next[j]] = [next[j], next[i]];
-    update(next);
-  };
-
-  const known = [...remembered, ...club.map((p) => p.name)];
-  // Typed by hand: check it against the names this phone and the club already know.
-  function addTyped(name: string) {
-    const n = name.trim().replace(/\s+/g, ' ');
-    if (!n) return;
-    const near = nearName(n, known);
-    if (near && !taken.has(near.toLowerCase())) return setAsk({ typed: n, known: near });
-    addName(n);
-  }
-  const typedKey = nameKey(typed);
-  const hints =
-    typedKey.length >= 2
-      ? known.filter((n, i) => known.findIndex((x) => nameKey(x) === nameKey(n)) === i && nameKey(n).includes(typedKey) && !taken.has(n.trim().toLowerCase())).slice(0, 8)
-      : [];
-
-  const matches = club.filter((p) => !taken.has(p.name.trim().toLowerCase()) && p.name.toLowerCase().includes(query.trim().toLowerCase())).slice(0, 24);
-
-  return (
-    <section className="space-y-5">
-      <h2 className="h-sub text-2xl">Squads</h2>
-      <div className="grid grid-cols-2 gap-2" role="tablist">
-        {([0, 1] as TeamIndex[]).map((t) => (
-          <button
-            key={t}
-            type="button"
-            role="tab"
-            aria-selected={team === t}
-            onClick={() => setTeam(t)}
-            className={`min-h-12 truncate px-3 font-display font-bold uppercase italic ${team === t ? 'bg-gold text-ink' : 'border border-cream/22 text-cream'}`}
-          >
-            {names[t]} ({squads[t].length})
-          </button>
-        ))}
-      </div>
-
-      <div>
-        <p className="field-label">Batting order</p>
-        {list.length === 0 ? (
-          <p className="border border-dashed border-cream/22 p-4 text-muted">No players yet. Add names below.</p>
-        ) : (
-          <ol className="divide-y divide-cream/10 border border-cream/12">
-            {list.map((p, i) => (
-              <li key={p.id} className="flex items-center gap-2 py-1 pl-3 pr-1">
-                <span className="w-6 font-varsity text-gold">{i + 1}</span>
-                <span className="flex-1 truncate text-cream">{p.name}</span>
-                <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label={`Move ${p.name} up`} className="grid h-11 w-11 place-items-center text-muted disabled:opacity-30">
-                  ↑
-                </button>
-                <button type="button" onClick={() => move(i, 1)} disabled={i === list.length - 1} aria-label={`Move ${p.name} down`} className="grid h-11 w-11 place-items-center text-muted disabled:opacity-30">
-                  ↓
-                </button>
-                <button type="button" onClick={() => update(list.filter((x) => x.id !== p.id))} aria-label={`Remove ${p.name}`} className="grid h-11 w-11 place-items-center text-muted hover:text-cream">
-                  <Close size={18} />
-                </button>
-              </li>
-            ))}
-          </ol>
-        )}
-        {list.length > 0 && list.length < minPlayers && <p className="mt-2 text-sm text-gold">These rules expect at least {minPlayers} players.</p>}
-      </div>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          addTyped(typed);
-          setTyped('');
-        }}
-        className="flex gap-2"
-      >
-        <label htmlFor="add-name" className="sr-only">
-          Add a name
-        </label>
-        <input id="add-name" className="field flex-1" placeholder="Add a name" value={typed} onChange={(e) => setTyped(e.target.value)} maxLength={40} autoComplete="off" />
-        <button type="submit" className="btn btn-gold">
-          Add
-        </button>
-      </form>
-
-      {hints.length > 0 && (
-        <div className="-mt-2 flex flex-wrap gap-2" aria-label="Names used before">
-          {hints.map((n) => (
-            <button key={n} type="button" onClick={() => (addName(n), setTyped(''))} className="min-h-11 border border-cream/22 px-3 text-cream hover:border-gold">
-              + {n}
-            </button>
-          ))}
-        </div>
-      )}
-      {ask && (
-        <div role="alert" className="border border-gold bg-gold/10 p-3">
-          <p className="text-sand">
-            Did you mean <span className="font-semibold text-cream">{ask.known}</span>? One spelling per player keeps the scores together.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button type="button" className="btn btn-gold" onClick={() => (addName(ask.known), setAsk(null))}>
-              Use {ask.known}
-            </button>
-            <button type="button" className="btn btn-outline" onClick={() => (addName(ask.typed), setAsk(null))}>
-              Keep {ask.typed}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {club.length > 0 && (
-        <div>
-          <label htmlFor="club-search" className="field-label">
-            Or pick from the club&apos;s players
-          </label>
-          <input id="club-search" className="field" placeholder="Search names" value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" />
-          <div className="mt-3 flex flex-wrap gap-2">
-            {matches.map((p) => (
-              <button key={p.id} type="button" onClick={() => addName(p.name)} className="min-h-11 border border-cream/22 px-3 text-cream hover:border-gold">
-                + {p.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </section>
   );
 }

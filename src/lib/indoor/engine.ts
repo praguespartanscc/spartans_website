@@ -11,12 +11,22 @@ import { addLatePlayer, callNext, depart, newQueue, sendBack, setOrder } from '.
 
 export type TeamIndex = 0 | 1;
 export type Player = { id: string; name: string };
-export type TeamSetup = { name: string; players: Player[] }; // players in batting order
+// players in batting order. id is the tournament team, when the match belongs to a tournament.
+export type TeamSetup = { name: string; players: Player[]; id?: string };
+
+// How the toss went. coin: flipped in the app (who called, what they called, how it landed).
+// manual: a real coin was used and the scorer entered the winner.
+export type Toss = { winner: TeamIndex; choice: 'bat' | 'bowl'; method: 'coin' | 'manual'; caller?: TeamIndex; call?: 'heads' | 'tails'; face?: 'heads' | 'tails' };
+
+// The tournament game this match was scored for (a copy, so the match page needs nothing else).
+export type FixtureLink = { id: string; label: string; tournament: { id: string; name: string; slug: string } };
 
 export type MatchSetup = {
   teams: [TeamSetup, TeamSetup];
   battingFirst: TeamIndex;
   rules: IndoorRules;
+  toss?: Toss;
+  fixture?: FixtureLink;
 };
 
 export type EventData =

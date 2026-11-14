@@ -2,6 +2,7 @@ import type { BallRecord, InningsState, MatchState, TeamIndex } from './engine.t
 import { oversText, target, teamTotal } from './engine.ts';
 import { DISMISSAL_LABEL } from './rules.ts';
 import type { MatchSummary } from './store.ts';
+import { digestOf } from './stats.ts';
 
 // Short chip text for one delivery, as on a scorecard: "4", "2wd", "1nb", "2b", "W", "R".
 export function ballLabel(b: BallRecord): string {
@@ -80,6 +81,7 @@ export function summaryOf(state: MatchState): MatchSummary {
       .filter((inn) => inn.index === 0 || inn.legalBalls > 0 || inn.complete)
       .map((inn) => ({ team: state.teams[inn.batting].name, total: teamTotal(state, inn.batting), wickets: inn.wickets, overs: inningsOvers(state, inn) })),
     result: resultText(state),
+    digest: digestOf(state),
   };
 }
 

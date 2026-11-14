@@ -2,12 +2,16 @@
 // signal in the hall never loses a ball. Supabase gets a copy whenever there is a connection.
 
 import type { IndoorEvent, MatchSetup } from './engine.ts';
+import type { MatchDigest } from './stats.ts';
 
 export type MatchStatus = 'live' | 'complete' | 'abandoned';
 
 export type MatchSummary = {
   innings: { team: string; total: number; wickets: number; overs: string }[];
   result: string | null;
+  // Who won and every player's figures, so a tournament table and its stats can be built from
+  // match rows alone. Missing on matches scored before tournaments existed.
+  digest?: MatchDigest;
 };
 
 export type MatchRecord = {
@@ -23,6 +27,9 @@ export type MatchRecord = {
   scorer_id?: string | null;
   created_at?: string; // when the match was started (set on the phone, then by the server)
   updated_at?: string;
+  // Set when the match was started from a tournament game. Never changed afterwards.
+  tournament_id?: string | null;
+  fixture_id?: string | null;
 };
 
 export type LocalMatch = {
@@ -59,10 +66,35 @@ export function loadLocal(id: string): LocalMatch | null {
   return read<LocalMatch>(KEY(id));
 }
 
+const KEEP = 50;
+
+// The newest matches stay on the phone. An older one is only let go once the server has all of
+// it: a tournament day can pass 50 matches on one phone, and none of them may lose a ball.
+export function trimIndex(ids: string[], waiting: (id: string) => boolean, keep = KEEP): { keep: string[]; drop: string[] } {
+  const kept: string[] = [];
+  const drop: string[] = [];
+  ids.forEach((id, i) => (i < keep || waiting(id) ? kept : drop).push(id));
+  return { keep: kept, drop };
+}
+
 export function saveLocal(lm: LocalMatch): boolean {
   const ok = write(KEY(lm.match.id), lm);
   const index = read<string[]>(INDEX) ?? [];
-  if (!index.includes(lm.match.id)) write(INDEX, [lm.match.id, ...index].slice(0, 50));
+  if (!index.includes(lm.match.id)) {
+    const { keep, drop } = trimIndex([lm.match.id, ...index], (id) => {
+      const m = read<LocalMatch>(KEY(id));
+      return m != null && (m.pending.length > 0 || m.matchPending);
+    });
+    write(INDEX, keep);
+    // The copies that fall off the list are on the server, so their storage can be freed.
+    for (const id of drop) {
+      try {
+        localStorage.removeItem(KEY(id));
+      } catch {
+        // storage blocked: nothing to free
+      }
+    }
+  }
   return ok;
 }
 

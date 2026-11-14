@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import toast, { Toaster } from 'react-hot-toast';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import type { BallRecord, EventData, InningsState, MatchState, TeamIndex } from '@/lib/indoor/engine';
+import type { BallRecord, EventData, FixtureLink, InningsState, MatchState, Player, TeamIndex } from '@/lib/indoor/engine';
 import { bowlerChoices, needs, oversText, rulesAt, sortEvents, target, teamTotal } from '@/lib/indoor/engine';
 import type { BallInput, End, ExtraKind, WicketInput } from '@/lib/indoor/scoring';
 import { findZone, scoreBall, wicketStands } from '@/lib/indoor/scoring';
@@ -13,6 +13,10 @@ import type { DismissalKind, IndoorRules, RulesPatch } from '@/lib/indoor/rules'
 import { DISMISSAL_LABEL, isFinalOver, normaliseZones } from '@/lib/indoor/rules';
 import { upcoming } from '@/lib/indoor/queue';
 import { newId } from '@/lib/indoor/store';
+import { FIELDED } from '@/lib/indoor/stats';
+import { tossText } from '@/lib/indoor/toss';
+import { loadTournament } from '@/lib/indoor/tstore';
+import { nameKey } from '@/lib/indoor/names';
 import { announceText, ballLabel, ballTone, chaseText, resultText, runRate } from '@/lib/indoor/format';
 import type { Member } from './MemberGate';
 import type { Placement, SyncState } from './useScorer';
@@ -223,6 +227,7 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
         </Link>
         <p className="flex-1 truncate text-center text-sm text-muted">
           {state.teams[0].name} v {state.teams[1].name}
+          {state.setup.fixture && <span className="block truncate text-xs text-faint">{state.setup.fixture.tournament.name}, {state.setup.fixture.label}</span>}
         </p>
         <SyncDot sync={s.sync} pending={lm.pending.length} />
         <button type="button" onClick={() => setSheet('rules')} className="chip mr-2 shrink-0 hover:border-gold">
@@ -268,7 +273,7 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
       </header>
 
       {done ? (
-        <Finished state={state} slug={lm.match.share_slug} id={lm.match.id} />
+        <Finished state={state} slug={lm.match.share_slug} id={lm.match.id} fixture={state.setup.fixture} />
       ) : !canScore ? (
         <ReadOnly state={state} id={lm.match.id} pull={s.pull} />
       ) : atBreak ? (
@@ -463,6 +468,7 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
         <WicketSheet
           rules={rules}
           inn={inn}
+          fielders={state.teams[inn.bowling].players}
           zone={zone}
           extra={extra}
           onClose={close}
@@ -633,7 +639,9 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
         </Sheet>
       )}
       {sheet === 'penalty' && <PenaltySheet state={state} onClose={close} onSave={(team, runs) => (commit({ type: 'penalty', data: { team, runs } }, `${runs > 0 ? 'Plus' : 'Minus'} ${Math.abs(runs)} for ${state.teams[team].name}`), close())} />}
-      {sheet === 'player' && <PlayerSheet state={state} onClose={close} onSave={(team, name) => (commit({ type: 'addPlayer', data: { team, player: { id: newId(), name } } }, `${name} added`), close())} />}
+      {sheet === 'player' && (
+        <PlayerSheet state={state} onClose={close} onSave={(team, name, id) => (commit({ type: 'addPlayer', data: { team, player: { id: id ?? newId(), name } } }, `${name} added`), close())} />
+      )}
       {sheet === 'overs' && (
         <OversSheet
           current={inn.oversLimit}
@@ -809,6 +817,7 @@ export function rulesSummary(r: IndoorRules): string[] {
 function WicketSheet({
   rules,
   inn,
+  fielders,
   zone,
   extra,
   onClose,
@@ -818,6 +827,7 @@ function WicketSheet({
 }: {
   rules: IndoorRules;
   inn: InningsState;
+  fielders: Player[];
   zone: string | null;
   extra: ExtraKind | null;
   onClose: () => void;
@@ -828,7 +838,16 @@ function WicketSheet({
   const [kind, setKind] = useState<DismissalKind | null>(null);
   // With more than one batter waiting, ask who comes in before recording.
   const [pending, setPending] = useState<{ out: WicketInput } | { retire: End; asOut: boolean } | null>(null);
-  const onOut = (w: WicketInput) => (waiting.length > 1 ? setPending({ out: w }) : done(w, null));
+  // A catch, run out or stumping: ask who did it first, so fielders get their figures.
+  const [taking, setTaking] = useState<WicketInput | null>(null);
+  const settle = (w: WicketInput) => (waiting.length > 1 ? setPending({ out: w }) : done(w, null));
+  const onOut = (w: WicketInput) => (FIELDED.includes(w.kind) && fielders.length > 0 ? setTaking(w) : settle(w));
+  const took = (fielderId: string | null) => {
+    if (!taking) return;
+    const w = { ...taking, fielderId };
+    setTaking(null);
+    settle(w);
+  };
   const onRetire = (end: End, asOut: boolean) => (waiting.length > 1 ? setPending({ retire: end, asOut }) : retireDone(end, asOut, null));
   const finish = (nextId: string) => {
     if (!pending) return;
@@ -852,8 +871,23 @@ function WicketSheet({
   };
 
   return (
-    <Sheet title={pending ? 'Who comes in?' : kind ? DISMISSAL_LABEL[kind] : 'How out?'} onClose={onClose}>
-      {pending && (
+    <Sheet title={taking ? (taking.kind === 'runOut' ? 'Who ran them out?' : taking.kind === 'stumped' ? 'Who stumped them?' : 'Who caught it?') : pending ? 'Who comes in?' : kind ? DISMISSAL_LABEL[kind] : 'How out?'} onClose={onClose}>
+      {taking && (
+        <div className="grid gap-2">
+          <div className="grid grid-cols-2 gap-2">
+            {fielders.map((p) => (
+              <button key={p.id} type="button" onClick={() => took(p.id)} className={`min-h-12 truncate px-3 text-left ${p.id === inn.bowler ? 'border border-gold text-cream' : 'border border-cream/22 text-cream'}`}>
+                {p.name}
+                {p.id === inn.bowler && <span className="ml-2 text-sm text-muted">bowler</span>}
+              </button>
+            ))}
+          </div>
+          <button type="button" onClick={() => took(null)} className="btn btn-outline mt-2">
+            Skip
+          </button>
+        </div>
+      )}
+      {!taking && pending && (
         <div className="grid gap-2">
           {waiting.map((p, i) => (
             <button
@@ -868,7 +902,7 @@ function WicketSheet({
           ))}
         </div>
       )}
-      {!pending && !kind && (
+      {!taking && !pending && !kind && (
         <>
           {inn.freeHit && <p className="mb-3 text-gold">Free hit: only these dismissals count.</p>}
           {extra && <p className="mb-3 text-gold">Off a {extra === 'noBall' ? 'no ball' : extra === 'wide' ? 'wide' : extra === 'bye' ? 'bye' : 'leg bye'}.</p>}
@@ -901,7 +935,7 @@ function WicketSheet({
           </div>
         </>
       )}
-      {!pending && (kind === 'runOut' || kind === 'obstructing') && (
+      {!taking && !pending && (kind === 'runOut' || kind === 'obstructing') && (
         <div className="grid gap-2">
           {(['striker', 'nonStriker'] as End[]).map((who) => (
             <button key={who} type="button" onClick={() => onOut({ kind, who, zone: null })} className="btn btn-outline btn-lg">
@@ -910,7 +944,7 @@ function WicketSheet({
           ))}
         </div>
       )}
-      {!pending && kind === 'caughtOffWall' && (
+      {!taking && !pending && kind === 'caughtOffWall' && (
         <div className="grid gap-2">
           <p className="text-sand">Which wall did it come off?</p>
           {wallZones.map((z) => (
@@ -954,11 +988,24 @@ function PenaltySheet({ state, onClose, onSave }: { state: MatchState; onClose: 
   );
 }
 
-function PlayerSheet({ state, onClose, onSave }: { state: MatchState; onClose: () => void; onSave: (team: TeamIndex, name: string) => void }) {
+function PlayerSheet({ state, onClose, onSave }: { state: MatchState; onClose: () => void; onSave: (team: TeamIndex, name: string, id?: string) => void }) {
   const [team, setTeam] = useState<TeamIndex>(state.innings[state.current].batting);
   const [name, setName] = useState('');
   const clean = name.trim().replace(/\s+/g, ' ');
   const taken = state.teams.some((t) => t.players.some((p) => p.name.toLowerCase() === clean.toLowerCase()));
+  // A tournament game: squad members who are not in today's side come first. They keep the id
+  // the tournament gave them, so their figures stay with the rest of their tournament.
+  const [squads, setSquads] = useState<[Player[], Player[]]>([[], []]);
+  useEffect(() => {
+    const fx = state.setup.fixture;
+    const cached = fx ? loadTournament(fx.tournament.id) : null;
+    if (!cached) return;
+    const of = (i: TeamIndex) => cached.teams.find((t) => t.id === state.setup.teams[i].id)?.squad ?? [];
+    setSquads([of(0), of(1)]);
+  }, [state.setup]);
+  const playing = state.teams[team].players;
+  const bench = squads[team].filter((p) => !playing.some((x) => x.id === p.id || nameKey(x.name) === nameKey(p.name)));
+  const member = squads[team].find((p) => nameKey(p.name) === nameKey(clean));
   return (
     <Sheet title="Add a late player" onClose={onClose}>
       <div className="grid grid-cols-2 gap-2">
@@ -968,13 +1015,25 @@ function PlayerSheet({ state, onClose, onSave }: { state: MatchState; onClose: (
           </Toggle>
         ))}
       </div>
+      {bench.length > 0 && (
+        <>
+          <p className="field-label mt-4">From the squad</p>
+          <div className="flex flex-wrap gap-2">
+            {bench.map((p) => (
+              <button key={p.id} type="button" onClick={() => onSave(team, p.name, p.id)} className="min-h-11 border border-cream/22 px-3 text-cream hover:border-gold">
+                + {p.name}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
       <label htmlFor="late-name" className="field-label mt-4">
-        Name
+        {bench.length > 0 ? 'Or a new name' : 'Name'}
       </label>
       <input id="late-name" className="field" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} autoComplete="off" />
       {taken && <p className="mt-2 text-sm text-gold">That name is already playing.</p>}
       <p className="mt-2 text-sm text-muted">Late players bat at the end of the order.</p>
-      <button type="button" disabled={!clean || taken} className="btn btn-gold btn-lg mt-5 w-full" onClick={() => onSave(team, clean)}>
+      <button type="button" disabled={!clean || taken} className="btn btn-gold btn-lg mt-5 w-full" onClick={() => onSave(team, member?.name ?? clean, member?.id)}>
         Add {clean || 'player'}
       </button>
     </Sheet>
@@ -1111,11 +1170,11 @@ function Pick({ title, list, value, onPick }: { title: string; list: { id: strin
   );
 }
 
-function Finished({ state, slug, id }: { state: MatchState; slug: string; id: string }) {
+function Finished({ state, slug, id, fixture }: { state: MatchState; slug: string; id: string; fixture?: FixtureLink }) {
   return (
     <section className="mx-4 mt-6 space-y-4">
       <div className="card border-gold p-5">
-        <p className="eyebrow">Result</p>
+        <p className="eyebrow">{fixture ? `${fixture.tournament.name}, ${fixture.label}` : 'Result'}</p>
         <p className="h-sub mt-2 text-3xl">{resultText(state)}</p>
         <ul className="mt-4 space-y-1 text-sand">
           {state.innings.map((i) => (
@@ -1134,14 +1193,21 @@ function Finished({ state, slug, id }: { state: MatchState; slug: string; id: st
         </Link>
         <ShareButton slug={slug} />
       </div>
-      <div className="grid grid-cols-2 gap-2">
-        <Link href={`/score/new?from=${id}`} className="btn btn-outline min-h-14 justify-center">
-          Same teams again
+      {fixture ? (
+        <Link href={`/score/t/${fixture.tournament.id}`} className="btn btn-outline min-h-14 w-full justify-center">
+          Back to the tournament
         </Link>
-        <Link href="/score/new" className="btn btn-outline min-h-14 justify-center">
-          New match
-        </Link>
-      </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-2">
+          <Link href={`/score/new?from=${id}`} className="btn btn-outline min-h-14 justify-center">
+            Same teams again
+          </Link>
+          <Link href="/score/new" className="btn btn-outline min-h-14 justify-center">
+            New match
+          </Link>
+        </div>
+      )}
+      {state.setup.toss && <p className="text-center text-sm text-muted">{tossText(state.setup.toss, [state.teams[0].name, state.teams[1].name])}</p>}
       <p className="text-center text-sm text-muted">Made a mistake? Undo takes back the last ball and reopens the match.</p>
     </section>
   );

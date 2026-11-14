@@ -643,6 +643,63 @@ body {
   animation: ps-fade-in 0.25s var(--ease-out-quart) both;
 }
 
+/* Coin toss (indoor scorer). The coin's own transform is where it lands (heads 0deg, tails
+   180deg), and the flip spins into that, so with reduced motion it simply shows the result. */
+@keyframes ps-coin-spin {
+  from {
+    transform: rotateY(-1800deg);
+  }
+}
+@keyframes ps-coin-lift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  45% {
+    transform: translate3d(0, -28px, 0) scale(1.18);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+.coin-stage {
+  perspective: 900px;
+}
+.coin {
+  position: relative;
+  width: 9rem;
+  height: 9rem;
+  transform-style: preserve-3d;
+}
+.coin-flip {
+  animation: ps-coin-spin 1.1s var(--ease-out-quart) both;
+}
+.coin-lift {
+  animation: ps-coin-lift 1.1s var(--ease-out-quart) both;
+}
+.coin-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.coin-heads {
+  background: var(--color-gold);
+  color: var(--color-ink);
+  box-shadow: inset 0 0 0 6px var(--color-gold-lo);
+}
+.coin-tails {
+  transform: rotateY(180deg);
+  background: var(--color-panel-2);
+  color: var(--color-gold);
+  box-shadow: inset 0 0 0 6px var(--color-gold);
+}
+
 /* Countdown digits slide in when they change */
 .tick {
   display: inline-block;
