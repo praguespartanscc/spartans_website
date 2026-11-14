@@ -1,12 +1,16 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
+import { Toaster } from 'react-hot-toast';
 import MemberGate from './MemberGate';
 import Scorer, { rulesSummary } from './Scorer';
 import Scorecard from './Scorecard';
 import MatchList from './MatchList';
 import ScorerBar from './ScorerBar';
 import SetupWizard from './SetupWizard';
+import TournamentHome from './TournamentHome';
+import TournamentWizard from './TournamentWizard';
 import { useScorer } from './useScorer';
 import { resultText, storedAhead } from '@/lib/indoor/format';
 import { tossDetail, tossText } from '@/lib/indoor/toss';
@@ -26,8 +30,37 @@ export function ScoreHome() {
   );
 }
 
+// Once the match is set up its scoring screen is shown right here, with the address changed to
+// the match's own. Going to that page instead would need a signal, and halls often have none.
 export function NewMatch() {
-  return <MemberGate>{() => <SetupWizard />}</MemberGate>;
+  const [id, setId] = useState<string | null>(null);
+  const started = (matchId: string) => {
+    window.history.replaceState(null, '', `/score/${matchId}`);
+    window.scrollTo({ top: 0 });
+    setId(matchId);
+  };
+  return (
+    <MemberGate>
+      {(m) =>
+        id ? (
+          <Scorer id={id} member={m} />
+        ) : (
+          <>
+            <Toaster position="top-center" toastOptions={{ style: { background: '#1a1a1a', color: '#fff', borderRadius: 0 } }} />
+            <SetupWizard onStarted={started} />
+          </>
+        )
+      }
+    </MemberGate>
+  );
+}
+
+export function NewTournament() {
+  return <MemberGate>{() => <TournamentWizard />}</MemberGate>;
+}
+
+export function TournamentPage({ id }: { id: string }) {
+  return <MemberGate>{(m) => <TournamentHome id={id} member={m} />}</MemberGate>;
 }
 
 function Card({ id }: { id: string }) {

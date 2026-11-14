@@ -115,3 +115,16 @@ test('an account that may not score is refused', async () => {
   assert.equal(res.code, 'refused');
   assert.deepEqual(res.pending, ['e1']);
 });
+
+import { matchRow } from '../sync.ts';
+import type { MatchRecord } from '../store.ts';
+
+test('only a tournament match sends tournament fields', () => {
+  const base = { id: 'm', team_a: 'A', team_b: 'B', setup: {} as MatchRecord['setup'], summary: null, status: 'live', share_slug: 'abcdefgh', played_on: '2026-12-05' } as MatchRecord;
+  // An ordinary match must upload on a database that has no tournament columns.
+  assert.deepEqual(Object.keys(matchRow(base)).sort(), ['id', 'played_on', 'setup', 'share_slug', 'status', 'summary', 'team_a', 'team_b']);
+  assert.deepEqual(Object.keys(matchRow({ ...base, tournament_id: null, fixture_id: null })).length, 8);
+  const row = matchRow({ ...base, tournament_id: 't1', fixture_id: 'f1' });
+  assert.equal(row.tournament_id, 't1');
+  assert.equal(row.fixture_id, 'f1');
+});

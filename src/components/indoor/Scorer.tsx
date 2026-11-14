@@ -35,7 +35,9 @@ const EXTRAS: { id: ExtraKind; label: string }[] = [
   { id: 'legBye', label: 'Leg bye' },
 ];
 
-export default function Scorer({ id, member }: { id: string; member: Member }) {
+// onTournament: the match was opened from inside its tournament screen, so going back is a
+// change of screen there and not a page load.
+export default function Scorer({ id, member, onTournament }: { id: string; member: Member; onTournament?: () => void }) {
   const s = useScorer(id);
   const { state, lm } = s;
 
@@ -62,12 +64,12 @@ export default function Scorer({ id, member }: { id: string; member: Member }) {
     );
   }
   const owner = lm.match.created_by == null || lm.match.created_by === member.user.id || lm.match.scorer_id === member.user.id;
-  return <Board s={s} state={state} canScore={member.isAdmin || owner} isAdmin={member.isAdmin} />;
+  return <Board s={s} state={state} canScore={member.isAdmin || owner} isAdmin={member.isAdmin} onTournament={onTournament} />;
 }
 
 type ScorerApi = ReturnType<typeof useScorer>;
 
-function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchState; canScore: boolean; isAdmin: boolean }) {
+function Board({ s, state, canScore, isAdmin, onTournament }: { s: ScorerApi; state: MatchState; canScore: boolean; isAdmin: boolean; onTournament?: () => void }) {
   const router = useRouter();
   const lm = s.lm!;
   const rules = state.rules;
@@ -222,9 +224,15 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
 
       {/* Top bar */}
       <div className="flex items-center gap-2 px-2 pt-2">
-        <Link href="/score" className="grid h-11 w-11 place-items-center text-muted hover:text-cream" aria-label="My matches">
-          <ArrowLeft size={22} />
-        </Link>
+        {onTournament ? (
+          <button type="button" onClick={onTournament} className="grid h-11 w-11 place-items-center text-muted hover:text-cream" aria-label="Back to the tournament">
+            <ArrowLeft size={22} />
+          </button>
+        ) : (
+          <Link href="/score" className="grid h-11 w-11 place-items-center text-muted hover:text-cream" aria-label="My matches">
+            <ArrowLeft size={22} />
+          </Link>
+        )}
         <p className="flex-1 truncate text-center text-sm text-muted">
           {state.teams[0].name} v {state.teams[1].name}
           {state.setup.fixture && <span className="block truncate text-xs text-faint">{state.setup.fixture.tournament.name}, {state.setup.fixture.label}</span>}
@@ -273,7 +281,7 @@ function Board({ s, state, canScore, isAdmin }: { s: ScorerApi; state: MatchStat
       </header>
 
       {done ? (
-        <Finished state={state} slug={lm.match.share_slug} id={lm.match.id} fixture={state.setup.fixture} />
+        <Finished state={state} slug={lm.match.share_slug} id={lm.match.id} fixture={state.setup.fixture} onTournament={onTournament} />
       ) : !canScore ? (
         <ReadOnly state={state} id={lm.match.id} pull={s.pull} />
       ) : atBreak ? (
@@ -1170,7 +1178,7 @@ function Pick({ title, list, value, onPick }: { title: string; list: { id: strin
   );
 }
 
-function Finished({ state, slug, id, fixture }: { state: MatchState; slug: string; id: string; fixture?: FixtureLink }) {
+function Finished({ state, slug, id, fixture, onTournament }: { state: MatchState; slug: string; id: string; fixture?: FixtureLink; onTournament?: () => void }) {
   return (
     <section className="mx-4 mt-6 space-y-4">
       <div className="card border-gold p-5">
@@ -1193,7 +1201,11 @@ function Finished({ state, slug, id, fixture }: { state: MatchState; slug: strin
         </Link>
         <ShareButton slug={slug} />
       </div>
-      {fixture ? (
+      {fixture && onTournament ? (
+        <button type="button" onClick={onTournament} className="btn btn-outline min-h-14 w-full justify-center">
+          Back to the tournament
+        </button>
+      ) : fixture ? (
         <Link href={`/score/t/${fixture.tournament.id}`} className="btn btn-outline min-h-14 w-full justify-center">
           Back to the tournament
         </Link>

@@ -36,7 +36,7 @@ const BILINGUAL = [
   /^\/$/,
   /^\/(about|join|ground|cricket-in-prague|practices|fixtures|players|committee|sponsors|gallery|live|privacy|safeguarding|news|achievements)(\/.*)?$/,
   /^\/squads\/[^/]+$/,
-  /^\/indoor\/[^/]+$/,
+  /^\/indoor\/(t\/)?[^/]+$/,
 ];
 
 export function hasCzech(path: string): boolean {

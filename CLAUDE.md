@@ -154,6 +154,7 @@ All motion lives in globals.css. Animate **only `transform` and `opacity`** (GPU
 | `.lightbox-in/-out`, `.photo-in/-next/-prev` | gallery viewer open/close and direction-aware photo change |
 | `.btn-gold` sheen | light sweep across gold buttons on hover |
 | `.sheet-in`, `.scrim-in` | scorer bottom sheet slides up over a fading scrim |
+| `.coin-flip`, `.coin-lift` | scorer coin toss: the coin spins (1.1s) into the face it landed on. The coin's own transform is the result, so reduced motion shows it at once |
 | `.film` | film look for a box holding a photo or video: soft vignette (`::before`) and static grain (`::after`). In an `isolate` section add `[--film-z:-5]` so both sit above the scrim and below the text |
 | `.film-grade` | one gentle colour grade on the photo or video itself |
 | `.film-grade-rich` | the stronger grade for the home page film loop (flat phone footage under a dark scrim) |

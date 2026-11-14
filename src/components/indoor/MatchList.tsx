@@ -7,6 +7,9 @@ import type { MatchRecord } from '@/lib/indoor/store';
 import { listLocal, removeLocal } from '@/lib/indoor/store';
 import { uploadWaiting } from '@/lib/indoor/sync';
 import { matchWhen, seriesLines } from '@/lib/indoor/format';
+import type { Tournament } from '@/lib/indoor/tournament';
+import { cachedTournaments } from '@/lib/indoor/tstore';
+import { listTournaments } from '@/lib/indoor/tsync';
 import toast, { Toaster } from 'react-hot-toast';
 import { ConfirmButton } from './RulesEditor';
 import type { Member } from './MemberGate';
@@ -17,6 +20,9 @@ type Row = MatchRecord & { local: boolean; unsynced: boolean };
 
 export default function MatchList({ member }: { member: Member }) {
   const [rows, setRows] = useState<Row[] | null>(null);
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  // The database has no tournament tables yet: the update has not been run.
+  const [noTournaments, setNoTournaments] = useState(false);
 
   const load = useCallback(() => {
     const local = listLocal().map((lm) => ({ ...lm.match, local: true, unsynced: lm.pending.length > 0 || lm.matchPending }));
@@ -24,7 +30,7 @@ export default function MatchList({ member }: { member: Member }) {
     const supabase = createClientComponentClient();
     return supabase
       .from('indoor_matches')
-      .select('id, team_a, team_b, setup, summary, status, share_slug, played_on, created_by, scorer_id, created_at, updated_at')
+      .select('*')
       .order('updated_at', { ascending: false })
       .limit(40)
       .then(({ data, error }) => {
@@ -44,6 +50,16 @@ export default function MatchList({ member }: { member: Member }) {
   useEffect(() => {
     let stopped = false;
     void load();
+    // Tournaments: the copies on this phone at once, then the server's list.
+    const cached = cachedTournaments().map((c) => c.tournament);
+    setTournaments(cached);
+    listTournaments(createClientComponentClient())
+      .then(({ list, problem }) => {
+        if (stopped) return;
+        setNoTournaments(problem === 'missing');
+        if (!problem) setTournaments(list);
+      })
+      .catch(() => {});
     if (listLocal().some((lm) => lm.pending.length > 0 || lm.matchPending)) {
       uploadWaiting(createClientComponentClient())
         .then((done) => {
@@ -84,6 +100,31 @@ export default function MatchList({ member }: { member: Member }) {
         New indoor match
         <ArrowRight size={18} className="btn-arrow" />
       </Link>
+      {!noTournaments && (
+        <Link href="/score/t/new" className="btn btn-outline btn-lg mt-3 w-full">
+          New tournament
+        </Link>
+      )}
+      {noTournaments && member.isAdmin && <p className="mt-3 text-sm text-muted">Tournaments need a database update that has not been run yet (migration 18).</p>}
+
+      {tournaments.length > 0 && (
+        <section className="mt-10">
+          <h2 className="eyebrow">Tournaments</h2>
+          <ul className="mt-3 space-y-3">
+            {tournaments.map((t) => (
+              <li key={t.id}>
+                <Link href={`/score/t/${t.id}`} className="card card-hover flex items-center justify-between gap-3 p-4">
+                  <span className="min-w-0">
+                    <span className="h-sub block truncate text-xl">{t.name}</span>
+                    <span className="mt-1 block text-sm text-muted">{t.status === 'complete' ? 'Finished' : 'Games, table and stats'}</span>
+                  </span>
+                  <ArrowRight size={18} className="shrink-0 text-gold" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {rows === null ? (
         <div className="mt-10 space-y-3" role="status" aria-label="Loading matches">
@@ -122,6 +163,11 @@ function List({ title, rows, mine, onDelete, series }: { title: string; rows: Ro
               <p className="h-sub mt-2 text-xl">
                 {r.team_a} v {r.team_b}
               </p>
+              {r.setup?.fixture && (
+                <p className="mt-1 truncate text-xs text-muted">
+                  {r.setup.fixture.tournament.name}, {r.setup.fixture.label}
+                </p>
+              )}
               {r.summary?.innings?.length ? (
                 <ul className="mt-1 text-sm text-sand">
                   {r.summary.innings.map((i) => (
@@ -142,7 +188,7 @@ function List({ title, rows, mine, onDelete, series }: { title: string; rows: Ro
             </Link>
             {(onDelete || r.status === 'complete') && (
               <div className="mt-1 flex items-center justify-end gap-2">
-                {r.status === 'complete' && (
+                {r.status === 'complete' && !r.setup?.fixture && (
                   <Link href={`/score/new?from=${r.id}`} className="min-h-11 content-center px-2 font-display text-sm font-bold uppercase italic text-muted hover:text-cream">
                     Same teams again
                   </Link>

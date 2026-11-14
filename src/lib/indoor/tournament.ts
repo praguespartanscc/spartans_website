@@ -160,8 +160,14 @@ export function refLabel(ref: TeamRef, teams: TournamentTeam[], fixtures: Fixtur
   if (ref.kind === 'groupPos') return `${ref.group}${ref.pos}`;
   if (ref.kind === 'tablePos') return ordinal(ref.pos);
   const f = fixtures.find((x) => x.id === ref.fixture);
-  const name = f ? (f.label || `Game ${f.seq}`) : 'an earlier game';
+  const name = f ? fixtureTitle(f) : 'an earlier game';
   return `${ref.kind === 'winner' ? 'Winner' : 'Loser'} of ${name}`;
+}
+
+// What a game is called on a card. League games are simply numbered in playing order: their
+// round numbers stop meaning much once the games are shuffled so teams get a rest.
+export function fixtureTitle(f: Pick<Fixture, 'stage' | 'label' | 'seq'>): string {
+  return f.stage === 'league' || !f.label ? `Game ${f.seq}` : f.label;
 }
 
 export const sameRef = (a: TeamRef, b: TeamRef) => JSON.stringify(a) === JSON.stringify(b);

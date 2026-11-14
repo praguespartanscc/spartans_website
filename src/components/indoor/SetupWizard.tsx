@@ -8,15 +8,17 @@ import toast from 'react-hot-toast';
 import type { EventData, FixtureLink, IndoorEvent, MatchSetup, Player, TeamIndex } from '@/lib/indoor/engine';
 import type { IndoorRules } from '@/lib/indoor/rules';
 import { cloneRules, normaliseZones } from '@/lib/indoor/rules';
-import { PRESETS, presetById } from '@/lib/indoor/presets';
+import { presetById } from '@/lib/indoor/presets';
 import { loadLocal, newId, newSlug, saveLocal } from '@/lib/indoor/store';
 import type { LocalMatch } from '@/lib/indoor/store';
 import { fetchMatch } from '@/lib/indoor/sync';
 import { battingFirstOf } from '@/lib/indoor/toss';
 import type { TournamentData } from '@/lib/indoor/tournament';
+import { fixtureTitle } from '@/lib/indoor/tournament';
 import { cacheTournament, loadTournament } from '@/lib/indoor/tstore';
 import { fetchTournament } from '@/lib/indoor/tsync';
-import RulesEditor, { ConfirmButton } from './RulesEditor';
+import { ConfirmButton } from './RulesEditor';
+import RulesPicker, { rememberRules } from './RulesPicker';
 import { rulesSummary } from './Scorer';
 import SquadEditor, { PickList } from './SquadEditor';
 import TossStep, { EMPTY_TOSS, tossOf } from './TossStep';
@@ -28,51 +30,39 @@ type Step = 'Teams' | 'Players' | 'Rules' | 'Toss' | 'Start';
 const FREE_STEPS: Step[] = ['Teams', 'Rules', 'Toss', 'Start'];
 // A tournament game: the teams and the rules are the tournament's, so only today's players are asked.
 const FIXTURE_STEPS: Step[] = ['Players', 'Toss', 'Start'];
-const OVERS = [5, 6, 8, 10, 12, 15];
-const LAST_RULES = 'indoor:lastRules';
-
 const todayInPrague = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Prague' }).format(new Date());
-
-function loadLastRules(): IndoorRules | null {
-  try {
-    const raw = localStorage.getItem(LAST_RULES);
-    if (!raw) return null;
-    const r = JSON.parse(raw) as IndoorRules;
-    return { ...r, zones: normaliseZones(r.zones) };
-  } catch {
-    return null;
-  }
-}
 
 // What a tournament game brings to the setup: its two teams with their ids and squads.
 type FromFixture = { link: FixtureLink; teamIds: [string, string]; pools: [Player[], Player[]] };
 
-export default function SetupWizard() {
+// start: a tournament game to set up (otherwise the address is read: ?t=&f=&h=&a=, or ?from=).
+// onStarted: open the scoring screen in place of going to its page, which needs no signal.
+// onExit: where the back arrow goes when the wizard is shown inside another screen.
+export type StartFrom = { t: string; f: string; h: string; a: string };
+
+export default function SetupWizard({ start: startFrom, onStarted, onExit }: { start?: StartFrom; onStarted?: (id: string) => void; onExit?: () => void } = {}) {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [names, setNames] = useState<[string, string]>(['', '']);
   const [squads, setSquads] = useState<[Player[], Player[]]>([[], []]);
   const [base, setBase] = useState<IndoorRules>(() => presetById('league')); // the preset picked
   const [rules, setRules] = useState<IndoorRules>(() => presetById('league'));
-  const [customise, setCustomise] = useState(false);
-  const [last, setLast] = useState<IndoorRules | null>(null);
   const [toss, setToss] = useState<TossDraft>(EMPTY_TOSS);
   const [openers, setOpeners] = useState<[string | null, string | null]>([null, null]);
   const [bowler, setBowler] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [fixture, setFixture] = useState<FromFixture | null>(null);
   // A tournament game is being looked up ('loading'), or could not be found ('missing').
-  const [lookup, setLookup] = useState<'none' | 'loading' | 'missing'>('none');
+  const [lookup, setLookup] = useState<'none' | 'loading' | 'missing'>(startFrom ? 'loading' : 'none');
 
   const steps = fixture || lookup !== 'none' ? FIXTURE_STEPS : FREE_STEPS;
   const at = steps[step];
 
   useEffect(() => {
-    setLast(loadLastRules());
     const q = new URLSearchParams(window.location.search);
 
     // A tournament game: /score/new?t=<tournament>&f=<fixture>&h=<home team>&a=<away team>.
-    const [t, f, h, a] = [q.get('t'), q.get('f'), q.get('h'), q.get('a')];
+    const [t, f, h, a] = startFrom ? [startFrom.t, startFrom.f, startFrom.h, startFrom.a] : [q.get('t'), q.get('f'), q.get('h'), q.get('a')];
     if (t && f && h && a) {
       const fill = (d: TournamentData): boolean => {
         const fx = d.fixtures.find((x) => x.id === f);
@@ -85,7 +75,7 @@ export default function SetupWizard() {
         setBase(r);
         setRules(r);
         setFixture({
-          link: { id: fx.id, label: fx.label || `Game ${fx.seq}`, tournament: { id: d.tournament.id, name: d.tournament.name, slug: d.tournament.slug } },
+          link: { id: fx.id, label: fixtureTitle(fx), tournament: { id: d.tournament.id, name: d.tournament.name, slug: d.tournament.slug } },
           teamIds: [home.id, away.id],
           pools: [home.squad, away.squad],
         });
@@ -120,6 +110,7 @@ export default function SetupWizard() {
     fetchMatch(createClientComponentClient(), from)
       .then((m) => m && fill(m.match.setup))
       .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const teamName = (t: TeamIndex) => names[t].trim() || (t === 0 ? 'Team A' : 'Team B');
@@ -172,15 +163,8 @@ export default function SetupWizard() {
       setSquads([[], []]);
       setBase(presetById('league'));
       setRules(presetById('league'));
-      setCustomise(false);
     }
     window.scrollTo({ top: 0 });
-  }
-
-  function pickPreset(p: IndoorRules) {
-    const r = { ...cloneRules(p), zones: normaliseZones(p.zones) };
-    setBase(r);
-    setRules(r);
   }
 
   async function start() {
@@ -222,15 +206,10 @@ export default function SetupWizard() {
         matchPending: true,
       };
       rememberNames(setup.teams.flatMap((t) => t.players.map((p) => p.name)));
-      if (!fixture) {
-        try {
-          localStorage.setItem(LAST_RULES, JSON.stringify({ ...setup.rules, presetId: 'last', name: 'My last rules' }));
-        } catch {
-          // storage blocked: the match still starts
-        }
-      }
+      if (!fixture) rememberRules(setup.rules);
       if (!saveLocal(lm)) toast('This phone could not save a copy. Keep the screen open until it says Synced.');
-      router.push(`/score/${id}`);
+      if (onStarted) onStarted(id);
+      else router.push(`/score/${id}`);
     } finally {
       setBusy(false);
     }
@@ -238,12 +217,20 @@ export default function SetupWizard() {
 
   const back = fixture ? `/score/t/${fixture.link.tournament.id}` : '/score';
 
+  const backArrow = onExit ? (
+    <button type="button" onClick={onExit} className="-ml-2 grid h-11 w-11 shrink-0 place-items-center text-muted hover:text-cream" aria-label="Back to the tournament">
+      <ArrowLeft size={22} />
+    </button>
+  ) : (
+    <Link href={back} className="-ml-2 grid h-11 w-11 shrink-0 place-items-center text-muted hover:text-cream" aria-label={fixture ? 'Back to the tournament' : 'Back to my matches'}>
+      <ArrowLeft size={22} />
+    </Link>
+  );
+
   if (lookup !== 'none') {
     return (
       <div className="mx-auto max-w-lg px-4 pb-32 pt-4">
-        <Link href="/score" className="-ml-2 grid h-11 w-11 place-items-center text-muted hover:text-cream" aria-label="Back to my matches">
-          <ArrowLeft size={22} />
-        </Link>
+        {backArrow}
         {lookup === 'loading' ? (
           <div className="skeleton mt-8 h-64" role="status" aria-label="Loading the game" />
         ) : (
@@ -262,9 +249,7 @@ export default function SetupWizard() {
   return (
     <div className="mx-auto max-w-lg px-4 pb-32 pt-4">
       <div className="flex items-center justify-between gap-2">
-        <Link href={back} className="-ml-2 grid h-11 w-11 shrink-0 place-items-center text-muted hover:text-cream" aria-label={fixture ? 'Back to the tournament' : 'Back to my matches'}>
-          <ArrowLeft size={22} />
-        </Link>
+        {backArrow}
         <p className="eyebrow min-w-0 truncate text-center">{fixture ? `${fixture.link.tournament.name}, ${fixture.link.label}` : 'New indoor match'}</p>
         <ConfirmButton label="Start over" confirm="Tap again" onConfirm={startOver} />
       </div>
@@ -328,53 +313,7 @@ export default function SetupWizard() {
         {at === 'Rules' && (
           <section className="space-y-5">
             <h1 className="h-sub text-3xl">Rules for today</h1>
-            <div>
-              <p className="field-label">Start from</p>
-              <div className="flex flex-wrap gap-2">
-                {[...PRESETS, ...(last ? [last] : [])].map((p) => (
-                  <button
-                    key={p.presetId}
-                    type="button"
-                    aria-pressed={base.presetId === p.presetId}
-                    onClick={() => pickPreset(p)}
-                    className={`min-h-11 px-4 font-semibold ${base.presetId === p.presetId ? 'bg-gold text-ink' : 'border border-cream/22 text-cream'}`}
-                  >
-                    {p.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <p className="field-label">Overs per innings</p>
-              <div className="flex flex-wrap items-center gap-2">
-                {OVERS.map((o) => (
-                  <button
-                    key={o}
-                    type="button"
-                    aria-pressed={rules.match.oversPerInnings === o}
-                    onClick={() => setRules({ ...rules, match: { ...rules.match, oversPerInnings: o } })}
-                    className={`h-12 w-12 font-varsity text-lg ${rules.match.oversPerInnings === o ? 'bg-gold text-ink' : 'border border-cream/22 text-cream'}`}
-                  >
-                    {o}
-                  </button>
-                ))}
-                <OversInput value={rules.match.oversPerInnings} onChange={(v) => setRules({ ...rules, match: { ...rules.match, oversPerInnings: v } })} />
-              </div>
-            </div>
-            {customise ? (
-              <RulesEditor rules={rules} onChange={setRules} base={base} />
-            ) : (
-              <div className="card p-4">
-                <ul className="space-y-1 text-sm text-sand">
-                  {rulesSummary(rules).map((l) => (
-                    <li key={l}>{l}</li>
-                  ))}
-                </ul>
-                <button type="button" onClick={() => setCustomise(true)} className="btn btn-outline mt-4 w-full">
-                  Customise rules
-                </button>
-              </div>
-            )}
+            <RulesPicker base={base} rules={rules} onBase={setBase} onRules={setRules} />
           </section>
         )}
 
@@ -422,36 +361,5 @@ export default function SetupWizard() {
         </div>
       </div>
     </div>
-  );
-}
-
-// Any number of overs: free typing, settled to 1 to 50 when the field is left.
-function OversInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
-  const [text, setText] = useState(String(value));
-  useEffect(() => setText(String(value)), [value]);
-  const settle = () => {
-    const v = Math.max(1, Math.min(50, Math.round(Number(text)) || value));
-    setText(String(v));
-    if (v !== value) onChange(v);
-  };
-  return (
-    <label className="flex items-center gap-2 text-muted">
-      or
-      <input
-        type="number"
-        inputMode="numeric"
-        min={1}
-        max={50}
-        aria-label="Any number of overs"
-        value={text}
-        onChange={(e) => {
-          setText(e.target.value);
-          const v = Number(e.target.value);
-          if (Number.isInteger(v) && v >= 1 && v <= 50) onChange(v);
-        }}
-        onBlur={settle}
-        className="field h-12 w-20 text-center"
-      />
-    </label>
   );
 }

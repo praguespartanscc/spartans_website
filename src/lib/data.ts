@@ -160,6 +160,18 @@ export const getIndoorMatchBySlug = cache(async (slug: string): Promise<FollowMa
   return (data as FollowMatch | null) ?? null;
 });
 
+// A tournament for its public page, by share link: the tournament, its teams, its games and
+// the scores of the matches played for them. Never cached: scores are live.
+export const getIndoorTournamentBySlug = cache(async (slug: string): Promise<unknown | null> => {
+  if (!db || !isShareSlug(slug)) return null;
+  const { data, error } = await db.rpc('indoor_tournament_by_slug', { p_slug: slug });
+  if (error) {
+    console.error('Could not load indoor tournament:', error.message);
+    return null;
+  }
+  return data ?? null;
+});
+
 // Published news, newest first (the table policy hides drafts from the public).
 export const getNews = cache(async (): Promise<NewsPost[]> => {
   if (!db) return [];
