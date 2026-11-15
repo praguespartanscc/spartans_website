@@ -16,6 +16,7 @@ import { newId } from '@/lib/indoor/store';
 import { FIELDED } from '@/lib/indoor/stats';
 import { tossText } from '@/lib/indoor/toss';
 import { loadTournament } from '@/lib/indoor/tstore';
+import type { SquadPlayer } from '@/lib/indoor/tournament';
 import { nameKey } from '@/lib/indoor/names';
 import { announceText, ballLabel, ballTone, chaseText, resultText, runRate } from '@/lib/indoor/format';
 import type { Member } from './MemberGate';
@@ -1003,7 +1004,7 @@ function PlayerSheet({ state, onClose, onSave }: { state: MatchState; onClose: (
   const taken = state.teams.some((t) => t.players.some((p) => p.name.toLowerCase() === clean.toLowerCase()));
   // A tournament game: squad members who are not in today's side come first. They keep the id
   // the tournament gave them, so their figures stay with the rest of their tournament.
-  const [squads, setSquads] = useState<[Player[], Player[]]>([[], []]);
+  const [squads, setSquads] = useState<[SquadPlayer[], SquadPlayer[]]>([[], []]);
   useEffect(() => {
     const fx = state.setup.fixture;
     const cached = fx ? loadTournament(fx.tournament.id) : null;
@@ -1013,7 +1014,8 @@ function PlayerSheet({ state, onClose, onSave }: { state: MatchState; onClose: (
   }, [state.setup]);
   const playing = state.teams[team].players;
   const bench = squads[team].filter((p) => !playing.some((x) => x.id === p.id || nameKey(x.name) === nameKey(p.name)));
-  const member = squads[team].find((p) => nameKey(p.name) === nameKey(clean));
+  const member = squads[team].find((p) => nameKey(p.name) === nameKey(clean)) ?? squads[team].find((p) => p.aka?.some((a) => nameKey(a.name) === nameKey(clean)));
+  const memberPlaying = !!member && playing.some((x) => x.id === member.id);
   return (
     <Sheet title="Add a late player" onClose={onClose}>
       <div className="grid grid-cols-2 gap-2">
@@ -1039,9 +1041,9 @@ function PlayerSheet({ state, onClose, onSave }: { state: MatchState; onClose: (
         {bench.length > 0 ? 'Or a new name' : 'Name'}
       </label>
       <input id="late-name" className="field" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} autoComplete="off" />
-      {taken && <p className="mt-2 text-sm text-gold">That name is already playing.</p>}
+      {(taken || memberPlaying) && <p className="mt-2 text-sm text-gold">{memberPlaying && !taken ? `${member?.name} is already playing.` : 'That name is already playing.'}</p>}
       <p className="mt-2 text-sm text-muted">Late players bat at the end of the order.</p>
-      <button type="button" disabled={!clean || taken} className="btn btn-gold btn-lg mt-5 w-full" onClick={() => onSave(team, member?.name ?? clean, member?.id)}>
+      <button type="button" disabled={!clean || taken || memberPlaying} className="btn btn-gold btn-lg mt-5 w-full" onClick={() => onSave(team, member?.name ?? clean, member?.id)}>
         Add {clean || 'player'}
       </button>
     </Sheet>

@@ -13,7 +13,7 @@ import { loadLocal, newId, newSlug, saveLocal } from '@/lib/indoor/store';
 import type { LocalMatch } from '@/lib/indoor/store';
 import { fetchMatch } from '@/lib/indoor/sync';
 import { battingFirstOf } from '@/lib/indoor/toss';
-import type { TournamentData } from '@/lib/indoor/tournament';
+import type { SquadPlayer, TournamentData } from '@/lib/indoor/tournament';
 import { fixtureTitle } from '@/lib/indoor/tournament';
 import { cacheTournament, loadTournament } from '@/lib/indoor/tstore';
 import { fetchTournament } from '@/lib/indoor/tsync';
@@ -33,7 +33,9 @@ const FIXTURE_STEPS: Step[] = ['Players', 'Toss', 'Start'];
 const todayInPrague = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Prague' }).format(new Date());
 
 // What a tournament game brings to the setup: its two teams with their ids and squads.
-type FromFixture = { link: FixtureLink; teamIds: [string, string]; pools: [Player[], Player[]] };
+type FromFixture = { link: FixtureLink; teamIds: [string, string]; pools: [SquadPlayer[], SquadPlayer[]] };
+// A match keeps plain names. The "also known as" notes stay with the tournament.
+const plain = (squad: SquadPlayer[]): Player[] => squad.map((p) => ({ id: p.id, name: p.name }));
 
 // start: a tournament game to set up (otherwise the address is read: ?t=&f=&h=&a=, or ?from=).
 // onStarted: open the scoring screen in place of going to its page, which needs no signal.
@@ -70,7 +72,7 @@ export default function SetupWizard({ start: startFrom, onStarted, onExit }: { s
         const away = d.teams.find((x) => x.id === a);
         if (!fx || !home || !away) return false;
         setNames([home.name, away.name]);
-        setSquads([home.squad, away.squad]);
+        setSquads([plain(home.squad), plain(away.squad)]);
         const r = { ...cloneRules(d.tournament.rules), zones: normaliseZones(d.tournament.rules.zones) };
         setBase(r);
         setRules(r);
@@ -157,7 +159,7 @@ export default function SetupWizard({ start: startFrom, onStarted, onExit }: { s
     setBowler(null);
     if (fixture) {
       // A tournament game goes back to the full squads.
-      setSquads(fixture.pools);
+      setSquads([plain(fixture.pools[0]), plain(fixture.pools[1])]);
     } else {
       setNames(['', '']);
       setSquads([[], []]);

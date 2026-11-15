@@ -39,6 +39,8 @@ export default function TournamentHome({ id, member }: { id: string; member: Mem
   const [openFixture, setOpenFixture] = useState<string | null>(null);
   const [openTeam, setOpenTeam] = useState<string | null>(null);
   const [tick, setTick] = useState(0); // local matches changed
+  // The phone itself says it has no connection. Known at once, where a request can hang for a while.
+  const [noSignal, setNoSignal] = useState(false);
   // Setting a game up and scoring it happen on this screen, not on pages of their own: a page
   // load needs a signal, and the hall may have none. The address still follows along, so a
   // refresh comes back to the same place.
@@ -80,7 +82,19 @@ export default function TournamentHome({ id, member }: { id: string; member: Mem
     const first = listLocal().some((lm) => lm.pending.length > 0 || lm.matchPending) ? uploadWaiting(createClientComponentClient()).catch(() => 0) : Promise.resolve(0);
     void first.then(load);
     const t = window.setInterval(() => document.visibilityState === 'visible' && void load(), REFRESH_MS);
-    return () => window.clearInterval(t);
+    // Say so the moment the signal goes, and read the tournament again the moment it is back.
+    const signal = () => {
+      setNoSignal(!navigator.onLine);
+      if (navigator.onLine) void uploadWaiting(createClientComponentClient()).catch(() => 0).then(load);
+    };
+    setNoSignal(!navigator.onLine);
+    window.addEventListener('online', signal);
+    window.addEventListener('offline', signal);
+    return () => {
+      window.clearInterval(t);
+      window.removeEventListener('online', signal);
+      window.removeEventListener('offline', signal);
+    };
   }, [id, load]);
 
   const matches = useMemo(() => (data ? mergeMatches(id, data.matches, listLocal()) : []), [data, id, tick]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -171,9 +185,9 @@ export default function TournamentHome({ id, member }: { id: string; member: Mem
       <p className="mt-2 text-sm text-muted">
         {data.teams.filter((x) => !x.withdrawn).length} teams, {data.fixtures.filter((f) => f.status !== 'cancelled').length} games{format ? `. ${format.title}.` : '.'}
       </p>
-      {problem && (
+      {(problem || noSignal) && (
         <p role="status" className="mt-3 border border-cream/22 px-3 py-2 text-sm text-sand">
-          {problem === 'offline' ? 'No connection. This is the copy saved on this phone. Games can still be started and scored.' : PROBLEM_TEXT[problem]}
+          {noSignal || problem === 'offline' || !problem ? 'No connection. This is the copy saved on this phone. Games can still be started and scored.' : PROBLEM_TEXT[problem]}
         </p>
       )}
       {b.champions.length > 0 && (

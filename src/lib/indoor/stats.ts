@@ -6,7 +6,7 @@
 import type { EndReason, MatchState, Player, TeamIndex } from './engine.ts';
 import { teamTotal } from './engine.ts';
 import type { DismissalKind } from './rules.ts';
-import { nameKey } from './names.ts';
+import { nameKey, nearName } from './names.ts';
 
 // Short keys: this travels with every score update.
 // i: batted (1) or not (0). r: runs as on the card (after wicket penalties). s: runs off the bat.
@@ -108,7 +108,9 @@ export function chargedBalls(inn: DigestInnings): number {
 
 // ---- Adding a tournament up ----
 
-export type StatsTeam = { id: string; name: string; squad: Player[] };
+type Alias = { name: string; id?: string };
+type Squad = (Player & { aka?: Alias[] })[];
+export type StatsTeam = { id: string; name: string; squad: Squad };
 // One counted match: its digest and the tournament teams that played it, in setup order.
 export type StatsMatch = { digest: MatchDigest; teams: [string | null, string | null] };
 
@@ -118,6 +120,7 @@ export type PlayerTotals = {
   teamId: string;
   team: string;
   matches: number;
+  seen: number[]; // which of the matches given to aggregate() the player was in
   bat: { innings: number; runs: number; scored: number; balls: number; outs: number; best: number | null; boundaries: number };
   bowl: { innings: number; balls: number; runs: number; wickets: number; wides: number; noBalls: number; best: { w: number; r: number } | null };
   field: { catches: number; runOuts: number; stumpings: number };
@@ -133,12 +136,16 @@ const better = (a: { w: number; r: number }, b: { w: number; r: number } | null)
 
 // One record per player per team. A player is matched by the id their tournament squad gave
 // them. A late arrival typed in by hand has a new id, so they are matched by name instead.
+// Spellings the organiser has merged (aka) count for the squad member they were merged into.
 export function aggregate(matches: StatsMatch[], teams: StatsTeam[]): PlayerTotals[] {
   const byId = new Map(teams.map((t) => [t.id, t]));
   const out = new Map<string, PlayerTotals>();
   const get = (teamId: string, id: string, name: string): PlayerTotals => {
     const team = byId.get(teamId);
-    const member = team?.squad.find((p) => p.id === id) ?? team?.squad.find((p) => nameKey(p.name) === nameKey(name));
+    const k = nameKey(name);
+    const squad = team?.squad ?? [];
+    const member =
+      squad.find((p) => p.id === id) ?? squad.find((p) => p.aka?.some((a) => a.id === id)) ?? squad.find((p) => nameKey(p.name) === k) ?? squad.find((p) => p.aka?.some((a) => nameKey(a.name) === k));
     const key = member ? `${teamId}:${member.id}` : `${teamId}:~${nameKey(name)}`;
     let p = out.get(key);
     if (!p) {
@@ -148,6 +155,7 @@ export function aggregate(matches: StatsMatch[], teams: StatsTeam[]): PlayerTota
         teamId,
         team: team?.name ?? '',
         matches: 0,
+        seen: [],
         bat: { innings: 0, runs: 0, scored: 0, balls: 0, outs: 0, best: null, boundaries: 0 },
         bowl: { innings: 0, balls: 0, runs: 0, wickets: 0, wides: 0, noBalls: 0, best: null },
         field: { catches: 0, runOuts: 0, stumpings: 0 },
@@ -158,7 +166,7 @@ export function aggregate(matches: StatsMatch[], teams: StatsTeam[]): PlayerTota
     return p;
   };
 
-  for (const m of matches) {
+  matches.forEach((m, index) => {
     const played = new Set<string>();
     const teamOf = (t: TeamIndex) => m.teams[t] ?? m.digest.teams[t];
     for (const l of m.digest.bat) {
@@ -197,8 +205,12 @@ export function aggregate(matches: StatsMatch[], teams: StatsTeam[]): PlayerTota
       p.field.runOuts += l.ro;
       p.field.stumpings += l.st;
     }
-    for (const key of played) out.get(key)!.matches += 1;
-  }
+    for (const key of played) {
+      const p = out.get(key)!;
+      p.matches += 1;
+      p.seen.push(index);
+    }
+  });
 
   const list = [...out.values()];
   for (const p of list) p.mvp = mvpPoints(p);
@@ -237,4 +249,95 @@ export function leaders(players: PlayerTotals[], board: Board, opts: { bpo: numb
     case 'mvp':
       return players.filter((p) => p.matches > 0).sort(by((p) => p.mvp, (p) => p.bat.runs));
   }
+}
+
+// ---- One player, two spellings ----
+// "Thilak" in the squad and "Tilak" typed in late are two records until the organiser says they
+// are one person. Nothing in a scored match is rewritten: the squad member simply gains an
+// "also known as" entry, and every table adds the two up from then on.
+
+// The part of a player key after the team: a squad id, or "~" and a spelling.
+const ownPart = (key: string) => key.slice(key.indexOf(':') + 1);
+
+// Games both records appear in. The same person cannot bat twice in one game, so any shared
+// game means these are probably two different people.
+export function sharedGames(a: PlayerTotals, b: PlayerTotals): number {
+  return a.seen.filter((i) => b.seen.includes(i)).length;
+}
+
+// The squad after merging `other` into `keep` (both from the same team). keep stays, with its
+// spelling. other stops being a record of its own.
+export function mergeSpellings(squad: Squad, keep: Pick<PlayerTotals, 'key' | 'name'>, other: Pick<PlayerTotals, 'key' | 'name'>, makeId: () => string): Squad {
+  const keepPart = ownPart(keep.key);
+  const otherPart = ownPart(other.key);
+  if (keepPart === otherPart) return squad;
+  const gone = otherPart.startsWith('~') ? null : squad.find((p) => p.id === otherPart);
+  const extra: Alias[] = gone ? [{ name: gone.name, id: gone.id }, ...(gone.aka ?? [])] : [{ name: other.name }];
+  const rest = squad.filter((p) => p !== gone);
+  // A name that was only ever typed in becomes a squad member, so it can hold the other spelling.
+  const target = rest.find((p) => p.id === keepPart) ?? { id: makeId(), name: keep.name };
+  const aka = [...(target.aka ?? [])];
+  for (const a of extra) {
+    const known = aka.some((x) => (a.id ? x.id === a.id : !x.id && nameKey(x.name) === nameKey(a.name)));
+    if (!known && !(nameKey(a.name) === nameKey(target.name) && !a.id)) aka.push(a);
+  }
+  const merged = { ...target, aka };
+  return rest.some((p) => p.id === target.id) ? rest.map((p) => (p.id === target.id ? merged : p)) : [...rest, merged];
+}
+
+// Undoes one merge: the spelling is its own record again. If it was a squad entry before the
+// merge, that entry comes back.
+export function splitSpelling(squad: Squad, playerId: string, alias: Alias): Squad {
+  const same = (x: Alias) => (alias.id ? x.id === alias.id : !x.id && nameKey(x.name) === nameKey(alias.name));
+  const out: Squad = squad.map((p) => {
+    if (p.id !== playerId || !p.aka) return p;
+    const aka = p.aka.filter((x) => !same(x));
+    if (aka.length) return { ...p, aka };
+    return { id: p.id, name: p.name };
+  });
+  if (alias.id && !out.some((p) => p.id === alias.id)) out.push({ id: alias.id, name: alias.name });
+  return out;
+}
+
+// Everyone a team has: the players with figures, plus squad members who have not played yet
+// (with empty figures), so a correct spelling in the squad can be the name that is kept.
+export function roster(players: PlayerTotals[], teams: StatsTeam[]): PlayerTotals[] {
+  const out = [...players];
+  for (const t of teams) {
+    for (const p of t.squad) {
+      const key = `${t.id}:${p.id}`;
+      if (out.some((x) => x.key === key)) continue;
+      out.push({
+        key,
+        name: p.name,
+        teamId: t.id,
+        team: t.name,
+        matches: 0,
+        seen: [],
+        bat: { innings: 0, runs: 0, scored: 0, balls: 0, outs: 0, best: null, boundaries: 0 },
+        bowl: { innings: 0, balls: 0, runs: 0, wickets: 0, wides: 0, noBalls: 0, best: null },
+        field: { catches: 0, runOuts: 0, stumpings: 0 },
+        mvp: 0,
+      });
+    }
+  }
+  return out;
+}
+
+// Pairs in one team whose names look like the same person, the one to keep first: the squad
+// member if there is one, otherwise whoever has played more. Left out: pairs that share a game,
+// and two squad members (the organiser entered both on purpose, like Arun and Varun).
+export function likelyDuplicates(players: PlayerTotals[]): [PlayerTotals, PlayerTotals][] {
+  const out: [PlayerTotals, PlayerTotals][] = [];
+  const typed = (p: PlayerTotals) => ownPart(p.key).startsWith('~');
+  for (let i = 0; i < players.length; i += 1) {
+    for (let j = i + 1; j < players.length; j += 1) {
+      const [a, b] = [players[i], players[j]];
+      if (a.teamId !== b.teamId || sharedGames(a, b) > 0 || (!typed(a) && !typed(b))) continue;
+      if (!nearName(a.name, [b.name]) && !nearName(b.name, [a.name])) continue;
+      const aFirst = typed(a) !== typed(b) ? !typed(a) : a.matches !== b.matches ? a.matches > b.matches : a.name.length >= b.name.length;
+      out.push(aFirst ? [a, b] : [b, a]);
+    }
+  }
+  return out;
 }

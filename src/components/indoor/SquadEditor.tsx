@@ -62,7 +62,7 @@ export default function SquadEditor({
   squads: Player[][];
   setSquads: (s: Player[][]) => void;
   minPlayers: number;
-  pools?: Player[][];
+  pools?: (Player & { aka?: { name: string; id?: string }[] })[][];
   unique?: 'all' | 'team';
   heading?: string;
   listLabel?: string;
@@ -102,9 +102,15 @@ export default function SquadEditor({
       toast.error(unique === 'all' ? `${n} is already in a squad` : `${n} is already in this team`);
       return;
     }
-    // A tournament squad member keeps the id the tournament gave them.
-    const member = pools?.[team]?.find((p) => nameKey(p.name) === nameKey(n));
-    update([...list, member ?? { id: newId(), name: n.slice(0, 40) }]);
+    // A tournament squad member keeps the id the tournament gave them, also when a spelling
+    // that was merged into them is typed.
+    const pool = pools?.[team] ?? [];
+    const member = pool.find((p) => nameKey(p.name) === nameKey(n)) ?? pool.find((p) => p.aka?.some((a) => nameKey(a.name) === nameKey(n)));
+    if (member && list.some((x) => x.id === member.id)) {
+      toast.error(`${member.name} is already playing`);
+      return;
+    }
+    update([...list, member ? { id: member.id, name: member.name } : { id: newId(), name: n.slice(0, 40) }]);
   }
 
   const move = (i: number, d: -1 | 1) => {
@@ -184,7 +190,7 @@ export default function SquadEditor({
           <p className="field-label">In the squad, not playing today</p>
           <div className="flex flex-wrap gap-2">
             {benched.map((p) => (
-              <button key={p.id} type="button" onClick={() => update([...list, p])} className="min-h-11 border border-cream/22 px-3 text-cream hover:border-gold">
+              <button key={p.id} type="button" onClick={() => update([...list, { id: p.id, name: p.name }])} className="min-h-11 border border-cream/22 px-3 text-cream hover:border-gold">
                 + {p.name}
               </button>
             ))}

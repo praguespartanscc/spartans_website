@@ -8,16 +8,18 @@ import { gamesForLateTeam, gamesOf, groupsFor, hasStarted, pinnedIds, replan, sm
 import { buildFixtures, formatChoices, schedule } from '@/lib/indoor/schedule';
 import type { Board } from '@/lib/indoor/standings';
 import type { PlayerTotals } from '@/lib/indoor/stats';
+import { likelyDuplicates, roster } from '@/lib/indoor/stats';
 import { newId } from '@/lib/indoor/store';
-import type { Fixture, Format, Points, Settings, TournamentData, TournamentTeam } from '@/lib/indoor/tournament';
+import type { Fixture, Format, Points, Settings, SquadPlayer, TournamentData, TournamentTeam } from '@/lib/indoor/tournament';
 import { forgetTournament } from '@/lib/indoor/tstore';
 import type { Saved } from '@/lib/indoor/tsync';
-import { PROBLEM_TEXT, deleteTournament, saveSchedule, updateTournament } from '@/lib/indoor/tsync';
+import { PROBLEM_TEXT, deleteTournament, saveSchedule, updateTeam, updateTournament } from '@/lib/indoor/tsync';
 import type { Member } from './MemberGate';
+import PlayerMerge from './PlayerMerge';
 import { ConfirmButton, Stepper, Toggle } from './RulesEditor';
 import ScheduleEditor from './ScheduleEditor';
 
-type Panel = 'schedule' | 'format' | 'teams' | 'points' | 'awards' | 'people' | 'name' | null;
+type Panel = 'schedule' | 'format' | 'teams' | 'players' | 'points' | 'awards' | 'people' | 'name' | null;
 type DirectoryEntry = { id: string; full_name: string | null };
 
 // The day and time in Prague, where the halls are.
@@ -148,6 +150,15 @@ export default function TournamentManage({ data, board, players, member, reload 
   const savePoints = (points: Points) => run(() => updateTournament(supabase(), t.id, { settings: { ...t.settings, points } }), 'Points saved');
   const setSetting = (patch: Partial<Settings>, ok: string) => run(() => updateTournament(supabase(), t.id, { settings: { ...t.settings, ...patch } }), ok);
   const mvp = [...players].sort((a, b) => b.mvp - a.mvp);
+  const lookAlikes = likelyDuplicates(roster(players, data.teams)).length;
+  // A merge changes one team's squad. An award that pointed at the merged name follows it.
+  const saveSquad = (team: TournamentTeam, squad: SquadPlayer[], moved: { from: string[]; to: string } | null, done: string) =>
+    run(async () => {
+      const res = await updateTeam(supabase(), team.id, { squad });
+      const award = t.settings.playerOfTournament;
+      if (!res.ok || !moved || !award || award === moved.to || !moved.from.includes(award)) return res;
+      return updateTournament(supabase(), t.id, { settings: { ...t.settings, playerOfTournament: moved.to } });
+    }, done);
   const final = data.fixtures.find((f) => f.stage === 'final');
   const finalTied = final ? board.outcome(final).tie && !board.outcome(final).winner : false;
   const withdrawing = data.teams.find((x) => x.id === leaving);
@@ -232,6 +243,16 @@ export default function TournamentManage({ data, board, players, member, reload 
             </div>
           )}
         </div>
+      </Section>
+
+      <Section
+        id="players"
+        title="Same player, two spellings"
+        hint={lookAlikes ? `${lookAlikes} ${lookAlikes === 1 ? 'pair looks' : 'pairs look'} like the same player` : 'Merge two names into one'}
+        open={panel === 'players'}
+        onToggle={setPanel}
+      >
+        <PlayerMerge teams={data.teams} players={players} busy={busy} save={saveSquad} />
       </Section>
 
       <Section id="points" title="Points" hint={`Win ${t.settings.points.win}, tie ${t.settings.points.tie}, no result ${t.settings.points.noResult}, loss ${t.settings.points.loss}`} open={panel === 'points'} onToggle={setPanel}>

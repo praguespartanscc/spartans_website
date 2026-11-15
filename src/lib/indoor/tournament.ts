@@ -54,6 +54,13 @@ export type Tournament = {
   updated_at?: string;
 };
 
+// Another way a squad member turns up in scored matches: a spelling of their name, and the id
+// of the squad entry it had if it was one. The organiser merges these in by hand.
+export type Alias = { name: string; id?: string };
+
+// A squad member. Everything scored under one of their aka entries counts for them.
+export type SquadPlayer = Player & { aka?: Alias[] };
+
 export type TournamentTeam = {
   id: string;
   tournament_id: string;
@@ -61,7 +68,7 @@ export type TournamentTeam = {
   short: string | null;
   seed: number; // 1 is the top seed
   grp: string | null; // 'A', 'B', ...
-  squad: Player[];
+  squad: SquadPlayer[];
   withdrawn: boolean;
   sort: number;
 };
